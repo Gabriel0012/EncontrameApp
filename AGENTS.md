@@ -16,9 +16,12 @@ O backend/API já existe e é mantido separadamente — este repositório é ape
 ## Stack
 
 - **Expo (SDK 57)** + **React Native** + **TypeScript**
-- **Expo Router** (navegação baseada em arquivos, pasta `src/app`)
+- **Expo Router** (navegação baseada em arquivos, raiz movida para `src/pages` via plugin `["expo-router", { "root": "./src/pages" }]` em `app.json`)
+- **@tanstack/react-query** (estado assíncrono / dados da API)
+- **axios** (cliente HTTP dos repositórios)
 - **@expo/vector-icons** (ícones, use `MaterialCommunityIcons`)
 - Estilo com `StyleSheet` do React Native (sem lib de UI externa)
+- **Biome** apenas como formatador (o lint continua no ESLint)
 
 > Expo muda muito entre versões. Consulte a doc exata em https://docs.expo.dev/versions/v57.0.0/ antes de usar APIs do Expo.
 

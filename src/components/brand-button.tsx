@@ -1,11 +1,4 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { Brand, Radius } from '@/constants/brand';
@@ -47,7 +40,8 @@ export function BrandButton({
         pressed && !isInactive && styles.pressed,
         isInactive && styles.inactive,
         style,
-      ]}>
+      ]}
+    >
       {loading ? (
         <ActivityIndicator color={textColor} />
       ) : (
