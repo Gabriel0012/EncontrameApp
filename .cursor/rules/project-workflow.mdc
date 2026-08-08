@@ -1,0 +1,22 @@
+---
+description: Fluxo de trabalho e convenções do EncontrameApp
+alwaysApply: true
+---
+
+# Fluxo de trabalho — EncontrameApp
+
+Leia `AGENTS.md` (guia de estrutura) antes de implementar.
+
+## Obrigatório
+
+- **Rode `npm run check` (typecheck + lint) antes de concluir qualquer tarefa.** Só finalize com saída limpa (exit 0); corrija o que aparecer.
+- Ao instalar pacotes neste ambiente Windows, defina `NODE_OPTIONS=--use-system-ca` (PowerShell: `$env:NODE_OPTIONS="--use-system-ca"`) e prefira `npx expo install <pkg>`.
+
+## Convenções
+
+- Cores e raios: use SEMPRE `Brand` e `Radius` de `@/constants/brand.ts`. Nunca escreva hex solto nas telas.
+- Imports pelo alias `@/` (→ `src/`) e `@/assets/` para assets.
+- Telas em `src/app/` (Expo Router); componentes reutilizáveis em `src/components/` com prefixo `brand-` para os da identidade.
+- Reaproveite `BrandButton`, `BrandField` e `ScreenHeader` antes de criar componentes novos.
+- Textos visíveis da UI em português (pt-BR).
+- Não adicione libs de UI/estilo novas sem necessidade.
