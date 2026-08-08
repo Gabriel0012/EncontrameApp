@@ -43,11 +43,11 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 52,
     maxHeight: 120,
     paddingHorizontal: 18,
     paddingVertical: 12,
-    borderRadius: Radius.pill,
+    borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Brand.fieldBorder,
     backgroundColor: Brand.white,
