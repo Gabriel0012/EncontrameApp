@@ -18,7 +18,7 @@ export const Brand = {
   textDark: '#1F2430',
   textMuted: '#60646C',
   divider: '#EDEDF1',
-  // Áreas de mapa (placeholder até a integração real)
+  // Áreas de mapa (fallback web / borda do MapView)
   mapBackground: '#E7ECF2',
   mapStroke: '#CBD5E1',
   pin: '#E23B3B',

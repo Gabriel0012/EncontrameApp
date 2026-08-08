@@ -1,13 +1,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import MapView, { Marker, type Region } from 'react-native-maps';
 
 import { Brand, Radius } from '@/constants/brand';
 
 export type MapPin = {
   id: string;
-  /** Posição relativa dentro do mapa (0..1). */
-  x: number;
-  y: number;
+  latitude: number;
+  longitude: number;
   label?: string;
   locked?: boolean;
 };
@@ -19,43 +20,109 @@ type Props = {
   style?: ViewStyle;
 };
 
+/** Centro padrão: Belo Horizonte (região dos mocks). */
+const DEFAULT_REGION: Region = {
+  latitude: -19.9167,
+  longitude: -43.9345,
+  latitudeDelta: 0.12,
+  longitudeDelta: 0.12,
+};
+
+/** Calcula a região do mapa a partir dos pins, com folga mínima. */
+function regionFromPins(pins: MapPin[]): Region {
+  if (pins.length === 0) {
+    return DEFAULT_REGION;
+  }
+
+  const latitudes = pins.map((pin) => pin.latitude);
+  const longitudes = pins.map((pin) => pin.longitude);
+  const minLat = Math.min(...latitudes);
+  const maxLat = Math.max(...latitudes);
+  const minLng = Math.min(...longitudes);
+  const maxLng = Math.max(...longitudes);
+
+  return {
+    latitude: (minLat + maxLat) / 2,
+    longitude: (minLng + maxLng) / 2,
+    latitudeDelta: Math.max((maxLat - minLat) * 1.6, 0.05),
+    longitudeDelta: Math.max((maxLng - minLng) * 1.6, 0.05),
+  };
+}
+
 /**
- * Placeholder visual do mapa. A integração real (Google Maps) entra depois;
- * por enquanto reproduz a aparência dos protótipos com pins posicionáveis.
+ * Mapa nativo com pins por coordenada (react-native-maps).
+ * Na web, o Metro resolve `brand-map.web.tsx` (sem importar esta lib).
  */
 export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      style={[styles.map, rounded && styles.rounded, style]}
-    >
-      <View style={styles.grid} pointerEvents="none">
-        <MaterialCommunityIcons name="map-outline" size={40} color={Brand.mapStroke} />
-        <Text style={styles.hint}>Mapa — integração em breve</Text>
-      </View>
+  const mapRef = useRef<MapView>(null);
+  const pinsSignatureRef = useRef('');
+  const isPreview = Boolean(onPress);
+  const region = regionFromPins(pins);
 
-      {pins.map((pin) => (
-        <View
-          key={pin.id}
-          pointerEvents="none"
-          style={[styles.pin, { left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }]}
-        >
-          <View style={styles.pinBadge}>
-            <MaterialCommunityIcons
-              name={pin.locked ? 'lock' : 'account'}
-              size={16}
-              color={Brand.white}
-            />
-          </View>
-          {pin.label ? (
-            <Text style={styles.pinLabel} numberOfLines={1}>
-              {pin.label}
-            </Text>
-          ) : null}
-        </View>
-      ))}
-    </Pressable>
+  useEffect(() => {
+    const signature = pins
+      .map((pin) => `${pin.id}:${pin.latitude},${pin.longitude}`)
+      .join('|');
+
+    if (signature === pinsSignatureRef.current) {
+      return;
+    }
+
+    pinsSignatureRef.current = signature;
+
+    if (pins.length === 0) {
+      return;
+    }
+
+    mapRef.current?.animateToRegion(regionFromPins(pins), 350);
+  }, [pins]);
+
+  return (
+    <View style={[styles.map, rounded && styles.rounded, style]}>
+      <MapView
+        ref={mapRef}
+        style={StyleSheet.absoluteFill}
+        initialRegion={region}
+        onPress={onPress}
+        scrollEnabled={!isPreview}
+        zoomEnabled={!isPreview}
+        pitchEnabled={!isPreview}
+        rotateEnabled={!isPreview}
+        toolbarEnabled={false}
+      >
+        {pins.map((pin) => (
+          <Marker
+            key={pin.id}
+            coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
+            title={pin.label}
+            tracksViewChanges={false}
+            onPress={
+              onPress
+                ? (event) => {
+                    event.stopPropagation();
+                    onPress();
+                  }
+                : undefined
+            }
+          >
+            <View style={styles.pin}>
+              <View style={styles.pinBadge}>
+                <MaterialCommunityIcons
+                  name={pin.locked ? 'lock' : 'account'}
+                  size={16}
+                  color={Brand.white}
+                />
+              </View>
+              {pin.label ? (
+                <Text style={styles.pinLabel} numberOfLines={1}>
+                  {pin.label}
+                </Text>
+              ) : null}
+            </View>
+          </Marker>
+        ))}
+      </MapView>
+    </View>
   );
 }
 
@@ -70,25 +137,8 @@ const styles = StyleSheet.create({
   rounded: {
     borderRadius: Radius.lg,
   },
-  grid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  hint: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.textMuted,
-  },
   pin: {
-    position: 'absolute',
     alignItems: 'center',
-    transform: [{ translateX: -14 }, { translateY: -14 }],
   },
   pinBadge: {
     width: 28,

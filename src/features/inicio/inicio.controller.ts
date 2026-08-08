@@ -4,15 +4,6 @@ import { useState } from 'react';
 import type { MapPin } from '@/components/brand-map';
 import { usePeopleQuery } from '@/services/people/people.service';
 
-/** Posições relativas fixas para espalhar os pins no mapa placeholder. */
-const pinSpots = [
-  { x: 0.32, y: 0.42 },
-  { x: 0.62, y: 0.3 },
-  { x: 0.48, y: 0.66 },
-  { x: 0.74, y: 0.58 },
-  { x: 0.2, y: 0.7 },
-];
-
 /** Centraliza dados e navegação da tela inicial (dashboard). */
 export function useInicioController() {
   const router = useRouter();
@@ -22,12 +13,20 @@ export function useInicioController() {
 
   const people = peopleQuery.data ?? [];
 
-  const pins: MapPin[] = people.map((person, index) => ({
-    id: person.id,
-    x: pinSpots[index % pinSpots.length].x,
-    y: pinSpots[index % pinSpots.length].y,
-    locked: person.restricted,
-  }));
+  const pins: MapPin[] = people.flatMap((person) => {
+    if (!person.coords) {
+      return [];
+    }
+
+    return [
+      {
+        id: person.id,
+        latitude: person.coords.latitude,
+        longitude: person.coords.longitude,
+        locked: person.restricted,
+      },
+    ];
+  });
 
   const closeMenu = () => setMenuOpen(false);
 
