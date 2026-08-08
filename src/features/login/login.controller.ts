@@ -20,7 +20,7 @@ export function useLoginController() {
 
     try {
       await loginMutation.mutateAsync({ identifier, password });
-      router.replace('/');
+      router.replace('/inicio');
     } catch {
       Alert.alert('Falha no login', 'Não foi possível entrar. Tente novamente.');
     }

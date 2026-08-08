@@ -18,6 +18,10 @@ export default function RootLayout() {
           <Stack.Screen name="login" />
           <Stack.Screen name="signup" />
           <Stack.Screen name="signup-password" />
+          <Stack.Screen name="inicio" />
+          <Stack.Screen name="cadastrar-pessoa" />
+          <Stack.Screen name="pessoas-proximas" />
+          <Stack.Screen name="chat" />
         </Stack>
       </SafeAreaProvider>
     </QueryClientProvider>
