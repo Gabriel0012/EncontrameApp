@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
-import { clearSession } from '@/lib/session';
+import { clearSession, getRefreshToken } from '@/lib/session';
+import { getAuthRepository } from '@/services/auth/auth.repository';
 import { usePeopleQuery } from '@/services/people/people.service';
 
 /** Centraliza dados e navegação da tela inicial (dashboard). */
@@ -37,6 +38,19 @@ export function useInicioController() {
     action();
   };
 
+  const logout = () =>
+    goTo(() => {
+      void (async () => {
+        const refreshToken = getRefreshToken();
+        try {
+          await getAuthRepository().logout(refreshToken);
+        } finally {
+          await clearSession();
+          router.replace('/');
+        }
+      })();
+    });
+
   return {
     people,
     pins,
@@ -50,10 +64,7 @@ export function useInicioController() {
     goToGroupChat: () => goTo(() => router.push('/grupo-chat')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
     goToNearbyFromMenu: () => goTo(() => router.push('/pessoas-proximas')),
-    logout: () =>
-      goTo(() => {
-        void clearSession().then(() => router.replace('/'));
-      }),
+    logout,
   };
 }
 

@@ -3,41 +3,54 @@ import { Platform } from 'react-native';
 
 import type { AuthUser } from '@/services/auth/auth.types';
 
-const TOKEN_KEY = 'encontrame.auth.token';
+const ACCESS_TOKEN_KEY = 'encontrame.auth.accessToken';
+const REFRESH_TOKEN_KEY = 'encontrame.auth.refreshToken';
 const USER_KEY = 'encontrame.auth.user';
 
 export interface Session {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: AuthUser;
 }
 
 /** Cache em memória para o interceptor do axios (storage é async). */
-let memoryToken: string | null = null;
+let memoryAccessToken: string | null = null;
+let memoryRefreshToken: string | null = null;
 let memoryUser: AuthUser | null = null;
 
 export function getAccessToken(): string | null {
-  return memoryToken;
+  return memoryAccessToken;
+}
+
+export function getRefreshToken(): string | null {
+  return memoryRefreshToken;
 }
 
 export function getSessionUser(): AuthUser | null {
   return memoryUser;
 }
 
-/** Carrega token/usuário persistidos para a memória (chamar no boot do app). */
+/** Carrega tokens/usuário persistidos para a memória (chamar no boot do app). */
 export async function hydrateSession(): Promise<Session | null> {
-  const [token, userJson] = await Promise.all([storageGet(TOKEN_KEY), storageGet(USER_KEY)]);
+  const [accessToken, refreshToken, userJson] = await Promise.all([
+    storageGet(ACCESS_TOKEN_KEY),
+    storageGet(REFRESH_TOKEN_KEY),
+    storageGet(USER_KEY),
+  ]);
 
-  if (!token || !userJson) {
-    memoryToken = null;
+  if (!accessToken || !refreshToken || !userJson) {
+    memoryAccessToken = null;
+    memoryRefreshToken = null;
     memoryUser = null;
     return null;
   }
 
   try {
     const user = JSON.parse(userJson) as AuthUser;
-    memoryToken = token;
+    memoryAccessToken = accessToken;
+    memoryRefreshToken = refreshToken;
     memoryUser = user;
-    return { token, user };
+    return { accessToken, refreshToken, user };
   } catch {
     await clearSession();
     return null;
@@ -45,18 +58,25 @@ export async function hydrateSession(): Promise<Session | null> {
 }
 
 export async function saveSession(session: Session): Promise<void> {
-  memoryToken = session.token;
+  memoryAccessToken = session.accessToken;
+  memoryRefreshToken = session.refreshToken;
   memoryUser = session.user;
   await Promise.all([
-    storageSet(TOKEN_KEY, session.token),
+    storageSet(ACCESS_TOKEN_KEY, session.accessToken),
+    storageSet(REFRESH_TOKEN_KEY, session.refreshToken),
     storageSet(USER_KEY, JSON.stringify(session.user)),
   ]);
 }
 
 export async function clearSession(): Promise<void> {
-  memoryToken = null;
+  memoryAccessToken = null;
+  memoryRefreshToken = null;
   memoryUser = null;
-  await Promise.all([storageDelete(TOKEN_KEY), storageDelete(USER_KEY)]);
+  await Promise.all([
+    storageDelete(ACCESS_TOKEN_KEY),
+    storageDelete(REFRESH_TOKEN_KEY),
+    storageDelete(USER_KEY),
+  ]);
 }
 
 /**

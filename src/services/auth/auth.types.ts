@@ -21,6 +21,7 @@ export interface AuthUser {
 }
 
 export interface AuthResult {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: AuthUser;
 }

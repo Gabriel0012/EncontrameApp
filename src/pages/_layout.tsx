@@ -1,17 +1,26 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Brand } from '@/constants/brand';
+import { setSessionExpiredHandler } from '@/lib/auth-events';
 import { queryClient } from '@/lib/query-client';
 import { hydrateSession } from '@/lib/session';
 
 export default function RootLayout() {
+  const router = useRouter();
+
   useEffect(() => {
     void hydrateSession();
-  }, []);
+
+    setSessionExpiredHandler(() => {
+      router.replace('/login');
+    });
+
+    return () => setSessionExpiredHandler(null);
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>

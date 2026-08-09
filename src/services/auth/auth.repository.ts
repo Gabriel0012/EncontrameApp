@@ -7,6 +7,8 @@ import type { AuthResult, LoginPayload, SignupPayload } from '@/services/auth/au
 export interface AuthRepository {
   login(payload: LoginPayload): Promise<AuthResult>;
   signup(payload: SignupPayload): Promise<AuthResult>;
+  refresh(refreshToken: string): Promise<AuthResult>;
+  logout(refreshToken: string | null): Promise<void>;
 }
 
 /**
