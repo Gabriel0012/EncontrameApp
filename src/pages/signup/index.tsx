@@ -1,14 +1,18 @@
+import { useMemo } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { ContentShell } from '@/components/content-shell';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/brand';
+import { type BrandColors } from '@/constants/brand';
 import { SignupFormSection } from '@/features/signup/sections/signup-form-section';
 import { useSignupController } from '@/features/signup/signup.controller';
+import { useBrand } from '@/lib/brand-theme';
 
 export default function SignupPage() {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const controller = useSignupController();
 
   return (
@@ -29,17 +33,19 @@ export default function SignupPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Brand.white,
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: brand.white,
+    },
+    flex: {
+      flex: 1,
+    },
+    content: {
+      flexGrow: 1,
+      paddingTop: 8,
+      paddingBottom: 16,
+    },
+  });
+}

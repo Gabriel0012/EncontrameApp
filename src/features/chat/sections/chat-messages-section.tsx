@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { ChatController } from '@/features/chat/chat.controller';
+import { useBrand } from '@/lib/brand-theme';
 import type { ChatMessage } from '@/services/chat/chat.types';
 
 interface ChatMessagesSectionProps {
@@ -11,6 +12,8 @@ interface ChatMessagesSectionProps {
 }
 
 export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   const renderItem = ({ item }: { item: ChatMessage }) => {
@@ -39,57 +42,59 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: PageGutter,
-    paddingVertical: 16,
-    gap: 18,
-  },
-  dateLabel: {
-    alignSelf: 'center',
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.textMuted,
-    marginBottom: 6,
-  },
-  row: {
-    maxWidth: '82%',
-    gap: 4,
-  },
-  rowUser: {
-    alignSelf: 'flex-end',
-    alignItems: 'flex-end',
-  },
-  rowAI: {
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  bubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: Radius.lg,
-  },
-  bubbleUser: {
-    backgroundColor: Brand.chatBubbleUser,
-    borderBottomRightRadius: Radius.sm,
-  },
-  bubbleAI: {
-    backgroundColor: Brand.chatBubbleAI,
-    borderBottomLeftRadius: Radius.sm,
-  },
-  text: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  textUser: {
-    color: Brand.white,
-    fontWeight: '600',
-  },
-  textAI: {
-    color: Brand.textDark,
-  },
-  time: {
-    fontSize: 12,
-    color: Brand.placeholder,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: PageGutter,
+      paddingVertical: 16,
+      gap: 18,
+    },
+    dateLabel: {
+      alignSelf: 'center',
+      fontSize: 13,
+      fontWeight: '600',
+      color: brand.textMuted,
+      marginBottom: 6,
+    },
+    row: {
+      maxWidth: '82%',
+      gap: 4,
+    },
+    rowUser: {
+      alignSelf: 'flex-end',
+      alignItems: 'flex-end',
+    },
+    rowAI: {
+      alignSelf: 'flex-start',
+      alignItems: 'flex-start',
+    },
+    bubble: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: Radius.lg,
+    },
+    bubbleUser: {
+      backgroundColor: brand.chatBubbleUser,
+      borderBottomRightRadius: Radius.sm,
+    },
+    bubbleAI: {
+      backgroundColor: brand.chatBubbleAI,
+      borderBottomLeftRadius: Radius.sm,
+    },
+    text: {
+      fontSize: 15,
+      lineHeight: 21,
+    },
+    textUser: {
+      color: brand.onPrimary,
+      fontWeight: '600',
+    },
+    textAI: {
+      color: brand.textDark,
+    },
+    time: {
+      fontSize: 12,
+      color: brand.placeholder,
+    },
+  });
+}

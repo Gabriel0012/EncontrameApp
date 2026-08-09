@@ -14,7 +14,7 @@ Leia `AGENTS.md` (guia de estrutura) antes de implementar.
 
 ## Convenções
 
-- Cores e raios: use SEMPRE `Brand` e `Radius` de `@/constants/brand.ts`. Nunca escreva hex solto nas telas.
+- Cores e raios: hex só em `@/constants/brand.ts` / `global.css`; na UI use `useBrand()` e `Radius`. Nunca escreva hex solto nas telas.
 - Imports pelo alias `@/` (→ `src/`) e `@/assets/` para assets.
 - Telas em `src/app/` (Expo Router); componentes reutilizáveis em `src/components/` com prefixo `brand-` para os da identidade.
 - Reaproveite `BrandButton`, `BrandField` e `ScreenHeader` antes de criar componentes novos.

@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
+import { useBrand } from '@/lib/brand-theme';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 
 type Variant = 'orange' | 'blue' | 'outline';
@@ -27,9 +28,11 @@ export function BrandButton({
   trailingIcon,
   style,
 }: Props) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const isOutline = variant === 'outline';
-  const bg = variant === 'orange' ? Brand.orange : variant === 'blue' ? Brand.blue : Brand.white;
-  const textColor = isOutline ? Brand.blue : Brand.white;
+  const bg = variant === 'orange' ? brand.orange : variant === 'blue' ? brand.blue : brand.white;
+  const textColor = isOutline ? brand.blue : brand.onPrimary;
   const isInactive = disabled || loading;
   const [highlighted, setHighlighted] = useState(false);
 
@@ -74,25 +77,27 @@ export function BrandButton({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    height: 54,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  outline: {
-    borderWidth: 1.5,
-    borderColor: Brand.blue,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  label: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    base: {
+      height: 54,
+      borderRadius: Radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+    },
+    outline: {
+      borderWidth: 1.5,
+      borderColor: brand.blue,
+    },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    label: {
+      fontSize: 17,
+      fontWeight: '700',
+    },
+  });
+}

@@ -1,11 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
+import { useBrand } from '@/lib/brand-theme';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
@@ -14,6 +15,8 @@ import { useWideLayout } from '@/lib/use-wide-layout';
  */
 export function RegisterFab() {
   const router = useRouter();
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const insets = useSafeAreaInsets();
   const { isWide } = useWideLayout();
   const [highlighted, setHighlighted] = useState(false);
@@ -35,28 +38,30 @@ export function RegisterFab() {
       style={[styles.anchor, { bottom: Math.max(insets.bottom, 24) + 8, right: 24 }]}
     >
       <Animated.View style={[styles.fab, opacity]}>
-        <MaterialCommunityIcons name="account-plus" size={28} color={Brand.white} />
+        <MaterialCommunityIcons name="account-plus" size={28} color={brand.onPrimary} />
       </Animated.View>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  anchor: {
-    position: 'absolute',
-    zIndex: 20,
-  },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: Radius.pill,
-    backgroundColor: Brand.blue,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Brand.navyDeep,
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    anchor: {
+      position: 'absolute',
+      zIndex: 20,
+    },
+    fab: {
+      width: 56,
+      height: 56,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.blue,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: brand.navyDeep,
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 8,
+    },
+  });
+}

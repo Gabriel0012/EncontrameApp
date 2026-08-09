@@ -56,7 +56,9 @@ src/
     screen-header.tsx          # cabeçalho com voltar + título
     bottom-bar.tsx             # barra inferior (câmera/início/telefone) — hoje só visual
   constants/
-    brand.ts                   # CORES e RAIOS da marca — fonte única de estilo
+    brand.ts                   # Paletas light/dark + Radius — hex só aqui; UI usa useBrand()
+  lib/
+    brand-theme.tsx            # BrandThemeProvider + useBrand (preferência do sistema)
 assets/images/                 # imagens (logo.png é a logo oficial)
 ```
 
@@ -82,9 +84,11 @@ Fluxo: **section → controller → service (React Query) → repository (mock |
 
 ## Convenções (siga sempre)
 
-- **Cores e raios**: use SEMPRE `Brand` e `Radius` de `@/constants/brand.ts`. Nunca escreva hex solto nas telas.
-  - `Brand.navy` = `#0B2442` (fundo, igual ao fundo da logo)
-  - `Brand.orange`, `Brand.cream`, `Brand.blue` = destaques/CTA
+- **Cores e raios**: hex só em `@/constants/brand.ts` (paletas light/dark) e espelho CSS em `src/global.css`.
+  Na UI use **`useBrand()`** de `@/lib/brand-theme` (e `Radius` de `@/constants/brand.ts`). Nunca escreva hex solto nas telas.
+  - Preferência do sistema via `useColorScheme` (`BrandThemeProvider` no `_layout`).
+  - `brand.navy` = fundo da marca (home); `brand.white` = fundo de tela; `brand.surface` = superfícies elevadas
+  - `brand.orange`, `brand.cream`, `brand.blue` = destaques/CTA; `brand.onPrimary` = texto/ícone sobre azul/laranja
 - **Imports**: use o alias `@/` (mapeado para `src/`) e `@/assets/` para assets.
 - **Nomes de arquivo**: `kebab-case` para componentes e sections (`brand-button.tsx`, `login-form-section.tsx`); cada pasta em `src/pages/<pagina>/index.tsx` define a URL.
 - **Idioma da UI**: textos visíveis em **português (pt-BR)**.

@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   interpolateColor,
@@ -9,8 +9,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
 import { brandTiming } from '@/constants/motion';
+import { useBrand } from '@/lib/brand-theme';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
@@ -21,17 +22,16 @@ type Props = {
   active?: Tab;
 };
 
-/** Azul da marca com alpha 0 — `transparent` quebra interpolateColor. */
-const BLUE_CLEAR = 'rgba(27, 77, 184, 0)';
-
 function BottomTab({
   icon,
   isActive,
   onPress,
+  brand,
 }: {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   isActive: boolean;
   onPress?: () => void;
+  brand: BrandColors;
 }) {
   const [highlighted, setHighlighted] = useState(false);
   const pressOpacity = useTimedOpacity(highlighted ? 0.85 : 1);
@@ -44,7 +44,7 @@ function BottomTab({
   }, [isActive, progress]);
 
   const wrapStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(progress.value, [0, 1], [BLUE_CLEAR, Brand.blue]),
+    backgroundColor: interpolateColor(progress.value, [0, 1], [brand.blueClear, brand.blue]),
   }));
 
   const inactiveIconStyle = useAnimatedStyle(() => ({
@@ -59,10 +59,10 @@ function BottomTab({
     <Animated.View style={[styles.iconWrap, wrapStyle, pressOpacity]}>
       <View style={styles.iconStack}>
         <Animated.View style={[styles.iconLayer, inactiveIconStyle]}>
-          <MaterialCommunityIcons name={icon} size={26} color={Brand.label} />
+          <MaterialCommunityIcons name={icon} size={26} color={brand.label} />
         </Animated.View>
         <Animated.View style={[styles.iconLayer, activeIconStyle]}>
-          <MaterialCommunityIcons name={icon} size={26} color={Brand.white} />
+          <MaterialCommunityIcons name={icon} size={26} color={brand.onPrimary} />
         </Animated.View>
       </View>
     </Animated.View>
@@ -91,6 +91,8 @@ function BottomTab({
  * Em telas largas cede lugar ao menu + FAB.
  */
 export function BottomBar({ active }: Props) {
+  const brand = useBrand();
+  const stylesBar = useMemo(() => makeBarStyles(brand), [brand]);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isWide } = useWideLayout();
@@ -100,14 +102,16 @@ export function BottomBar({ active }: Props) {
   }
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <BottomTab icon="phone" isActive={active === 'phone'} />
+    <View style={[stylesBar.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+      <BottomTab brand={brand} icon="phone" isActive={active === 'phone'} />
       <BottomTab
+        brand={brand}
         icon="home"
         isActive={active === 'home'}
         onPress={() => router.push('/inicio')}
       />
       <BottomTab
+        brand={brand}
         icon="account-plus"
         isActive={active === 'register'}
         onPress={() => router.push('/cadastrar-pessoa')}
@@ -116,16 +120,21 @@ export function BottomBar({ active }: Props) {
   );
 }
 
+function makeBarStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    bar: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: brand.fieldBorder,
+      backgroundColor: brand.white,
+    },
+  });
+}
+
 const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Brand.fieldBorder,
-    backgroundColor: Brand.white,
-  },
   iconWrap: {
     padding: 8,
     borderRadius: Radius.sm,

@@ -1,15 +1,20 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { ChatController } from '@/features/chat/chat.controller';
+import { useBrand } from '@/lib/brand-theme';
 
 interface ChatInputSectionProps {
   controller: ChatController;
 }
 
 export function ChatInputSection({ controller }: ChatInputSectionProps) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
+
   return (
     <View style={styles.bar}>
       <TextInput
@@ -17,7 +22,7 @@ export function ChatInputSection({ controller }: ChatInputSectionProps) {
         value={controller.input}
         onChangeText={controller.setInput}
         placeholder="Digite sua mensagem aqui..."
-        placeholderTextColor={Brand.placeholder}
+        placeholderTextColor={brand.placeholder}
         multiline
       />
       <Pressable
@@ -25,45 +30,47 @@ export function ChatInputSection({ controller }: ChatInputSectionProps) {
         onPress={controller.handleSend}
         disabled={!controller.canSend}
       >
-        <MaterialCommunityIcons name="send" size={20} color={Brand.white} />
+        <MaterialCommunityIcons name="send" size={20} color={brand.onPrimary} />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-    paddingHorizontal: PageGutter,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: Brand.divider,
-    backgroundColor: Brand.white,
-  },
-  input: {
-    flex: 1,
-    minHeight: 52,
-    maxHeight: 120,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Brand.fieldBorder,
-    backgroundColor: Brand.white,
-    fontSize: 15,
-    color: Brand.textDark,
-  },
-  send: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Brand.blue,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendDisabled: {
-    backgroundColor: Brand.fieldBorder,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 10,
+      paddingHorizontal: PageGutter,
+      paddingVertical: 12,
+      borderTopWidth: 1,
+      borderTopColor: brand.divider,
+      backgroundColor: brand.white,
+    },
+    input: {
+      flex: 1,
+      minHeight: 52,
+      maxHeight: 120,
+      paddingHorizontal: 18,
+      paddingVertical: 12,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+      backgroundColor: brand.fieldBackground,
+      fontSize: 15,
+      color: brand.textDark,
+    },
+    send: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: brand.blue,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendDisabled: {
+      backgroundColor: brand.fieldBorder,
+    },
+  });
+}

@@ -1,7 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
+import { useBrand } from '@/lib/brand-theme';
 
 export type MapPin = {
   id: string;
@@ -44,6 +46,8 @@ function relativePositions(pins: MapPin[]) {
  * Fallback do mapa no navegador — react-native-maps não roda na web.
  */
 export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const positioned = relativePositions(pins);
 
   return (
@@ -53,7 +57,7 @@ export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) 
       style={[styles.map, rounded && styles.rounded, style]}
     >
       <View style={styles.fallback} pointerEvents="none">
-        <MaterialCommunityIcons name="map-outline" size={40} color={Brand.mapStroke} />
+        <MaterialCommunityIcons name="map-outline" size={40} color={brand.mapStroke} />
         <Text style={styles.hint}>Mapa disponível no app (iOS/Android)</Text>
       </View>
 
@@ -67,7 +71,7 @@ export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) 
             <MaterialCommunityIcons
               name={pin.locked ? 'lock' : 'account'}
               size={16}
-              color={Brand.white}
+              color={brand.onPrimary}
             />
           </View>
           {pin.label ? (
@@ -81,48 +85,50 @@ export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
-  map: {
-    flex: 1,
-    backgroundColor: Brand.mapBackground,
-    borderWidth: 1,
-    borderColor: Brand.mapStroke,
-    overflow: 'hidden',
-  },
-  rounded: {
-    borderRadius: Radius.lg,
-  },
-  fallback: {
-    ...StyleSheet.absoluteFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  hint: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.textMuted,
-  },
-  pin: {
-    position: 'absolute',
-    alignItems: 'center',
-    transform: [{ translateX: -14 }, { translateY: -14 }],
-  },
-  pinBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Brand.pin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Brand.white,
-  },
-  pinLabel: {
-    marginTop: 2,
-    maxWidth: 90,
-    fontSize: 11,
-    fontWeight: '700',
-    color: Brand.textDark,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    map: {
+      flex: 1,
+      backgroundColor: brand.mapBackground,
+      borderWidth: 1,
+      borderColor: brand.mapStroke,
+      overflow: 'hidden',
+    },
+    rounded: {
+      borderRadius: Radius.lg,
+    },
+    fallback: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    hint: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: brand.textMuted,
+    },
+    pin: {
+      position: 'absolute',
+      alignItems: 'center',
+      transform: [{ translateX: -14 }, { translateY: -14 }],
+    },
+    pinBadge: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: brand.pin,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: brand.onPrimary,
+    },
+    pinLabel: {
+      marginTop: 2,
+      maxWidth: 90,
+      fontSize: 11,
+      fontWeight: '700',
+      color: brand.textDark,
+    },
+  });
+}

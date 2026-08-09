@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
+import { useBrand } from '@/lib/brand-theme';
 
 export type MapPin = {
   id: string;
@@ -54,6 +55,8 @@ function regionFromPins(pins: MapPin[]): Region {
  * Na web, o Metro resolve `brand-map.web.tsx` (sem importar esta lib).
  */
 export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const mapRef = useRef<MapView>(null);
   const pinsSignatureRef = useRef('');
   const isPreview = Boolean(onPress);
@@ -110,7 +113,7 @@ export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) 
                 <MaterialCommunityIcons
                   name={pin.locked ? 'lock' : 'account'}
                   size={16}
-                  color={Brand.white}
+                  color={brand.onPrimary}
                 />
               </View>
               {pin.label ? (
@@ -126,35 +129,37 @@ export function BrandMap({ pins = [], onPress, rounded = false, style }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
-  map: {
-    flex: 1,
-    backgroundColor: Brand.mapBackground,
-    borderWidth: 1,
-    borderColor: Brand.mapStroke,
-    overflow: 'hidden',
-  },
-  rounded: {
-    borderRadius: Radius.lg,
-  },
-  pin: {
-    alignItems: 'center',
-  },
-  pinBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Brand.pin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Brand.white,
-  },
-  pinLabel: {
-    marginTop: 2,
-    maxWidth: 90,
-    fontSize: 11,
-    fontWeight: '700',
-    color: Brand.textDark,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    map: {
+      flex: 1,
+      backgroundColor: brand.mapBackground,
+      borderWidth: 1,
+      borderColor: brand.mapStroke,
+      overflow: 'hidden',
+    },
+    rounded: {
+      borderRadius: Radius.lg,
+    },
+    pin: {
+      alignItems: 'center',
+    },
+    pinBadge: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: brand.pin,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: brand.onPrimary,
+    },
+    pinLabel: {
+      marginTop: 2,
+      maxWidth: 90,
+      fontSize: 11,
+      fontWeight: '700',
+      color: brand.textDark,
+    },
+  });
+}

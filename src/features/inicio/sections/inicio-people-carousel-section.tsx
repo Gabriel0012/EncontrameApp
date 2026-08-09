@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Image,
   type NativeScrollEvent,
@@ -11,8 +11,9 @@ import {
   View,
 } from 'react-native';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
 import type { InicioController } from '@/features/inicio/inicio.controller';
+import { useBrand } from '@/lib/brand-theme';
 
 interface InicioPeopleCarouselSectionProps {
   controller: InicioController;
@@ -22,6 +23,8 @@ const CARD_WIDTH = 150;
 const CARD_GAP = 12;
 
 export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarouselSectionProps) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const { people } = controller;
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -45,7 +48,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
               {person.photoUri ? (
                 <Image source={{ uri: person.photoUri }} style={styles.photoImage} />
               ) : (
-                <MaterialCommunityIcons name="account" size={96} color={Brand.avatarIcon} />
+                <MaterialCommunityIcons name="account" size={96} color={brand.avatarIcon} />
               )}
             </View>
             <View style={styles.info}>
@@ -67,52 +70,54 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: 10,
-  },
-  track: {
-    gap: CARD_GAP,
-  },
-  card: {
-    width: CARD_WIDTH,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-    backgroundColor: Brand.avatarBackground,
-  },
-  photo: {
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Brand.avatarBackground,
-  },
-  photoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  info: {
-    backgroundColor: Brand.blue,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 2,
-  },
-  infoText: {
-    color: Brand.white,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Brand.fieldBorder,
-  },
-  dotActive: {
-    backgroundColor: Brand.textMuted,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    wrapper: {
+      gap: 10,
+    },
+    track: {
+      gap: CARD_GAP,
+    },
+    card: {
+      width: CARD_WIDTH,
+      borderRadius: Radius.md,
+      overflow: 'hidden',
+      backgroundColor: brand.avatarBackground,
+    },
+    photo: {
+      height: 200,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: brand.avatarBackground,
+    },
+    photoImage: {
+      width: '100%',
+      height: '100%',
+    },
+    info: {
+      backgroundColor: brand.blue,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      gap: 2,
+    },
+    infoText: {
+      color: brand.onPrimary,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    dots: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    dot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: brand.fieldBorder,
+    },
+    dotActive: {
+      backgroundColor: brand.textMuted,
+    },
+  });
+}

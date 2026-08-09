@@ -6,4 +6,55 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo, "MS PGothic", sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
+
+  /* Espelho de BrandPalettes.light — chrome do documento no web */
+  --background: #ffffff;
+  --surface: #ffffff;
+  --input: #ffffff;
+  --border: #dcdce1;
+  --text-primary: #1f2430;
+  --text-secondary: #60646c;
+  --text-placeholder: #b4b4bc;
+  --text-label: #8a8a92;
+  --primary: #1b4db8;
+  --primary-hover: #163f97;
+  --navy: #0b2442;
+  --orange: #f5822e;
+  --cream: #f4e4c1;
+  --divider: #ededf1;
+  --map-background: #e7ecf2;
+  --map-stroke: #cbd5e1;
+  --pin: #e23b3b;
+  --avatar-background: #c2c7ce;
+  --avatar-icon: #e6e9ed;
+  --chat-bubble-ai: #ecebf6;
+  --chat-bubble-user: #1b4db8;
+  --on-primary: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #22262b;
+    --surface: #2b3036;
+    --input: #30363d;
+    --border: #464d56;
+    --text-primary: #f1f3f5;
+    --text-secondary: #b4bac3;
+    --text-placeholder: #858c96;
+    --text-label: #b4bac3;
+    --primary: #3264d1;
+    --primary-hover: #4073e2;
+    --navy: #0b2442;
+    --orange: #f5822e;
+    --cream: #f4e4c1;
+    --divider: #464d56;
+    --map-background: #2b3036;
+    --map-stroke: #464d56;
+    --pin: #e23b3b;
+    --avatar-background: #3a4149;
+    --avatar-icon: #858c96;
+    --chat-bubble-ai: #2b3036;
+    --chat-bubble-user: #3264d1;
+    --on-primary: #ffffff;
+  }
 }

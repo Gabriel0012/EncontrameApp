@@ -1,11 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
+import { useBrand } from '@/lib/brand-theme';
 import { useTimedColor, useTimedOpacity } from '@/lib/use-brand-transition';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
@@ -21,9 +22,17 @@ type MenuItem = {
   danger?: boolean;
 };
 
-function MenuItemRow({ item }: { item: MenuItem }) {
+function MenuItemRow({
+  item,
+  brand,
+  styles,
+}: {
+  item: MenuItem;
+  brand: BrandColors;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   const [highlighted, setHighlighted] = useState(false);
-  const bgStyle = useTimedColor(highlighted, 'transparent', Brand.divider, 'backgroundColor');
+  const bgStyle = useTimedColor(highlighted, 'transparent', brand.divider, 'backgroundColor');
 
   return (
     <Pressable
@@ -32,13 +41,13 @@ function MenuItemRow({ item }: { item: MenuItem }) {
       onPressOut={() => setHighlighted(false)}
       onHoverIn={() => setHighlighted(true)}
       onHoverOut={() => setHighlighted(false)}
-      android_ripple={{ color: Brand.divider }}
+      android_ripple={{ color: brand.divider }}
     >
       <Animated.View style={[styles.menuItem, bgStyle]}>
         <MaterialCommunityIcons
           name={item.icon}
           size={22}
-          color={item.danger ? Brand.orangeDark : Brand.blue}
+          color={item.danger ? brand.orangeDark : brand.blue}
         />
         <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>{item.label}</Text>
       </Animated.View>
@@ -47,6 +56,8 @@ function MenuItemRow({ item }: { item: MenuItem }) {
 }
 
 export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const { isWide } = useWideLayout();
   const menuButtonRef = useRef<View>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({
@@ -120,7 +131,7 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
         >
           <View ref={menuButtonRef} collapsable={false}>
             <Animated.View style={[styles.menuButton, menuOpacity]}>
-              <MaterialCommunityIcons name="menu" size={26} color={Brand.label} />
+              <MaterialCommunityIcons name="menu" size={26} color={brand.label} />
             </Animated.View>
           </View>
         </Pressable>
@@ -140,7 +151,7 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
           >
             <Text style={styles.menuTitle}>Menu</Text>
             {menuItems.map((item) => (
-              <MenuItemRow key={item.key} item={item} />
+              <MenuItemRow key={item.key} item={item} brand={brand} styles={styles} />
             ))}
           </Pressable>
         </Pressable>
@@ -149,66 +160,68 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  menuButton: {
-    padding: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Brand.textDark,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(11, 36, 66, 0.45)',
-  },
-  menu: {
-    position: 'absolute',
-    width: 260,
-    backgroundColor: Brand.white,
-    borderRadius: Radius.lg,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    gap: 2,
-    shadowColor: Brand.navyDeep,
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  menuTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Brand.label,
-    paddingHorizontal: 12,
-    paddingTop: 6,
-    paddingBottom: 4,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: Radius.md,
-  },
-  menuLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Brand.textDark,
-  },
-  menuLabelDanger: {
-    color: Brand.orangeDark,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+    },
+    brand: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    menuButton: {
+      padding: 4,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: brand.textDark,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: brand.overlay,
+    },
+    menu: {
+      position: 'absolute',
+      width: 260,
+      backgroundColor: brand.surface,
+      borderRadius: Radius.lg,
+      paddingVertical: 8,
+      paddingHorizontal: 6,
+      gap: 2,
+      shadowColor: brand.navyDeep,
+      shadowOpacity: 0.2,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 8,
+    },
+    menuTitle: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: brand.label,
+      paddingHorizontal: 12,
+      paddingTop: 6,
+      paddingBottom: 4,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+      borderRadius: Radius.md,
+    },
+    menuLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: brand.textDark,
+    },
+    menuLabelDanger: {
+      color: brand.orangeDark,
+    },
+  });
+}

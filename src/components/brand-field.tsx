@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/brand';
+import { Radius, type BrandColors } from '@/constants/brand';
+import { useBrand } from '@/lib/brand-theme';
 import { useTimedColor } from '@/lib/use-brand-transition';
 
 type Props = {
@@ -40,8 +41,10 @@ export function BrandField({
   onTrailingPress,
   tone = 'default',
 }: Props) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
   const [focused, setFocused] = useState(false);
-  const borderStyle = useTimedColor(focused, Brand.fieldBorder, Brand.blue, 'borderColor');
+  const borderStyle = useTimedColor(focused, brand.fieldBorder, brand.blue, 'borderColor');
 
   return (
     <View style={styles.wrapper}>
@@ -52,7 +55,7 @@ export function BrandField({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={Brand.placeholder}
+          placeholderTextColor={brand.placeholder}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
@@ -61,7 +64,7 @@ export function BrandField({
         />
         {trailingIcon ? (
           <Pressable onPress={onTrailingPress} hitSlop={8}>
-            <MaterialCommunityIcons name={trailingIcon} size={22} color={Brand.placeholder} />
+            <MaterialCommunityIcons name={trailingIcon} size={22} color={brand.placeholder} />
           </Pressable>
         ) : null}
       </Animated.View>
@@ -69,33 +72,35 @@ export function BrandField({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Brand.label,
-  },
-  labelOnDark: {
-    color: Brand.cream,
-  },
-  field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 52,
-    paddingHorizontal: 18,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Brand.fieldBorder,
-    backgroundColor: Brand.fieldBackground,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: Brand.textDark,
-    paddingVertical: 12,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    wrapper: {
+      gap: 8,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: brand.label,
+    },
+    labelOnDark: {
+      color: brand.cream,
+    },
+    field: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      minHeight: 52,
+      paddingHorizontal: 18,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+      backgroundColor: brand.fieldBackground,
+    },
+    input: {
+      flex: 1,
+      fontSize: 16,
+      color: brand.textDark,
+      paddingVertical: 12,
+    },
+  });
+}

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { Brand } from '@/constants/brand';
+import { useBrand } from '@/lib/brand-theme';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 
 export function ScreenHeader({ title, onBack }: Props) {
   const router = useRouter();
+  const brand = useBrand();
   const handleBack = onBack ?? (() => router.back());
   const [highlighted, setHighlighted] = useState(false);
   const opacityStyle = useTimedOpacity(highlighted ? 0.85 : 1);
@@ -29,10 +30,10 @@ export function ScreenHeader({ title, onBack }: Props) {
         onHoverOut={() => setHighlighted(false)}
       >
         <Animated.View style={[styles.backButton, opacityStyle]}>
-          <MaterialCommunityIcons name="chevron-left" size={30} color={Brand.textDark} />
+          <MaterialCommunityIcons name="chevron-left" size={30} color={brand.textDark} />
         </Animated.View>
       </Pressable>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, { color: brand.textDark }]}>{title}</Text>
     </View>
   );
 }
@@ -50,6 +51,5 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: Brand.textDark,
   },
 });
