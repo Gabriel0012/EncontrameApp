@@ -74,9 +74,9 @@ export function CadastrarPessoaDetailsSection({ controller }: CadastrarPessoaDet
         label="Cadastrar"
         variant="blue"
         loading={controller.submitting}
-        disabled={!controller.canSubmit}
+        disabled={!controller.canSubmit || !controller.nearFormEnd}
         onPress={controller.handleRegister}
-        style={styles.submit}
+        style={controller.nearFormEnd ? styles.submit : styles.submitHidden}
       />
     </View>
   );
@@ -95,5 +95,9 @@ const styles = StyleSheet.create({
   },
   submit: {
     marginTop: 8,
+  },
+  submitHidden: {
+    marginTop: 8,
+    opacity: 0,
   },
 });

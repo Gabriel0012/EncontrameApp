@@ -8,6 +8,8 @@ import type { CreatePersonPayload } from '@/services/people/people.types';
 export const ETHNICITY_OPTIONS = ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena'] as const;
 export const BUILD_OPTIONS = ['Magro', 'Médio', 'Atlético', 'Forte'] as const;
 
+const SUBMIT_END_THRESHOLD = 120;
+
 /** Centraliza estado, validação e cadastro de uma nova pessoa desaparecida. */
 export function useCadastrarPessoaController() {
   const router = useRouter();
@@ -28,8 +30,22 @@ export function useCadastrarPessoaController() {
   const [location, setLocation] = useState('');
   const [lastSeen, setLastSeen] = useState('');
   const [phone, setPhone] = useState('');
+  /** True quando o botão "Cadastrar" do formulário entra na área visível. */
+  const [nearFormEnd, setNearFormEnd] = useState(false);
 
   const canSubmit = Boolean(fullName.trim() && location.trim() && phone.trim());
+
+  const updateSubmitVisibility = (metrics: {
+    contentHeight: number;
+    layoutHeight: number;
+    offsetY: number;
+  }) => {
+    const { contentHeight, layoutHeight, offsetY } = metrics;
+    if (layoutHeight <= 0) return;
+    const fitsWithoutScroll = contentHeight <= layoutHeight + 8;
+    const atEnd = offsetY + layoutHeight >= contentHeight - SUBMIT_END_THRESHOLD;
+    setNearFormEnd(fitsWithoutScroll || atEnd);
+  };
 
   const handlePickPhoto = () => {
     // TODO: abrir a câmera/galeria (expo-image-picker) na integração.
@@ -106,6 +122,8 @@ export function useCadastrarPessoaController() {
     setPhone,
     canSubmit,
     submitting: createMutation.isPending,
+    nearFormEnd,
+    updateSubmitVisibility,
     handlePickPhoto,
     handleLocationSearch,
     handleRegister,
