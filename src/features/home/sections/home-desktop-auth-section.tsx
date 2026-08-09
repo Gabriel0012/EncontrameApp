@@ -20,7 +20,7 @@ export function HomeDesktopAuthSection({ home, login }: HomeDesktopAuthSectionPr
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
-        <LoginFormSection controller={login} compact />
+        <LoginFormSection controller={login} compact submitVariant="orange" />
       </View>
       <Pressable onPress={home.goToSignup} hitSlop={12} style={styles.signupHit}>
         <Text style={styles.signupLink}>Criar uma conta</Text>

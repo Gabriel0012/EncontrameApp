@@ -10,12 +10,15 @@ interface LoginFormSectionProps {
   tone?: 'default' | 'onDark';
   /** Remove margem superior (quando o form já vem embutido). */
   compact?: boolean;
+  /** Cor do botão Entrar (laranja na home web). */
+  submitVariant?: 'orange' | 'blue';
 }
 
 export function LoginFormSection({
   controller,
   tone = 'default',
   compact = false,
+  submitVariant = 'blue',
 }: LoginFormSectionProps) {
   return (
     <View style={[styles.form, compact && styles.formCompact]}>
@@ -38,7 +41,7 @@ export function LoginFormSection({
       />
       <BrandButton
         label="Entrar"
-        variant="blue"
+        variant={submitVariant}
         loading={controller.submitting}
         onPress={controller.handleLogin}
         style={styles.submit}
