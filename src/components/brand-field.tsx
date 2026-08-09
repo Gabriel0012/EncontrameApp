@@ -9,8 +9,10 @@ import {
   type KeyboardTypeOptions,
   type TextInputProps,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Brand, Radius } from '@/constants/brand';
+import { useTimedColor } from '@/lib/use-brand-transition';
 
 type Props = {
   label: string;
@@ -36,11 +38,12 @@ export function BrandField({
   onTrailingPress,
 }: Props) {
   const [focused, setFocused] = useState(false);
+  const borderStyle = useTimedColor(focused, Brand.fieldBorder, Brand.blue, 'borderColor');
 
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.field, focused && styles.fieldFocused]}>
+      <Animated.View style={[styles.field, borderStyle]}>
         <TextInput
           style={styles.input}
           value={value}
@@ -58,7 +61,7 @@ export function BrandField({
             <MaterialCommunityIcons name={trailingIcon} size={22} color={Brand.placeholder} />
           </Pressable>
         ) : null}
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -82,9 +85,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Brand.fieldBorder,
     backgroundColor: Brand.fieldBackground,
-  },
-  fieldFocused: {
-    borderColor: Brand.blue,
   },
   input: {
     flex: 1,

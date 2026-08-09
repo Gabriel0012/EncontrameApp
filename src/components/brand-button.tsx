@@ -1,7 +1,10 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { Brand, Radius } from '@/constants/brand';
+import { useTimedOpacity } from '@/lib/use-brand-transition';
 
 type Variant = 'orange' | 'blue' | 'outline';
 
@@ -28,30 +31,45 @@ export function BrandButton({
   const bg = variant === 'orange' ? Brand.orange : variant === 'blue' ? Brand.blue : Brand.white;
   const textColor = isOutline ? Brand.blue : Brand.white;
   const isInactive = disabled || loading;
+  const [highlighted, setHighlighted] = useState(false);
+
+  const opacityTarget = isInactive ? 0.5 : highlighted ? 0.85 : 1;
+  const animatedStyle = useTimedOpacity(opacityTarget);
+
+  const setHighlight = (on: boolean) => {
+    if (isInactive) return;
+    setHighlighted(on);
+  };
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isInactive}
-      style={({ pressed }) => [
-        styles.base,
-        { backgroundColor: bg },
-        isOutline && styles.outline,
-        pressed && !isInactive && styles.pressed,
-        isInactive && styles.inactive,
-        style,
-      ]}
+      onPressIn={() => setHighlight(true)}
+      onPressOut={() => setHighlight(false)}
+      onHoverIn={() => setHighlight(true)}
+      onHoverOut={() => setHighlight(false)}
     >
-      {loading ? (
-        <ActivityIndicator color={textColor} />
-      ) : (
-        <View style={styles.content}>
-          <Text style={[styles.label, { color: textColor }]}>{label}</Text>
-          {trailingIcon ? (
-            <MaterialCommunityIcons name={trailingIcon} size={20} color={textColor} />
-          ) : null}
-        </View>
-      )}
+      <Animated.View
+        style={[
+          styles.base,
+          { backgroundColor: bg },
+          isOutline && styles.outline,
+          animatedStyle,
+          style,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={textColor} />
+        ) : (
+          <View style={styles.content}>
+            <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+            {trailingIcon ? (
+              <MaterialCommunityIcons name={trailingIcon} size={20} color={textColor} />
+            ) : null}
+          </View>
+        )}
+      </Animated.View>
     </Pressable>
   );
 }
@@ -76,11 +94,5 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 17,
     fontWeight: '700',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  inactive: {
-    opacity: 0.5,
   },
 });
