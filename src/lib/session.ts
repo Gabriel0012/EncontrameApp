@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 import type { AuthUser } from '@/services/auth/auth.types';
 
@@ -10,7 +11,7 @@ export interface Session {
   user: AuthUser;
 }
 
-/** Cache em memória para o interceptor do axios (SecureStore é async). */
+/** Cache em memória para o interceptor do axios (storage é async). */
 let memoryToken: string | null = null;
 let memoryUser: AuthUser | null = null;
 
@@ -24,10 +25,7 @@ export function getSessionUser(): AuthUser | null {
 
 /** Carrega token/usuário persistidos para a memória (chamar no boot do app). */
 export async function hydrateSession(): Promise<Session | null> {
-  const [token, userJson] = await Promise.all([
-    SecureStore.getItemAsync(TOKEN_KEY),
-    SecureStore.getItemAsync(USER_KEY),
-  ]);
+  const [token, userJson] = await Promise.all([storageGet(TOKEN_KEY), storageGet(USER_KEY)]);
 
   if (!token || !userJson) {
     memoryToken = null;
@@ -50,16 +48,82 @@ export async function saveSession(session: Session): Promise<void> {
   memoryToken = session.token;
   memoryUser = session.user;
   await Promise.all([
-    SecureStore.setItemAsync(TOKEN_KEY, session.token),
-    SecureStore.setItemAsync(USER_KEY, JSON.stringify(session.user)),
+    storageSet(TOKEN_KEY, session.token),
+    storageSet(USER_KEY, JSON.stringify(session.user)),
   ]);
 }
 
 export async function clearSession(): Promise<void> {
   memoryToken = null;
   memoryUser = null;
-  await Promise.all([
-    SecureStore.deleteItemAsync(TOKEN_KEY),
-    SecureStore.deleteItemAsync(USER_KEY),
-  ]);
+  await Promise.all([storageDelete(TOKEN_KEY), storageDelete(USER_KEY)]);
+}
+
+/**
+ * SecureStore só funciona em iOS/Android nativo.
+ * No web (ou se o módulo nativo falhar), usa localStorage / memória.
+ */
+async function storageGet(key: string): Promise<string | null> {
+  if (Platform.OS === 'web') {
+    return webGet(key);
+  }
+
+  try {
+    return await SecureStore.getItemAsync(key);
+  } catch {
+    return webGet(key);
+  }
+}
+
+async function storageSet(key: string, value: string): Promise<void> {
+  if (Platform.OS === 'web') {
+    webSet(key, value);
+    return;
+  }
+
+  try {
+    await SecureStore.setItemAsync(key, value);
+  } catch {
+    webSet(key, value);
+  }
+}
+
+async function storageDelete(key: string): Promise<void> {
+  if (Platform.OS === 'web') {
+    webDelete(key);
+    return;
+  }
+
+  try {
+    await SecureStore.deleteItemAsync(key);
+  } catch {
+    webDelete(key);
+  }
+}
+
+function webGet(key: string): string | null {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function webSet(key: string, value: string): void {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(key, value);
+  } catch {
+    // Sem storage persistente — fica só o cache em memória.
+  }
+}
+
+function webDelete(key: string): void {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
 }
