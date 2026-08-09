@@ -14,22 +14,25 @@ import {
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 interface InicioPeopleCarouselSectionProps {
   controller: InicioController;
 }
 
-const CARD_WIDTH = 150;
-const CARD_GAP = 12;
+const CARD_MOBILE = { width: 150, gap: 12, photoHeight: 200 } as const;
+const CARD_WIDE = { width: 420, gap: 16, photoWidth: 220 } as const;
 
 export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarouselSectionProps) {
   const brand = useBrand();
-  const styles = useMemo(() => makeStyles(brand), [brand]);
+  const { isWide } = useWideLayout();
+  const card = isWide ? CARD_WIDE : CARD_MOBILE;
+  const styles = useMemo(() => makeStyles(brand, isWide), [brand, isWide]);
   const { people } = controller;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / (CARD_WIDTH + CARD_GAP));
+    const index = Math.round(event.nativeEvent.contentOffset.x / (card.width + card.gap));
     setActiveIndex(index);
   };
 
@@ -48,11 +51,15 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
               {person.photoUri ? (
                 <Image source={{ uri: person.photoUri }} style={styles.photoImage} />
               ) : (
-                <MaterialCommunityIcons name="account" size={96} color={brand.avatarIcon} />
+                <MaterialCommunityIcons
+                  name="account"
+                  size={isWide ? 120 : 96}
+                  color={brand.avatarIcon}
+                />
               )}
             </View>
             <View style={styles.info}>
-              <Text style={styles.infoText} numberOfLines={1}>
+              <Text style={styles.infoText} numberOfLines={isWide ? 2 : 1}>
                 Nome: {person.nickname ?? person.fullName}
               </Text>
               <Text style={styles.infoText}>Idade: {person.age ?? '—'}</Text>
@@ -70,22 +77,35 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
   );
 }
 
-function makeStyles(brand: BrandColors) {
+function makeStyles(brand: BrandColors, isWide: boolean) {
   return StyleSheet.create({
     wrapper: {
       gap: 10,
     },
     track: {
-      gap: CARD_GAP,
+      gap: isWide ? CARD_WIDE.gap : CARD_MOBILE.gap,
     },
     card: {
-      width: CARD_WIDTH,
+      width: isWide ? CARD_WIDE.width : CARD_MOBILE.width,
       borderRadius: Radius.md,
       overflow: 'hidden',
       backgroundColor: brand.avatarBackground,
+      ...(isWide
+        ? {
+            flexDirection: 'row' as const,
+            height: 200,
+          }
+        : null),
     },
     photo: {
-      height: 200,
+      ...(isWide
+        ? {
+            width: CARD_WIDE.photoWidth,
+            height: '100%' as const,
+          }
+        : {
+            height: CARD_MOBILE.photoHeight,
+          }),
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: brand.avatarBackground,
@@ -96,13 +116,19 @@ function makeStyles(brand: BrandColors) {
     },
     info: {
       backgroundColor: brand.blue,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      gap: 2,
+      paddingHorizontal: isWide ? 20 : 12,
+      paddingVertical: isWide ? 16 : 8,
+      gap: isWide ? 6 : 2,
+      ...(isWide
+        ? {
+            flex: 1,
+            justifyContent: 'center' as const,
+          }
+        : null),
     },
     infoText: {
       color: brand.onPrimary,
-      fontSize: 13,
+      fontSize: isWide ? 16 : 13,
       fontWeight: '700',
     },
     dots: {

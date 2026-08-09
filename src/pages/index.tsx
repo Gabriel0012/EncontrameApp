@@ -33,12 +33,22 @@ export default function HomePage() {
             keyboardShouldPersistTaps="handled"
             bounces={false}
           >
-            <ContentShell style={[styles.shell, isWide && styles.shellWide]}>
-              <HomeHeroSection compact={isWide} />
+            <ContentShell
+              style={[styles.shell, isWide && styles.shellWide]}
+              noGutter={isWide}
+            >
               {isWide ? (
-                <HomeDesktopAuthSection home={home} login={login} />
+                <View style={styles.columns}>
+                  <HomeHeroSection side />
+                  <View style={styles.authColumn}>
+                    <HomeDesktopAuthSection home={home} login={login} />
+                  </View>
+                </View>
               ) : (
-                <HomeActionsSection controller={home} />
+                <>
+                  <HomeHeroSection />
+                  <HomeActionsSection controller={home} />
+                </>
               )}
             </ContentShell>
           </ScrollView>
@@ -70,8 +80,23 @@ function makeStyles(brand: BrandColors) {
     },
     shellWide: {
       justifyContent: 'center',
-      gap: 8,
-      maxWidth: 440,
+      maxWidth: 980,
+      width: '100%',
+      paddingHorizontal: 40,
+      paddingVertical: 32,
+    },
+    columns: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 48,
+      width: '100%',
+      flexGrow: 1,
+    },
+    authColumn: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 280,
     },
   });
 }
