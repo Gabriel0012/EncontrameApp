@@ -4,6 +4,7 @@ import { notifySessionExpired } from '@/lib/auth-events';
 import { env } from '@/lib/env';
 import {
   clearSession,
+  ensureSessionHydrated,
   getAccessToken,
   getRefreshToken,
   getSessionUser,
@@ -58,6 +59,8 @@ api.interceptors.response.use(
       original.headers.Authorization = `Bearer ${accessToken}`;
       return api(original);
     } catch (refreshError) {
+      // Só limpa storage / redireciona quando o refresh realmente falhou
+      // (token ausente no storage ou /Auth/refresh rejeitou).
       await clearSession();
       notifySessionExpired();
       return Promise.reject(refreshError);
@@ -77,6 +80,9 @@ function isAuthPublicPath(url: string) {
 async function refreshAccessTokenShared(): Promise<string> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
+      // Pós-F5 a memória pode estar vazia: relê o storage antes de desistir.
+      await ensureSessionHydrated();
+
       const refreshToken = getRefreshToken();
       if (!refreshToken) {
         throw new Error('Refresh token ausente.');
@@ -86,6 +92,10 @@ async function refreshAccessTokenShared(): Promise<string> {
       const user = result.user ?? getSessionUser();
       if (!user) {
         throw new Error('Usuário da sessão ausente.');
+      }
+
+      if (!result.accessToken || !result.refreshToken) {
+        throw new Error('Resposta de refresh incompleta.');
       }
 
       await saveSession({

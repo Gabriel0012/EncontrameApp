@@ -1,12 +1,14 @@
 import { create as createAxios } from 'axios';
 
+import { env } from '@/lib/env';
 import type { AuthRepository } from '@/services/auth/auth.repository';
 import type { AuthResult, LoginPayload, SignupPayload } from '@/services/auth/auth.types';
-import { env } from '@/lib/env';
 
 interface ApiAuthResponse {
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string;
+  refreshToken?: string;
+  /** Campo legado — algumas versões da API ainda enviam `token`. */
+  token?: string;
   user: {
     id: string;
     name: string;
@@ -65,9 +67,16 @@ export const authAxiosRepository: AuthRepository = {
 };
 
 function mapAuthResult(data: ApiAuthResponse): AuthResult {
+  const accessToken = data.accessToken || data.token || '';
+  const refreshToken = data.refreshToken || '';
+
+  if (!accessToken) {
+    throw new Error('Resposta de autenticação sem accessToken.');
+  }
+
   return {
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
+    accessToken,
+    refreshToken,
     user: {
       id: String(data.user.id),
       name: data.user.name,

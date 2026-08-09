@@ -1,7 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Brand } from '@/constants/brand';
@@ -11,35 +12,61 @@ import { hydrateSession } from '@/lib/session';
 
 export default function RootLayout() {
   const router = useRouter();
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    void hydrateSession();
+    let cancelled = false;
+
+    void (async () => {
+      await hydrateSession();
+      if (!cancelled) {
+        setSessionReady(true);
+      }
+    })();
 
     setSessionExpiredHandler(() => {
       router.replace('/login');
     });
 
-    return () => setSessionExpiredHandler(null);
+    return () => {
+      cancelled = true;
+      setSessionExpiredHandler(null);
+    };
   }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <StatusBar style="auto" />
-        <Stack
-          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Brand.white } }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="login" />
-          <Stack.Screen name="signup" />
-          <Stack.Screen name="signup-password" />
-          <Stack.Screen name="inicio" />
-          <Stack.Screen name="cadastrar-pessoa" />
-          <Stack.Screen name="pessoas-proximas" />
-          <Stack.Screen name="chat" />
-          <Stack.Screen name="grupo-chat" />
-        </Stack>
+        {sessionReady ? (
+          <Stack
+            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Brand.white } }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="signup" />
+            <Stack.Screen name="signup-password" />
+            <Stack.Screen name="inicio" />
+            <Stack.Screen name="cadastrar-pessoa" />
+            <Stack.Screen name="pessoas-proximas" />
+            <Stack.Screen name="chat" />
+            <Stack.Screen name="grupo-chat" />
+          </Stack>
+        ) : (
+          <View style={styles.boot}>
+            <ActivityIndicator size="large" color={Brand.orange} />
+          </View>
+        )}
       </SafeAreaProvider>
     </QueryClientProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  boot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Brand.navy,
+  },
+});

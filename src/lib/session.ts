@@ -18,6 +18,9 @@ let memoryAccessToken: string | null = null;
 let memoryRefreshToken: string | null = null;
 let memoryUser: AuthUser | null = null;
 
+/** Evita várias leituras paralelas do storage no boot / 401. */
+let hydratePromise: Promise<Session | null> | null = null;
+
 export function getAccessToken(): string | null {
   return memoryAccessToken;
 }
@@ -32,29 +35,29 @@ export function getSessionUser(): AuthUser | null {
 
 /** Carrega tokens/usuário persistidos para a memória (chamar no boot do app). */
 export async function hydrateSession(): Promise<Session | null> {
-  const [accessToken, refreshToken, userJson] = await Promise.all([
-    storageGet(ACCESS_TOKEN_KEY),
-    storageGet(REFRESH_TOKEN_KEY),
-    storageGet(USER_KEY),
-  ]);
+  if (!hydratePromise) {
+    hydratePromise = readSessionFromStorage().finally(() => {
+      hydratePromise = null;
+    });
+  }
+  return hydratePromise;
+}
 
-  if (!accessToken || !refreshToken || !userJson) {
-    memoryAccessToken = null;
-    memoryRefreshToken = null;
-    memoryUser = null;
-    return null;
+/**
+ * Garante que a memória reflita o storage.
+ * Usado pelo interceptor 401 quando a memória ainda está vazia (ex.: race pós-F5).
+ * Não apaga o storage se as chaves estiverem ausentes — só atualiza a memória.
+ */
+export async function ensureSessionHydrated(): Promise<Session | null> {
+  if (memoryAccessToken && memoryRefreshToken && memoryUser) {
+    return {
+      accessToken: memoryAccessToken,
+      refreshToken: memoryRefreshToken,
+      user: memoryUser,
+    };
   }
 
-  try {
-    const user = JSON.parse(userJson) as AuthUser;
-    memoryAccessToken = accessToken;
-    memoryRefreshToken = refreshToken;
-    memoryUser = user;
-    return { accessToken, refreshToken, user };
-  } catch {
-    await clearSession();
-    return null;
-  }
+  return hydrateSession();
 }
 
 export async function saveSession(session: Session): Promise<void> {
@@ -77,6 +80,34 @@ export async function clearSession(): Promise<void> {
     storageDelete(REFRESH_TOKEN_KEY),
     storageDelete(USER_KEY),
   ]);
+}
+
+async function readSessionFromStorage(): Promise<Session | null> {
+  const [accessToken, refreshToken, userJson] = await Promise.all([
+    storageGet(ACCESS_TOKEN_KEY),
+    storageGet(REFRESH_TOKEN_KEY),
+    storageGet(USER_KEY),
+  ]);
+
+  if (!accessToken || !refreshToken || !userJson) {
+    // Não chama clearSession: ausência na memória pós-F5 não deve apagar o storage.
+    memoryAccessToken = accessToken;
+    memoryRefreshToken = refreshToken;
+    memoryUser = null;
+    return null;
+  }
+
+  try {
+    const user = JSON.parse(userJson) as AuthUser;
+    memoryAccessToken = accessToken;
+    memoryRefreshToken = refreshToken;
+    memoryUser = user;
+    return { accessToken, refreshToken, user };
+  } catch {
+    // JSON corrompido — aí sim limpa.
+    await clearSession();
+    return null;
+  }
 }
 
 /**
