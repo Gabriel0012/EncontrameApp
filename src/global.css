@@ -34,26 +34,26 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #22262b;
-    --surface: #2b3036;
-    --input: #30363d;
-    --border: #464d56;
-    --text-primary: #f1f3f5;
-    --text-secondary: #b4bac3;
-    --text-placeholder: #858c96;
-    --text-label: #b4bac3;
+    --background: #121417;
+    --surface: #1a1d21;
+    --input: #22262b;
+    --border: #343a42;
+    --text-primary: #e8eaed;
+    --text-secondary: #a8afb8;
+    --text-placeholder: #6f7680;
+    --text-label: #a8afb8;
     --primary: #3264d1;
     --primary-hover: #4073e2;
     --navy: #0b2442;
     --orange: #f5822e;
     --cream: #f4e4c1;
-    --divider: #464d56;
-    --map-background: #2b3036;
-    --map-stroke: #464d56;
+    --divider: #343a42;
+    --map-background: #1a1d21;
+    --map-stroke: #343a42;
     --pin: #e23b3b;
-    --avatar-background: #3a4149;
-    --avatar-icon: #858c96;
-    --chat-bubble-ai: #2b3036;
+    --avatar-background: #2a2f36;
+    --avatar-icon: #6f7680;
+    --chat-bubble-ai: #1a1d21;
     --chat-bubble-user: #3264d1;
     --on-primary: #ffffff;
   }
