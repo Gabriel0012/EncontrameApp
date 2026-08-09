@@ -1,7 +1,8 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
+import { ContentShell } from '@/components/content-shell';
 import { Brand } from '@/constants/brand';
 import { useInicioController } from '@/features/inicio/inicio.controller';
 import { InicioMapSection } from '@/features/inicio/sections/inicio-map-section';
@@ -13,11 +14,11 @@ export default function InicioPage() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.content}>
+      <ContentShell style={styles.content}>
         <InicioTopBarSection controller={controller} />
         <InicioPeopleCarouselSection controller={controller} />
         <InicioMapSection controller={controller} />
-      </View>
+      </ContentShell>
       <BottomBar active="home" />
     </SafeAreaView>
   );

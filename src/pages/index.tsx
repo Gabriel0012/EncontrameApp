@@ -2,10 +2,11 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ContentShell } from '@/components/content-shell';
+import { Brand } from '@/constants/brand';
 import { useHomeController } from '@/features/home/home.controller';
 import { HomeActionsSection } from '@/features/home/sections/home-actions-section';
 import { HomeHeroSection } from '@/features/home/sections/home-hero-section';
-import { Brand } from '@/constants/brand';
 
 export default function HomePage() {
   const controller = useHomeController();
@@ -14,8 +15,10 @@ export default function HomePage() {
     <View style={styles.container}>
       <StatusBar style="light" />
       <SafeAreaView style={styles.safeArea}>
-        <HomeHeroSection />
-        <HomeActionsSection controller={controller} />
+        <ContentShell style={styles.shell}>
+          <HomeHeroSection />
+          <HomeActionsSection controller={controller} />
+        </ContentShell>
       </SafeAreaView>
     </View>
   );
@@ -27,6 +30,9 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.navy,
   },
   safeArea: {
+    flex: 1,
+  },
+  shell: {
     flex: 1,
     paddingHorizontal: 28,
     paddingBottom: 24,

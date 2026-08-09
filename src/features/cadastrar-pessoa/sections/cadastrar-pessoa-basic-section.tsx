@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandField } from '@/components/brand-field';
 import { BrandSelect } from '@/components/brand-select';
+import { FormRow } from '@/components/form-row';
 import { Brand, Radius } from '@/constants/brand';
 import {
   BUILD_OPTIONS,
@@ -28,27 +29,38 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
         </Pressable>
       </View>
 
-      <BrandField
-        label="Nome Completo"
-        value={controller.fullName}
-        onChangeText={controller.setFullName}
-        placeholder="Fulano Beltrano da Silva"
-        autoCapitalize="words"
-      />
-      <BrandField
-        label="Apelido"
-        value={controller.nickname}
-        onChangeText={controller.setNickname}
-        placeholder="Fulano"
-        autoCapitalize="words"
-      />
-      <BrandField
-        label="Idade"
-        value={controller.age}
-        onChangeText={controller.setAge}
-        placeholder="36"
-        keyboardType="number-pad"
-      />
+      <FormRow>
+        <BrandField
+          label="Nome Completo"
+          value={controller.fullName}
+          onChangeText={controller.setFullName}
+          placeholder="Fulano Beltrano da Silva"
+          autoCapitalize="words"
+        />
+        <BrandField
+          label="Apelido"
+          value={controller.nickname}
+          onChangeText={controller.setNickname}
+          placeholder="Fulano"
+          autoCapitalize="words"
+        />
+      </FormRow>
+
+      <FormRow>
+        <BrandField
+          label="Idade"
+          value={controller.age}
+          onChangeText={controller.setAge}
+          placeholder="36"
+          keyboardType="number-pad"
+        />
+        <BrandSelect
+          label="Porte físico"
+          value={controller.build}
+          options={BUILD_OPTIONS}
+          onSelect={controller.setBuild}
+        />
+      </FormRow>
 
       <View style={styles.row}>
         <View style={styles.rowItem}>
@@ -69,13 +81,6 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
           />
         </View>
       </View>
-
-      <BrandSelect
-        label="Porte físico"
-        value={controller.build}
-        options={BUILD_OPTIONS}
-        onSelect={controller.setBuild}
-      />
 
       <BrandField
         label="Roupas"

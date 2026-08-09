@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
+import { FormRow } from '@/components/form-row';
 import type { CadastrarPessoaController } from '@/features/cadastrar-pessoa/cadastrar-pessoa.controller';
 
 interface CadastrarPessoaDetailsSectionProps {
@@ -11,30 +12,34 @@ interface CadastrarPessoaDetailsSectionProps {
 export function CadastrarPessoaDetailsSection({ controller }: CadastrarPessoaDetailsSectionProps) {
   return (
     <View style={styles.form}>
-      <BrandField
-        label="Cabelo"
-        value={controller.hair}
-        onChangeText={controller.setHair}
-        placeholder="Cabelo preto cacheado"
-      />
-      <BrandField
-        label="Olhos"
-        value={controller.eyes}
-        onChangeText={controller.setEyes}
-        placeholder="Olhos castanhos"
-      />
-      <BrandField
-        label="Tatuagem"
-        value={controller.tattoo}
-        onChangeText={controller.setTattoo}
-        placeholder="Tatuagem de leão no braço esquerdo"
-      />
-      <BrandField
-        label="Acessórios"
-        value={controller.accessories}
-        onChangeText={controller.setAccessories}
-        placeholder="Brincos, colar, pulseiras, etc..."
-      />
+      <FormRow>
+        <BrandField
+          label="Cabelo"
+          value={controller.hair}
+          onChangeText={controller.setHair}
+          placeholder="Cabelo preto cacheado"
+        />
+        <BrandField
+          label="Olhos"
+          value={controller.eyes}
+          onChangeText={controller.setEyes}
+          placeholder="Olhos castanhos"
+        />
+      </FormRow>
+      <FormRow>
+        <BrandField
+          label="Tatuagem"
+          value={controller.tattoo}
+          onChangeText={controller.setTattoo}
+          placeholder="Tatuagem de leão no braço esquerdo"
+        />
+        <BrandField
+          label="Acessórios"
+          value={controller.accessories}
+          onChangeText={controller.setAccessories}
+          placeholder="Brincos, colar, pulseiras, etc..."
+        />
+      </FormRow>
       <BrandField
         label="Localidade"
         value={controller.location}

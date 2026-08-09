@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
+import { ContentShell } from '@/components/content-shell';
 import { ScreenHeader } from '@/components/screen-header';
 import { Brand } from '@/constants/brand';
 import { useCadastrarPessoaController } from '@/features/cadastrar-pessoa/cadastrar-pessoa.controller';
@@ -18,11 +19,13 @@ export default function CadastrarPessoaPage() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ScreenHeader title="Cadastrar uma pessoa" />
-          <View style={styles.form}>
-            <CadastrarPessoaBasicSection controller={controller} />
-            <CadastrarPessoaDetailsSection controller={controller} />
-          </View>
+          <ContentShell style={styles.shell}>
+            <ScreenHeader title="Cadastrar uma pessoa" />
+            <View style={styles.form}>
+              <CadastrarPessoaBasicSection controller={controller} />
+              <CadastrarPessoaDetailsSection controller={controller} />
+            </View>
+          </ContentShell>
         </ScrollView>
       </KeyboardAvoidingView>
       <BottomBar active="register" />
@@ -40,9 +43,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 24,
+  },
+  shell: {
+    paddingHorizontal: 24,
   },
   form: {
     marginTop: 16,

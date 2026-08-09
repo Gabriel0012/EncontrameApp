@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
+import { ContentShell } from '@/components/content-shell';
 import { ScreenHeader } from '@/components/screen-header';
 import { Brand } from '@/constants/brand';
 import { useLoginController } from '@/features/login/login.controller';
@@ -17,8 +18,10 @@ export default function LoginPage() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ScreenHeader title="Entrar" />
-          <LoginFormSection controller={controller} />
+          <ContentShell style={styles.shell}>
+            <ScreenHeader title="Entrar" />
+            <LoginFormSection controller={controller} />
+          </ContentShell>
         </ScrollView>
       </KeyboardAvoidingView>
       <BottomBar />
@@ -36,7 +39,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingHorizontal: 24,
     paddingTop: 8,
+  },
+  shell: {
+    paddingHorizontal: 24,
   },
 });
