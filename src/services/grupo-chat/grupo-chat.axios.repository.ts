@@ -25,17 +25,17 @@ interface ApiGroupMessage {
 
 let cachedSupportGroupId: number | null = null;
 
-/** Implementação real: fala com /api/Group e mensagens do grupo de apoio. */
+/** Implementação real: fala com /Group e mensagens do grupo de apoio. */
 export const grupoChatAxiosRepository: GroupChatRepository = {
   async history() {
     const groupId = await resolveSupportGroupId();
-    const { data } = await api.get<ApiGroupMessage[]>(`/api/Group/${groupId}/messages`);
+    const { data } = await api.get<ApiGroupMessage[]>(`/Group/${groupId}/messages`);
     return data.map(mapMessage);
   },
 
   async send(payload: SendGroupMessagePayload) {
     const groupId = await resolveSupportGroupId();
-    const { data } = await api.post<ApiGroupMessage>(`/api/Group/${groupId}/messages`, {
+    const { data } = await api.post<ApiGroupMessage>(`/Group/${groupId}/messages`, {
       message: payload.text,
     });
     return mapMessage(data);
@@ -47,7 +47,7 @@ async function resolveSupportGroupId(): Promise<number> {
     return cachedSupportGroupId;
   }
 
-  const { data } = await api.get<ApiGroup[]>('/api/Group');
+  const { data } = await api.get<ApiGroup[]>('/Group');
   const support =
     data.find((group) => group.name.toLowerCase() === 'apoio') ?? data[0] ?? null;
 

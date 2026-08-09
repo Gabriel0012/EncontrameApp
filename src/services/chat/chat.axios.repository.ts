@@ -10,15 +10,15 @@ interface ApiChatMessage {
   dtRegistration: string;
 }
 
-/** Implementação real: fala com /api/IAChat/messages. */
+/** Implementação real: fala com /IAChat/messages. */
 export const chatAxiosRepository: ChatRepository = {
   async history() {
-    const { data } = await api.get<ApiChatMessage[]>('/api/IAChat/messages');
+    const { data } = await api.get<ApiChatMessage[]>('/IAChat/messages');
     return data.map(mapMessage);
   },
 
   async send(payload: SendMessagePayload) {
-    const { data } = await api.post<ApiChatMessage[]>('/api/IAChat/messages', {
+    const { data } = await api.post<ApiChatMessage[]>('/IAChat/messages', {
       message: payload.text,
     });
 

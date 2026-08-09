@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { saveSession } from '@/lib/session';
 import { getAuthRepository } from '@/services/auth/auth.repository';
-import type { AuthResult, LoginPayload, SignupPayload } from '@/services/auth/auth.types';
+import type { LoginPayload, SignupPayload } from '@/services/auth/auth.types';
 
 /**
  * Camada de acesso à API de autenticação exposta como hooks do React Query.
@@ -27,7 +27,3 @@ export function useSignupMutation() {
     },
   });
 }
-
-export type { AuthResult };
-
-253461

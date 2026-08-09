@@ -14,7 +14,7 @@ interface ApiAuthResponse {
 /** Implementação real: fala com a EncontrameApi via axios. */
 export const authAxiosRepository: AuthRepository = {
   async login(payload: LoginPayload) {
-    const { data } = await api.post<ApiAuthResponse>('/api/Auth/login', {
+    const { data } = await api.post<ApiAuthResponse>('/Auth/login', {
       identifier: payload.identifier,
       password: payload.password,
     });
@@ -22,7 +22,7 @@ export const authAxiosRepository: AuthRepository = {
   },
 
   async signup(payload: SignupPayload) {
-    const { data } = await api.post<ApiAuthResponse>('/api/Auth/register', {
+    const { data } = await api.post<ApiAuthResponse>('/Auth/register', {
       name: payload.name,
       document: payload.cpf,
       email: payload.email,

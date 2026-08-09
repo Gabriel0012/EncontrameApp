@@ -19,15 +19,15 @@ interface ApiMissingPerson {
   dtRegistration?: string;
 }
 
-/** Implementação real: fala com /api/MissingPerson. */
+/** Implementação real: fala com /MissingPerson. */
 export const peopleAxiosRepository: PeopleRepository = {
   async list() {
-    const { data } = await api.get<ApiMissingPerson[]>('/api/MissingPerson');
+    const { data } = await api.get<ApiMissingPerson[]>('/MissingPerson');
     return data.map(mapPerson);
   },
 
   async listNearby(query: string) {
-    const { data } = await api.get<ApiMissingPerson[]>('/api/MissingPerson/nearby', {
+    const { data } = await api.get<ApiMissingPerson[]>('/MissingPerson/nearby', {
       params: { q: query || undefined },
     });
     return data.map(mapPerson);
@@ -35,7 +35,7 @@ export const peopleAxiosRepository: PeopleRepository = {
 
   async create(payload: CreatePersonPayload) {
     const height = Number.parseFloat(payload.heightCm.replace(',', '.'));
-    const { data } = await api.post<ApiMissingPerson>('/api/MissingPerson', {
+    const { data } = await api.post<ApiMissingPerson>('/MissingPerson', {
       name: payload.fullName,
       nickName: payload.nickname || null,
       height: Number.isFinite(height) ? height : null,
