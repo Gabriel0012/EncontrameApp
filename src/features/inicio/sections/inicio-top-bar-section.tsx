@@ -1,11 +1,13 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { useState } from 'react';
 
 import { Brand, Radius } from '@/constants/brand';
-import { useTimedColor, useTimedOpacity } from '@/lib/use-brand-transition';
+import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
+import { useTimedColor, useTimedOpacity } from '@/lib/use-brand-transition';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 interface InicioTopBarSectionProps {
   controller: InicioController;
@@ -45,7 +47,26 @@ function MenuItemRow({ item }: { item: MenuItem }) {
 }
 
 export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
+  const { isWide } = useWideLayout();
+  const menuButtonRef = useRef<View>(null);
+  const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({
+    top: 96,
+    left: PageGutter,
+  });
+  const [menuHighlighted, setMenuHighlighted] = useState(false);
+  const menuOpacity = useTimedOpacity(menuHighlighted ? 0.85 : 1);
+
   const menuItems: MenuItem[] = [
+    ...(isWide
+      ? [
+          {
+            key: 'home',
+            label: 'Início',
+            icon: 'home-outline' as const,
+            onPress: controller.goToHomeFromMenu,
+          },
+        ]
+      : []),
     {
       key: 'chat',
       label: 'Chat com a Sofia (IA)',
@@ -79,23 +100,29 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
     },
   ];
 
-  const [menuHighlighted, setMenuHighlighted] = useState(false);
-  const menuOpacity = useTimedOpacity(menuHighlighted ? 0.85 : 1);
+  const handleOpenMenu = () => {
+    menuButtonRef.current?.measureInWindow((x, y, _width, height) => {
+      setMenuAnchor({ top: y + height + 8, left: x });
+      controller.openMenu();
+    });
+  };
 
   return (
     <View style={styles.bar}>
       <View style={styles.brand}>
         <Pressable
           hitSlop={8}
-          onPress={controller.openMenu}
+          onPress={handleOpenMenu}
           onPressIn={() => setMenuHighlighted(true)}
           onPressOut={() => setMenuHighlighted(false)}
           onHoverIn={() => setMenuHighlighted(true)}
           onHoverOut={() => setMenuHighlighted(false)}
         >
-          <Animated.View style={[styles.menuButton, menuOpacity]}>
-            <MaterialCommunityIcons name="menu" size={26} color={Brand.label} />
-          </Animated.View>
+          <View ref={menuButtonRef} collapsable={false}>
+            <Animated.View style={[styles.menuButton, menuOpacity]}>
+              <MaterialCommunityIcons name="menu" size={26} color={Brand.label} />
+            </Animated.View>
+          </View>
         </Pressable>
         <Text style={styles.title}>Encontra-me</Text>
       </View>
@@ -107,7 +134,10 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
         onRequestClose={controller.closeMenu}
       >
         <Pressable style={styles.backdrop} onPress={controller.closeMenu}>
-          <Pressable style={styles.menu}>
+          <Pressable
+            style={[styles.menu, { top: menuAnchor.top, left: menuAnchor.left }]}
+            onPress={(event) => event.stopPropagation()}
+          >
             <Text style={styles.menuTitle}>Menu</Text>
             {menuItems.map((item) => (
               <MenuItemRow key={item.key} item={item} />
@@ -124,7 +154,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
     paddingVertical: 12,
   },
   brand: {
@@ -143,11 +172,9 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(11, 36, 66, 0.45)',
-    paddingTop: 96,
-    paddingHorizontal: 20,
-    alignItems: 'flex-start',
   },
   menu: {
+    position: 'absolute',
     width: 260,
     backgroundColor: Brand.white,
     borderRadius: Radius.lg,

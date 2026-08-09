@@ -18,7 +18,7 @@ export default function SignupPasswordPage() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ContentShell style={styles.shell}>
+          <ContentShell>
             <ScreenHeader title="Criar uma conta" />
             <SignupPasswordFormSection controller={controller} />
           </ContentShell>
@@ -41,8 +41,5 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingTop: 8,
     paddingBottom: 16,
-  },
-  shell: {
-    paddingHorizontal: 24,
   },
 });

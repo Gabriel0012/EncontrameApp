@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContentShell } from '@/components/content-shell';
 import { Brand } from '@/constants/brand';
+import { PageGutter } from '@/constants/theme';
 import { useChatController } from '@/features/chat/chat.controller';
 import { ChatHeaderSection } from '@/features/chat/sections/chat-header-section';
 import { ChatInputSection } from '@/features/chat/sections/chat-input-section';
@@ -13,7 +14,7 @@ export default function ChatPage() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ContentShell style={styles.shell}>
+      <ContentShell style={styles.shell} noGutter>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -43,6 +44,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
+    paddingHorizontal: PageGutter,
   },
 });

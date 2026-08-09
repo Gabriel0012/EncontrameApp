@@ -19,7 +19,7 @@ export default function CadastrarPessoaPage() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ContentShell style={styles.shell}>
+          <ContentShell>
             <ScreenHeader title="Cadastrar uma pessoa" />
             <View style={styles.form}>
               <CadastrarPessoaBasicSection controller={controller} />
@@ -45,9 +45,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingTop: 8,
     paddingBottom: 24,
-  },
-  shell: {
-    paddingHorizontal: 24,
   },
   form: {
     marginTop: 16,

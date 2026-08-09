@@ -24,6 +24,8 @@ type Props = {
   autoCapitalize?: TextInputProps['autoCapitalize'];
   trailingIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   onTrailingPress?: () => void;
+  /** Labels claros para fundos escuros (ex.: home navy). */
+  tone?: 'default' | 'onDark';
 };
 
 export function BrandField({
@@ -36,13 +38,14 @@ export function BrandField({
   autoCapitalize,
   trailingIcon,
   onTrailingPress,
+  tone = 'default',
 }: Props) {
   const [focused, setFocused] = useState(false);
   const borderStyle = useTimedColor(focused, Brand.fieldBorder, Brand.blue, 'borderColor');
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, tone === 'onDark' && styles.labelOnDark]}>{label}</Text>
       <Animated.View style={[styles.field, borderStyle]}>
         <TextInput
           style={styles.input}
@@ -74,6 +77,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: Brand.label,
+  },
+  labelOnDark: {
+    color: Brand.cream,
   },
   field: {
     flexDirection: 'row',

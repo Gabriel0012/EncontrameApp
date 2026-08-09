@@ -72,7 +72,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   track: {
-    paddingHorizontal: 20,
     gap: CARD_GAP,
   },
   card: {

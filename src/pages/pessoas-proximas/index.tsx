@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { ContentShell } from '@/components/content-shell';
+import { RegisterFab } from '@/components/register-fab';
 import { ScreenHeader } from '@/components/screen-header';
 import { Brand } from '@/constants/brand';
 import { usePessoasProximasController } from '@/features/pessoas-proximas/pessoas-proximas.controller';
@@ -22,6 +23,7 @@ export default function PessoasProximasPage() {
         </View>
       </ContentShell>
       <BottomBar />
+      <RegisterFab />
     </SafeAreaView>
   );
 }
@@ -35,12 +37,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
     paddingTop: 8,
   },
   mapArea: {
     flex: 1,
-    paddingHorizontal: 14,
     paddingTop: 8,
     paddingBottom: 14,
   },

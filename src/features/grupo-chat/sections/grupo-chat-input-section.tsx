@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Brand, Radius } from '@/constants/brand';
+import { PageGutter } from '@/constants/theme';
 import type { GrupoChatController } from '@/features/grupo-chat/grupo-chat.controller';
 
 interface GrupoChatInputSectionProps {
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: PageGutter,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: Brand.divider,

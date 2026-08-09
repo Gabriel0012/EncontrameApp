@@ -62,6 +62,7 @@ export function useInicioController() {
     goToRegister: () => router.push('/cadastrar-pessoa'),
     goToChat: () => goTo(() => router.push('/chat')),
     goToGroupChat: () => goTo(() => router.push('/grupo-chat')),
+    goToHomeFromMenu: () => goTo(() => router.push('/inicio')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
     goToNearbyFromMenu: () => goTo(() => router.push('/pessoas-proximas')),
     logout,

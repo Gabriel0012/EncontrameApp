@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { Brand, Radius } from '@/constants/brand';
+import { PageGutter } from '@/constants/theme';
 import type { GrupoChatController } from '@/features/grupo-chat/grupo-chat.controller';
 import type { GroupChatMessage } from '@/services/grupo-chat/grupo-chat.types';
 
@@ -57,7 +58,7 @@ export function GrupoChatMessagesSection({ controller }: GrupoChatMessagesSectio
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: PageGutter,
     paddingVertical: 16,
     gap: 18,
   },

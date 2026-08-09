@@ -18,7 +18,7 @@ export default function LoginPage() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ContentShell style={styles.shell}>
+          <ContentShell>
             <ScreenHeader title="Entrar" />
             <LoginFormSection controller={controller} />
           </ContentShell>
@@ -40,8 +40,5 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingTop: 8,
-  },
-  shell: {
-    paddingHorizontal: 24,
   },
 });

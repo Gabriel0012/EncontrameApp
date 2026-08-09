@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
 import { ContentShell } from '@/components/content-shell';
+import { RegisterFab } from '@/components/register-fab';
 import { Brand } from '@/constants/brand';
 import { useInicioController } from '@/features/inicio/inicio.controller';
 import { InicioMapSection } from '@/features/inicio/sections/inicio-map-section';
@@ -20,6 +21,7 @@ export default function InicioPage() {
         <InicioMapSection controller={controller} />
       </ContentShell>
       <BottomBar active="home" />
+      <RegisterFab />
     </SafeAreaView>
   );
 }

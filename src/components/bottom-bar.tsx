@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Brand, Radius } from '@/constants/brand';
 import { brandTiming } from '@/constants/motion';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Tab = 'register' | 'home' | 'phone';
 
@@ -87,10 +88,16 @@ function BottomTab({
 
 /**
  * Barra inferior de navegação: telefone (emergência), início e cadastrar pessoa.
+ * Em telas largas cede lugar ao menu + FAB.
  */
 export function BottomBar({ active }: Props) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isWide } = useWideLayout();
+
+  if (isWide) {
+    return null;
+  }
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>

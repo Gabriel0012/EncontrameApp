@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { Brand, Radius } from '@/constants/brand';
+import { PageGutter } from '@/constants/theme';
 import type { ChatController } from '@/features/chat/chat.controller';
 import type { ChatMessage } from '@/services/chat/chat.types';
 
@@ -40,7 +41,7 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: PageGutter,
     paddingVertical: 16,
     gap: 18,
   },
