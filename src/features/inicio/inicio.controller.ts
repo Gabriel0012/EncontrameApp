@@ -46,6 +46,7 @@ export function useInicioController() {
     goToNearby: () => router.push('/pessoas-proximas'),
     goToRegister: () => router.push('/cadastrar-pessoa'),
     goToChat: () => goTo(() => router.push('/chat')),
+    goToGroupChat: () => goTo(() => router.push('/grupo-chat')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
     goToNearbyFromMenu: () => goTo(() => router.push('/pessoas-proximas')),
     logout: () => goTo(() => router.replace('/')),

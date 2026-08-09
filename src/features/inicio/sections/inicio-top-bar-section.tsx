@@ -25,6 +25,12 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
       onPress: controller.goToChat,
     },
     {
+      key: 'grupo-chat',
+      label: 'Grupo do apoio',
+      icon: 'account-group-outline',
+      onPress: controller.goToGroupChat,
+    },
+    {
       key: 'register',
       label: 'Cadastrar uma pessoa',
       icon: 'account-plus-outline',
