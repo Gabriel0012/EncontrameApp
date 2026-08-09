@@ -31,6 +31,7 @@ export const Brand = {
 } as const;
 
 export const Radius = {
+  xs: 3,
   sm: 8,
   md: 12,
   lg: 16,

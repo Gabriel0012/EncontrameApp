@@ -53,12 +53,7 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
 
   return (
     <View style={styles.bar}>
-      <View style={styles.brand}>
-        <View style={styles.badge}>
-          <MaterialCommunityIcons name="account-group" size={22} color={Brand.white} />
-        </View>
-        <Text style={styles.title}>Encontra-me</Text>
-      </View>
+      <Text style={styles.title}>Encontra-me</Text>
 
       <Pressable style={styles.badge} hitSlop={8} onPress={controller.openMenu}>
         <MaterialCommunityIcons name="menu" size={22} color={Brand.white} />
@@ -104,11 +99,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 12,
-  },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   badge: {
     width: 44,

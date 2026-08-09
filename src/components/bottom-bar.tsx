@@ -3,35 +3,58 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand } from '@/constants/brand';
+import { Brand, Radius } from '@/constants/brand';
 
-type Tab = 'camera' | 'home' | 'phone';
+type Tab = 'register' | 'home' | 'phone';
 
 type Props = {
-  /** Aba ativa (fica em destaque escuro); as demais ficam laranja. */
+  /** Aba ativa (fundo azul + ícone branco); as demais ficam cinza. */
   active?: Tab;
 };
 
 /**
- * Barra inferior de navegação: câmera (cadastrar pessoa), início e chat.
+ * Barra inferior de navegação: telefone (emergência), início e cadastrar pessoa.
  */
 export function BottomBar({ active }: Props) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const colorFor = (tab: Tab) => (active === tab ? Brand.textDark : Brand.orange);
+  const renderTab = (
+    tab: Tab,
+    icon: keyof typeof MaterialCommunityIcons.glyphMap,
+    onPress?: () => void,
+  ) => {
+    const isActive = active === tab;
+    const content = (
+      <View style={[styles.iconWrap, isActive && styles.iconWrapActive]}>
+        <MaterialCommunityIcons
+          name={icon}
+          size={26}
+          color={isActive ? Brand.white : Brand.label}
+        />
+      </View>
+    );
+
+    if (!onPress) {
+      return (
+        <View key={tab} accessibilityState={{ disabled: true }}>
+          {content}
+        </View>
+      );
+    }
+
+    return (
+      <Pressable key={tab} hitSlop={12} onPress={onPress}>
+        {content}
+      </Pressable>
+    );
+  };
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <Pressable hitSlop={12} onPress={() => router.push('/cadastrar-pessoa')}>
-        <MaterialCommunityIcons name="camera" size={26} color={colorFor('camera')} />
-      </Pressable>
-      <Pressable hitSlop={12} onPress={() => router.push('/inicio')}>
-        <MaterialCommunityIcons name="home" size={26} color={colorFor('home')} />
-      </Pressable>
-      <Pressable hitSlop={12} onPress={() => router.push('/chat')}>
-        <MaterialCommunityIcons name="phone" size={26} color={colorFor('phone')} />
-      </Pressable>
+      {renderTab('phone', 'phone')}
+      {renderTab('home', 'home', () => router.push('/inicio'))}
+      {renderTab('register', 'account-plus', () => router.push('/cadastrar-pessoa'))}
     </View>
   );
 }
@@ -43,7 +66,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: Brand.divider,
+    borderTopColor: Brand.fieldBorder,
     backgroundColor: Brand.white,
+  },
+  iconWrap: {
+    padding: 8,
+    borderRadius: Radius.sm,
+  },
+  iconWrapActive: {
+    backgroundColor: Brand.blue,
   },
 });

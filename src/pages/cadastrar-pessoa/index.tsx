@@ -25,7 +25,7 @@ export default function CadastrarPessoaPage() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <BottomBar active="camera" />
+      <BottomBar active="register" />
     </SafeAreaView>
   );
 }
