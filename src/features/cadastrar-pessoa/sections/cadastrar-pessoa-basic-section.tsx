@@ -42,6 +42,13 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
         placeholder="Fulano"
         autoCapitalize="words"
       />
+      <BrandField
+        label="Idade"
+        value={controller.age}
+        onChangeText={controller.setAge}
+        placeholder="36"
+        keyboardType="number-pad"
+      />
 
       <View style={styles.row}>
         <View style={styles.rowItem}>

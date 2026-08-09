@@ -16,6 +16,7 @@ export function useCadastrarPessoaController() {
   const [photoUri, setPhotoUri] = useState('');
   const [fullName, setFullName] = useState('');
   const [nickname, setNickname] = useState('');
+  const [age, setAge] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [ethnicity, setEthnicity] = useState('');
   const [build, setBuild] = useState('');
@@ -48,6 +49,7 @@ export function useCadastrarPessoaController() {
     const payload: CreatePersonPayload = {
       fullName,
       nickname,
+      age,
       heightCm,
       ethnicity,
       build,
@@ -78,6 +80,8 @@ export function useCadastrarPessoaController() {
     setFullName,
     nickname,
     setNickname,
+    age,
+    setAge,
     heightCm,
     setHeightCm,
     ethnicity,

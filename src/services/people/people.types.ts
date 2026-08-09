@@ -31,6 +31,7 @@ export interface Person {
 export interface CreatePersonPayload {
   fullName: string;
   nickname: string;
+  age: string;
   heightCm: string;
   ethnicity: string;
   build: string;

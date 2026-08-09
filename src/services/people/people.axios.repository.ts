@@ -7,6 +7,7 @@ interface ApiMissingPerson {
   missingPersonId: number;
   name: string;
   nickName?: string;
+  age?: number | null;
   height?: number;
   race?: string;
   bodyType?: string;
@@ -35,9 +36,12 @@ export const peopleAxiosRepository: PeopleRepository = {
 
   async create(payload: CreatePersonPayload) {
     const height = Number.parseFloat(payload.heightCm.replace(',', '.'));
+    const age = Number.parseInt(payload.age.replace(/\D/g, ''), 10);
+
     const { data } = await api.post<ApiMissingPerson>('/MissingPerson', {
       name: payload.fullName,
       nickName: payload.nickname || null,
+      age: Number.isFinite(age) ? age : null,
       height: Number.isFinite(height) ? height : null,
       race: payload.ethnicity || null,
       bodyType: payload.build || null,
@@ -66,6 +70,7 @@ function mapPerson(api: ApiMissingPerson): Person {
     id: String(api.missingPersonId),
     fullName: api.name,
     nickname: api.nickName || undefined,
+    age: api.age ?? undefined,
     heightCm: api.height != null ? String(api.height) : undefined,
     ethnicity: api.race || undefined,
     build: api.bodyType || undefined,

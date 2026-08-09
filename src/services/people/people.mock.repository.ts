@@ -64,6 +64,7 @@ export const peopleMockRepository: PeopleRepository = {
       id: `mock-${Date.now()}`,
       fullName: payload.fullName || 'Pessoa cadastrada',
       nickname: payload.nickname,
+      age: payload.age ? Number.parseInt(payload.age, 10) || undefined : undefined,
       heightCm: payload.heightCm,
       ethnicity: payload.ethnicity,
       build: payload.build,
