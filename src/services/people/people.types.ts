@@ -46,4 +46,6 @@ export interface CreatePersonPayload {
   lastSeen: string;
   phone: string;
   photoUri?: string;
+  /** Base64 puro da foto (sem prefixo data URL), enviado à API. */
+  photo?: string;
 }

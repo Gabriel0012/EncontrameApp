@@ -1,6 +1,7 @@
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { useCreatePersonMutation } from '@/services/people/people.service';
 import type { CreatePersonPayload } from '@/services/people/people.types';
@@ -9,6 +10,8 @@ export const ETHNICITY_OPTIONS = ['Branca', 'Preta', 'Parda', 'Amarela', 'Indíg
 export const BUILD_OPTIONS = ['Magro', 'Médio', 'Atlético', 'Forte'] as const;
 
 const SUBMIT_END_THRESHOLD = 120;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+const ALLOWED_WEB_MIME = new Set(['image/png', 'image/jpeg', 'image/jpg']);
 
 /** Centraliza estado, validação e cadastro de uma nova pessoa desaparecida. */
 export function useCadastrarPessoaController() {
@@ -16,6 +19,7 @@ export function useCadastrarPessoaController() {
   const createMutation = useCreatePersonMutation();
 
   const [photoUri, setPhotoUri] = useState('');
+  const [photoBase64, setPhotoBase64] = useState('');
   const [fullName, setFullName] = useState('');
   const [nickname, setNickname] = useState('');
   const [age, setAge] = useState('');
@@ -47,9 +51,120 @@ export function useCadastrarPessoaController() {
     setNearFormEnd(fitsWithoutScroll || atEnd);
   };
 
+  const applyPhoto = (uri: string, base64OrDataUrl: string) => {
+    const normalized = stripDataUrlPrefix(base64OrDataUrl);
+    const size = estimateBase64Bytes(normalized);
+    if (size > MAX_PHOTO_BYTES) {
+      Alert.alert('Foto muito grande', 'A foto deve ter no máximo 2 MB.');
+      return;
+    }
+    if (size <= 0) {
+      Alert.alert('Foto inválida', 'Não foi possível ler a imagem selecionada.');
+      return;
+    }
+    setPhotoUri(uri);
+    setPhotoBase64(normalized);
+  };
+
+  const pickFromLibrary = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permissão necessária', 'Autorize o acesso à galeria para escolher uma foto.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    if (!asset.base64) {
+      Alert.alert('Foto inválida', 'Não foi possível ler a imagem selecionada.');
+      return;
+    }
+    applyPhoto(asset.uri, asset.base64);
+  };
+
+  const pickFromCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permissão necessária', 'Autorize o acesso à câmera para tirar uma foto.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    if (!asset.base64) {
+      Alert.alert('Foto inválida', 'Não foi possível ler a imagem capturada.');
+      return;
+    }
+    applyPhoto(asset.uri, asset.base64);
+  };
+
+  const pickFromWebFile = () => {
+    if (typeof document === 'undefined') return;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,.png,.jpg,.jpeg';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      if (!ALLOWED_WEB_MIME.has(file.type) && !/\.(png|jpe?g)$/i.test(file.name)) {
+        Alert.alert('Formato inválido', 'Envie apenas fotos PNG ou JPG.');
+        return;
+      }
+
+      if (file.size > MAX_PHOTO_BYTES) {
+        Alert.alert('Foto muito grande', 'A foto deve ter no máximo 2 MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === 'string' ? reader.result : '';
+        if (!result) {
+          Alert.alert('Foto inválida', 'Não foi possível ler o arquivo selecionado.');
+          return;
+        }
+        applyPhoto(result, result);
+      };
+      reader.onerror = () => {
+        Alert.alert('Foto inválida', 'Não foi possível ler o arquivo selecionado.');
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
   const handlePickPhoto = () => {
-    // TODO: abrir a câmera/galeria (expo-image-picker) na integração.
-    Alert.alert('Foto', 'Seleção de foto será habilitada em breve.');
+    if (Platform.OS === 'web') {
+      pickFromWebFile();
+      return;
+    }
+
+    Alert.alert('Adicionar foto', 'Escolha a origem da imagem', [
+      { text: 'Câmera', onPress: () => void pickFromCamera() },
+      { text: 'Galeria', onPress: () => void pickFromLibrary() },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoUri('');
+    setPhotoBase64('');
   };
 
   const handleLocationSearch = () => {
@@ -78,6 +193,7 @@ export function useCadastrarPessoaController() {
       lastSeen,
       phone,
       photoUri: photoUri || undefined,
+      photo: photoBase64 || undefined,
     };
 
     try {
@@ -125,9 +241,25 @@ export function useCadastrarPessoaController() {
     nearFormEnd,
     updateSubmitVisibility,
     handlePickPhoto,
+    handleRemovePhoto,
     handleLocationSearch,
     handleRegister,
   };
 }
 
 export type CadastrarPessoaController = ReturnType<typeof useCadastrarPessoaController>;
+
+function stripDataUrlPrefix(value: string): string {
+  const trimmed = value.trim();
+  const comma = trimmed.indexOf(',');
+  if (trimmed.startsWith('data:') && comma >= 0) {
+    return trimmed.slice(comma + 1);
+  }
+  return trimmed;
+}
+
+function estimateBase64Bytes(base64: string): number {
+  if (!base64) return 0;
+  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+}

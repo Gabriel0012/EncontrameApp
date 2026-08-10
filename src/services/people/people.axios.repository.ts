@@ -54,6 +54,7 @@ export const peopleAxiosRepository: PeopleRepository = {
       accessories: payload.accessories || null,
       location: payload.location || null,
       city: payload.location || null,
+      photo: payload.photo || null,
     });
 
     const person = mapPerson(data);

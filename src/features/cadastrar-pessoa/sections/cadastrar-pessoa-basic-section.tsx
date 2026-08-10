@@ -25,13 +25,28 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
     <View style={styles.form}>
       <View style={styles.photoWrapper}>
         <Text style={styles.photoLabel}>Foto</Text>
-        <Pressable style={styles.photoBox} onPress={controller.handlePickPhoto}>
-          {controller.photoUri ? (
-            <Image source={{ uri: controller.photoUri }} style={styles.photoImage} />
-          ) : (
+        {controller.photoUri ? (
+          <View style={styles.photoPreviewCard}>
+            <Image
+              source={{ uri: controller.photoUri }}
+              style={styles.photoImage}
+              resizeMode="cover"
+            />
+            <Pressable
+              style={styles.removeBadge}
+              onPress={controller.handleRemovePhoto}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Remover foto"
+            >
+              <MaterialCommunityIcons name="close" size={14} color={brand.onPrimary} />
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable style={styles.photoBox} onPress={controller.handlePickPhoto}>
             <MaterialCommunityIcons name="camera" size={30} color={brand.placeholder} />
-          )}
-        </Pressable>
+          </Pressable>
+        )}
       </View>
 
       <FormRow>
@@ -119,10 +134,31 @@ function makeStyles(brand: BrandColors) {
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
+      backgroundColor: brand.fieldBackground,
+    },
+    photoPreviewCard: {
+      width: 96,
+      height: 96,
+      borderRadius: Radius.md,
+      overflow: 'hidden',
+      backgroundColor: brand.avatarBackground,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
     },
     photoImage: {
       width: '100%',
       height: '100%',
+    },
+    removeBadge: {
+      position: 'absolute',
+      top: 6,
+      right: 6,
+      width: 22,
+      height: 22,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.pin,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     row: {
       flexDirection: 'row',
