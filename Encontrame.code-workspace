@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "Front — EncontrameApp",
+      "path": "."
+    },
+    {
+      "name": "Back — EncontrameApi",
+      "path": "../../EncontrameApi"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/node_modules": true,
+      "**/bin": true,
+      "**/obj": true
+    }
+  }
+}
