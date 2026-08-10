@@ -6,7 +6,7 @@
     },
     {
       "name": "Back — EncontrameApi",
-      "path": "../../EncontrameApi"
+      "path": "../../backend/EncontrameApi"
     }
   ],
   "settings": {
