@@ -63,7 +63,11 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
             <Pressable key={person.id} style={styles.card} onPress={controller.goToNearby}>
               <View style={styles.photo}>
                 {person.photoUri ? (
-                  <Image source={{ uri: person.photoUri }} style={styles.photoImage} />
+                  <Image
+                    source={{ uri: person.photoUri }}
+                    style={styles.photoImage}
+                    resizeMode="cover"
+                  />
                 ) : (
                   <MaterialCommunityIcons
                     name="account"

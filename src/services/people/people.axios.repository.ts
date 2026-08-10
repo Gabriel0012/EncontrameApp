@@ -20,6 +20,7 @@ interface ApiMissingPerson {
   dtRegistration?: string;
   statusId?: number | null;
   statusDescription?: string | null;
+  photo?: string | null;
 }
 
 /** Implementação real: fala com /MissingPerson. */
@@ -84,5 +85,14 @@ function mapPerson(api: ApiMissingPerson): Person {
     accessories: api.accessories || undefined,
     statusId: api.statusId ?? undefined,
     statusDescription: api.statusDescription || undefined,
+    photoUri: toPhotoUri(api.photo),
   };
+}
+
+function toPhotoUri(photo?: string | null): string | undefined {
+  if (!photo) return undefined;
+  const value = photo.trim();
+  if (!value) return undefined;
+  if (value.startsWith('data:')) return value;
+  return `data:image/jpeg;base64,${value}`;
 }
