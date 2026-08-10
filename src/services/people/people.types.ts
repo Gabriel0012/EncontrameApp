@@ -25,6 +25,8 @@ export interface Person {
   coords?: GeoPoint;
   /** Quando true, o pin aparece com cadeado (dados restritos). */
   restricted?: boolean;
+  statusId?: number;
+  statusDescription?: string;
 }
 
 /** Dados enviados ao cadastrar uma nova pessoa. */

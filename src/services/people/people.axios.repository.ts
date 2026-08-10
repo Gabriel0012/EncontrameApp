@@ -18,6 +18,8 @@ interface ApiMissingPerson {
   accessories?: string;
   userId?: number | null;
   dtRegistration?: string;
+  statusId?: number | null;
+  statusDescription?: string | null;
 }
 
 /** Implementação real: fala com /MissingPerson. */
@@ -79,5 +81,7 @@ function mapPerson(api: ApiMissingPerson): Person {
     eyes: api.eyes || undefined,
     tattoo: api.tatoo || undefined,
     accessories: api.accessories || undefined,
+    statusId: api.statusId ?? undefined,
+    statusDescription: api.statusDescription || undefined,
   };
 }

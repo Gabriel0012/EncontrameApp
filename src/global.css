@@ -27,6 +27,11 @@
   --pin: #e23b3b;
   --avatar-background: #c2c7ce;
   --avatar-icon: #e6e9ed;
+  --card-info: #2a2f36;
+  --status-pendente: #e23b3b;
+  --status-procurando: #f5822e;
+  --status-encontrado: #2fa36b;
+  --status-cancelado: #6b7280;
   --chat-bubble-ai: #ecebf6;
   --chat-bubble-user: #1b4db8;
   --on-primary: #ffffff;
@@ -53,6 +58,11 @@
     --pin: #e23b3b;
     --avatar-background: #2a2f36;
     --avatar-icon: #6f7680;
+    --card-info: #2a2f36;
+    --status-pendente: #e23b3b;
+    --status-procurando: #f5822e;
+    --status-encontrado: #2fa36b;
+    --status-cancelado: #6b7280;
     --chat-bubble-ai: #1a1d21;
     --chat-bubble-user: #3264d1;
     --on-primary: #ffffff;

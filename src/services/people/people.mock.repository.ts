@@ -13,6 +13,8 @@ const mockPeople: Person[] = [
     lastSeen: '01/01/2024',
     coords: { latitude: -19.918, longitude: -43.938 },
     restricted: false,
+    statusId: 1,
+    statusDescription: 'Pendente',
   },
   {
     id: 'p2',
@@ -23,6 +25,8 @@ const mockPeople: Person[] = [
     lastSeen: '12/03/2024',
     coords: { latitude: -19.924, longitude: -43.945 },
     restricted: true,
+    statusId: 2,
+    statusDescription: 'Procurado',
   },
   {
     id: 'p3',
@@ -33,6 +37,8 @@ const mockPeople: Person[] = [
     lastSeen: '20/05/2024',
     coords: { latitude: -19.931, longitude: -44.053 },
     restricted: true,
+    statusId: 1,
+    statusDescription: 'Pendente',
   },
   {
     id: 'p4',
@@ -43,6 +49,8 @@ const mockPeople: Person[] = [
     lastSeen: '02/07/2024',
     coords: { latitude: -19.912, longitude: -43.928 },
     restricted: false,
+    statusId: 4,
+    statusDescription: 'Alerta',
   },
 ];
 
@@ -77,6 +85,8 @@ export const peopleMockRepository: PeopleRepository = {
       lastSeen: payload.lastSeen,
       phone: payload.phone,
       photoUri: payload.photoUri,
+      statusId: 1,
+      statusDescription: 'Pendente',
     } satisfies Person;
   },
 };

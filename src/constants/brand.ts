@@ -27,6 +27,13 @@ const BrandLight = {
   pin: '#E23B3B',
   avatarBackground: '#C2C7CE',
   avatarIcon: '#E6E9ED',
+  /** Rodapé neutro dos cards de pessoa (carrossel) */
+  cardInfo: '#2A2F36',
+  /** Badges de status da pessoa desaparecida */
+  statusPendente: '#E23B3B',
+  statusProcurando: '#F5822E',
+  statusEncontrado: '#2FA36B',
+  statusCancelado: '#6B7280',
   chatBubbleAI: '#ECEBF6',
   chatBubbleUser: '#1B4DB8',
   /** Azul transparente para interpolateColor (não usar `transparent`) */
@@ -59,6 +66,11 @@ const BrandDark = {
   pin: '#E23B3B',
   avatarBackground: '#2A2F36',
   avatarIcon: '#6F7680',
+  cardInfo: '#2A2F36',
+  statusPendente: '#E23B3B',
+  statusProcurando: '#F5822E',
+  statusEncontrado: '#2FA36B',
+  statusCancelado: '#6B7280',
   chatBubbleAI: '#1A1D21',
   chatBubbleUser: '#3264D1',
   blueClear: 'rgba(50, 100, 209, 0)',

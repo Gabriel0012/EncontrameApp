@@ -20,6 +20,12 @@ interface InicioPeopleCarouselSectionProps {
   controller: InicioController;
 }
 
+/** Alinhado a StatusIds da API (Pendente=1, Procurado=2, Encontrado=3, Cancelado=99). */
+const STATUS_PENDENTE = 1;
+const STATUS_PROCURADO = 2;
+const STATUS_ENCONTRADO = 3;
+const STATUS_CANCELADO = 99;
+
 const CARD_MOBILE = { width: 150, gap: 12, photoHeight: 200 } as const;
 const CARD_WIDE = { width: 420, gap: 16, photoWidth: 220 } as const;
 
@@ -45,27 +51,44 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {people.map((person) => (
-          <Pressable key={person.id} style={styles.card} onPress={controller.goToNearby}>
-            <View style={styles.photo}>
-              {person.photoUri ? (
-                <Image source={{ uri: person.photoUri }} style={styles.photoImage} />
-              ) : (
-                <MaterialCommunityIcons
-                  name="account"
-                  size={isWide ? 120 : 96}
-                  color={brand.avatarIcon}
-                />
-              )}
-            </View>
-            <View style={styles.info}>
-              <Text style={styles.infoText} numberOfLines={isWide ? 2 : 1}>
-                Nome: {person.nickname ?? person.fullName}
-              </Text>
-              <Text style={styles.infoText}>Idade: {person.age ?? '—'}</Text>
-            </View>
-          </Pressable>
-        ))}
+        {people.map((person) => {
+          const statusLabel = person.statusDescription ?? '—';
+          const badgeColor = resolveStatusBadgeColor(
+            brand,
+            person.statusId,
+            person.statusDescription,
+          );
+
+          return (
+            <Pressable key={person.id} style={styles.card} onPress={controller.goToNearby}>
+              <View style={styles.photo}>
+                {person.photoUri ? (
+                  <Image source={{ uri: person.photoUri }} style={styles.photoImage} />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="account"
+                    size={isWide ? 120 : 96}
+                    color={brand.avatarIcon}
+                  />
+                )}
+              </View>
+              <View style={styles.info}>
+                <Text style={styles.infoText} numberOfLines={isWide ? 2 : 1}>
+                  Nome: {person.fullName}
+                </Text>
+                <Text style={styles.infoText}>Idade: {person.age ?? '—'}</Text>
+                <View style={styles.statusRow}>
+                  <Text style={styles.infoText}>Status:</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
+                    <Text style={styles.statusBadgeText} numberOfLines={1}>
+                      {statusLabel}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </Pressable>
+          );
+        })}
       </ScrollView>
 
       <View style={styles.dots}>
@@ -75,6 +98,25 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
       </View>
     </View>
   );
+}
+
+function resolveStatusBadgeColor(
+  brand: BrandColors,
+  statusId?: number,
+  description?: string,
+): string {
+  if (statusId === STATUS_PENDENTE) return brand.statusPendente;
+  if (statusId === STATUS_PROCURADO) return brand.statusProcurando;
+  if (statusId === STATUS_ENCONTRADO) return brand.statusEncontrado;
+  if (statusId === STATUS_CANCELADO) return brand.statusCancelado;
+
+  const normalized = description?.trim().toLowerCase() ?? '';
+  if (normalized.includes('pendente')) return brand.statusPendente;
+  if (normalized.includes('procur')) return brand.statusProcurando;
+  if (normalized.includes('encontrado')) return brand.statusEncontrado;
+  if (normalized.includes('cancelado')) return brand.statusCancelado;
+
+  return brand.statusCancelado;
 }
 
 function makeStyles(brand: BrandColors, isWide: boolean) {
@@ -115,10 +157,10 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       height: '100%',
     },
     info: {
-      backgroundColor: brand.blue,
+      backgroundColor: brand.cardInfo,
       paddingHorizontal: isWide ? 20 : 12,
       paddingVertical: isWide ? 16 : 8,
-      gap: isWide ? 6 : 2,
+      gap: isWide ? 6 : 4,
       ...(isWide
         ? {
             flex: 1,
@@ -129,6 +171,23 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
     infoText: {
       color: brand.onPrimary,
       fontSize: isWide ? 16 : 13,
+      fontWeight: '700',
+    },
+    statusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 6,
+    },
+    statusBadge: {
+      borderRadius: Radius.pill,
+      paddingHorizontal: isWide ? 10 : 8,
+      paddingVertical: isWide ? 4 : 2,
+      maxWidth: '100%',
+    },
+    statusBadgeText: {
+      color: brand.onPrimary,
+      fontSize: isWide ? 13 : 11,
       fontWeight: '700',
     },
     dots: {
