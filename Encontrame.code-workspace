@@ -1,11 +1,11 @@
 {
   "folders": [
     {
-      "name": "Front — EncontrameApp",
+      "name": "Front",
       "path": "."
     },
     {
-      "name": "Back — EncontrameApi",
+      "name": "Back",
       "path": "../../backend/EncontrameApi"
     }
   ],
@@ -26,25 +26,46 @@
   },
   "launch": {
     "version": "0.2.0",
-    "configurations": [],
-    "compounds": [
+    "configurations": [
       {
         "name": "Encontrame: API + App",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["start"],
+        "cwd": "${workspaceFolder:Front}",
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "preLaunchTask": "Back: run-api",
+        "skipFiles": ["<node_internals>/**"],
+        "presentation": {
+          "order": 1,
+          "group": "encontrame"
+        }
+      },
+      {
+        "name": "Expo",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["start"],
+        "cwd": "${workspaceFolder:Front}",
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": ["<node_internals>/**"]
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Encontrame: API + App (debug)",
         "configurations": [
-          {
-            "folder": "Back — EncontrameApi",
-            "name": "API"
-          },
-          {
-            "folder": "Front — EncontrameApp",
-            "name": "Expo"
-          }
+          { "folder": "Back", "name": "API" },
+          { "folder": "Front", "name": "Expo" }
         ],
         "stopAll": true,
         "presentation": {
-          "order": 1,
-          "group": "encontrame",
-          "hidden": false
+          "order": 2,
+          "group": "encontrame"
         }
       }
     ]
