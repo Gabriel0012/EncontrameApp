@@ -16,5 +16,37 @@
       "**/bin": true,
       "**/obj": true
     }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-dotnettools.csharp",
+      "ms-dotnettools.csdevkit",
+      "expo.vscode-expo-tools"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [],
+    "compounds": [
+      {
+        "name": "Encontrame: API + App",
+        "configurations": [
+          {
+            "folder": "Back — EncontrameApi",
+            "name": "API"
+          },
+          {
+            "folder": "Front — EncontrameApp",
+            "name": "Expo"
+          }
+        ],
+        "stopAll": true,
+        "presentation": {
+          "order": 1,
+          "group": "encontrame",
+          "hidden": false
+        }
+      }
+    ]
   }
 }
