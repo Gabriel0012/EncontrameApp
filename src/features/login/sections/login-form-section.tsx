@@ -1,8 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
+import type { BrandColors } from '@/constants/brand';
 import type { LoginController } from '@/features/login/login.controller';
+import { useBrand } from '@/lib/brand-theme';
 
 interface LoginFormSectionProps {
   controller: LoginController;
@@ -20,6 +23,9 @@ export function LoginFormSection({
   compact = false,
   submitVariant = 'blue',
 }: LoginFormSectionProps) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
+
   return (
     <View style={[styles.form, compact && styles.formCompact]}>
       <BrandField
@@ -30,6 +36,9 @@ export function LoginFormSection({
         keyboardType="email-address"
         autoCapitalize="none"
         tone={tone}
+        required
+        error={controller.fieldError('identifier')}
+        onBlur={controller.blurIdentifier}
       />
       <BrandField
         label="Senha"
@@ -38,7 +47,13 @@ export function LoginFormSection({
         placeholder="••••••••••••••"
         secureTextEntry
         tone={tone}
+        required
+        error={controller.fieldError('password')}
+        onBlur={controller.blurPassword}
       />
+      {controller.formError ? (
+        <Text style={styles.formError}>{controller.formError}</Text>
+      ) : null}
       <BrandButton
         label="Entrar"
         variant={submitVariant}
@@ -50,15 +65,22 @@ export function LoginFormSection({
   );
 }
 
-const styles = StyleSheet.create({
-  form: {
-    marginTop: 28,
-    gap: 20,
-  },
-  formCompact: {
-    marginTop: 0,
-  },
-  submit: {
-    marginTop: 8,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    form: {
+      marginTop: 28,
+      gap: 20,
+    },
+    formCompact: {
+      marginTop: 0,
+    },
+    formError: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: brand.error,
+    },
+    submit: {
+      marginTop: 8,
+    },
+  });
+}

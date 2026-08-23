@@ -28,7 +28,6 @@ export function CadastrarPessoaSubmitFabSection({
       accessibilityLabel="Cadastrar"
       icon="plus"
       loading={controller.submitting}
-      disabled={!controller.canSubmit}
       visible={!controller.nearFormEnd}
       onPress={controller.handleRegister}
       style={{ bottom, right }}

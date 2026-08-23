@@ -3,6 +3,18 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Platform } from 'react-native';
 
+import { parseApiError } from '@/lib/api-errors';
+import { fieldErrorMessage, generalErrorMessage } from '@/lib/error-messages';
+import { maskDigits, maskPhone } from '@/lib/masks';
+import { useFieldErrors } from '@/lib/use-field-errors';
+import {
+  NAME_MIN_LENGTH,
+  collectErrors,
+  formatError,
+  isPhone,
+  optionalRangeError,
+  textError,
+} from '@/lib/validation';
 import { useCreatePersonMutation } from '@/services/people/people.service';
 import type { CreatePersonPayload } from '@/services/people/people.types';
 
@@ -12,11 +24,19 @@ export const BUILD_OPTIONS = ['Magro', 'Médio', 'Atlético', 'Forte'] as const;
 const SUBMIT_END_THRESHOLD = 120;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const ALLOWED_WEB_MIME = new Set(['image/png', 'image/jpeg', 'image/jpg']);
+const AGE_MIN = 0;
+const AGE_MAX = 130;
+const HEIGHT_MIN_CM = 30;
+const HEIGHT_MAX_CM = 250;
+
+/** Campos da API que têm outro nome no formulário. */
+const API_FIELD_MAP = { name: 'fullName', height: 'heightCm' };
 
 /** Centraliza estado, validação e cadastro de uma nova pessoa desaparecida. */
 export function useCadastrarPessoaController() {
   const router = useRouter();
   const createMutation = useCreatePersonMutation();
+  const { errors, setErrors, setFieldCode, markDirty, isDirty, fieldError } = useFieldErrors();
 
   const [photoUri, setPhotoUri] = useState('');
   const [photoBase64, setPhotoBase64] = useState('');
@@ -37,7 +57,69 @@ export function useCadastrarPessoaController() {
   /** True quando o botão "Cadastrar" do formulário entra na área visível. */
   const [nearFormEnd, setNearFormEnd] = useState(false);
 
-  const canSubmit = Boolean(fullName.trim() && location.trim() && phone.trim());
+  const changeFullName = (value: string) => {
+    setFullName(value);
+    if (isDirty('fullName')) setFieldCode('fullName', textError(value, NAME_MIN_LENGTH));
+  };
+
+  const blurFullName = () => {
+    markDirty('fullName');
+    setFieldCode('fullName', textError(fullName, NAME_MIN_LENGTH));
+  };
+
+  const changeLocation = (value: string) => {
+    setLocation(value);
+    if (isDirty('location')) setFieldCode('location', textError(value));
+  };
+
+  const blurLocation = () => {
+    markDirty('location');
+    setFieldCode('location', textError(location));
+  };
+
+  const changePhone = (value: string) => {
+    const next = maskPhone(value);
+    setPhone(next);
+    if (isDirty('phone')) setFieldCode('phone', formatError(next, isPhone));
+  };
+
+  const blurPhone = () => {
+    markDirty('phone');
+    setFieldCode('phone', formatError(phone, isPhone));
+  };
+
+  const changeAge = (value: string) => {
+    const next = maskDigits(value);
+    setAge(next);
+    if (isDirty('age')) setFieldCode('age', optionalRangeError(next, AGE_MIN, AGE_MAX));
+  };
+
+  const blurAge = () => {
+    markDirty('age');
+    setFieldCode('age', optionalRangeError(age, AGE_MIN, AGE_MAX));
+  };
+
+  const changeHeightCm = (value: string) => {
+    const next = maskDigits(value);
+    setHeightCm(next);
+    if (isDirty('heightCm')) {
+      setFieldCode('heightCm', optionalRangeError(next, HEIGHT_MIN_CM, HEIGHT_MAX_CM));
+    }
+  };
+
+  const blurHeightCm = () => {
+    markDirty('heightCm');
+    setFieldCode('heightCm', optionalRangeError(heightCm, HEIGHT_MIN_CM, HEIGHT_MAX_CM));
+  };
+
+  const validate = () =>
+    collectErrors({
+      fullName: textError(fullName, NAME_MIN_LENGTH),
+      location: textError(location),
+      phone: formatError(phone, isPhone),
+      age: optionalRangeError(age, AGE_MIN, AGE_MAX),
+      heightCm: optionalRangeError(heightCm, HEIGHT_MIN_CM, HEIGHT_MAX_CM),
+    });
 
   const updateSubmitVisibility = (metrics: {
     contentHeight: number;
@@ -172,10 +254,9 @@ export function useCadastrarPessoaController() {
   };
 
   const handleRegister = async () => {
-    if (!canSubmit) {
-      Alert.alert('Campos obrigatórios', 'Informe ao menos nome, localidade e telefone.');
-      return;
-    }
+    const found = validate();
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
 
     const payload: CreatePersonPayload = {
       fullName,
@@ -200,8 +281,23 @@ export function useCadastrarPessoaController() {
       await createMutation.mutateAsync(payload);
       Alert.alert('Cadastro concluído', 'A pessoa foi cadastrada com sucesso.');
       router.replace('/inicio');
-    } catch {
-      Alert.alert('Falha no cadastro', 'Não foi possível cadastrar. Tente novamente.');
+    } catch (error) {
+      const { code, fields } = parseApiError(error, API_FIELD_MAP);
+      const { photo, ...formFields } = fields;
+
+      if (Object.keys(formFields).length > 0) {
+        setErrors(formFields);
+      }
+
+      // A foto não tem campo de texto: só cabe alerta.
+      if (photo) {
+        Alert.alert('Foto inválida', fieldErrorMessage('photo', photo));
+        return;
+      }
+
+      if (Object.keys(formFields).length === 0) {
+        Alert.alert('Falha no cadastro', generalErrorMessage(code));
+      }
     }
   };
 
@@ -209,13 +305,16 @@ export function useCadastrarPessoaController() {
     photoUri,
     setPhotoUri,
     fullName,
-    setFullName,
+    setFullName: changeFullName,
+    blurFullName,
     nickname,
     setNickname,
     age,
-    setAge,
+    setAge: changeAge,
+    blurAge,
     heightCm,
-    setHeightCm,
+    setHeightCm: changeHeightCm,
+    blurHeightCm,
     ethnicity,
     setEthnicity,
     build,
@@ -231,12 +330,15 @@ export function useCadastrarPessoaController() {
     accessories,
     setAccessories,
     location,
-    setLocation,
+    setLocation: changeLocation,
+    blurLocation,
     lastSeen,
     setLastSeen,
     phone,
-    setPhone,
-    canSubmit,
+    setPhone: changePhone,
+    blurPhone,
+    errors,
+    fieldError,
     submitting: createMutation.isPending,
     nearFormEnd,
     updateSubmitVisibility,

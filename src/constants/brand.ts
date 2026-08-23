@@ -25,6 +25,8 @@ const BrandLight = {
   mapBackground: '#E7ECF2',
   mapStroke: '#CBD5E1',
   pin: '#E23B3B',
+  /** Campo inválido: borda e mensagem de erro */
+  error: '#D93025',
   avatarBackground: '#C2C7CE',
   avatarIcon: '#E6E9ED',
   /** Rodapé neutro dos cards de pessoa (carrossel) */
@@ -64,6 +66,7 @@ const BrandDark = {
   mapBackground: '#1A1D21',
   mapStroke: '#343A42',
   pin: '#E23B3B',
+  error: '#F2645A',
   avatarBackground: '#2A2F36',
   avatarIcon: '#6F7680',
   cardInfo: '#2A2F36',

@@ -19,6 +19,9 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
           onChangeText={controller.setName}
           placeholder="Fulano Beltrano da Silva"
           autoCapitalize="words"
+          required
+          error={controller.fieldError('name')}
+          onBlur={controller.blurName}
         />
         <BrandField
           label="CPF"
@@ -26,6 +29,9 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
           onChangeText={controller.setCpf}
           placeholder="000.000.000-00"
           keyboardType="numeric"
+          required
+          error={controller.fieldError('cpf')}
+          onBlur={controller.blurCpf}
         />
       </FormRow>
       <FormRow>
@@ -36,6 +42,9 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
           placeholder="exemplo@email.com"
           keyboardType="email-address"
           autoCapitalize="none"
+          required
+          error={controller.fieldError('email')}
+          onBlur={controller.blurEmail}
         />
         <BrandField
           label="Telefone"
@@ -43,6 +52,9 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
           onChangeText={controller.setPhone}
           placeholder="( 31 ) 9 9999-9999"
           keyboardType="phone-pad"
+          required
+          error={controller.fieldError('phone')}
+          onBlur={controller.blurPhone}
         />
       </FormRow>
       <FormRow>
@@ -54,6 +66,8 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
           keyboardType="numeric"
           trailingIcon="magnify"
           onTrailingPress={controller.handleCepSearch}
+          error={controller.fieldError('cep')}
+          onBlur={controller.blurCep}
         />
         <BrandField
           label="Claúsula"

@@ -25,6 +25,7 @@
   --map-background: #e7ecf2;
   --map-stroke: #cbd5e1;
   --pin: #e23b3b;
+  --error: #d93025;
   --avatar-background: #c2c7ce;
   --avatar-icon: #e6e9ed;
   --card-info: #2a2f36;
@@ -56,6 +57,7 @@
     --map-background: #1a1d21;
     --map-stroke: #343a42;
     --pin: #e23b3b;
+    --error: #f2645a;
     --avatar-background: #2a2f36;
     --avatar-icon: #6f7680;
     --card-info: #2a2f36;

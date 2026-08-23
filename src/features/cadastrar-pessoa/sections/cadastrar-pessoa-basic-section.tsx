@@ -23,6 +23,38 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
 
   return (
     <View style={styles.form}>
+      <BrandField
+        label="Nome Completo"
+        value={controller.fullName}
+        onChangeText={controller.setFullName}
+        onBlur={controller.blurFullName}
+        placeholder="Fulano Beltrano da Silva"
+        autoCapitalize="words"
+        required
+        error={controller.fieldError('fullName')}
+      />
+      <BrandField
+        label="Localidade"
+        value={controller.location}
+        onChangeText={controller.setLocation}
+        onBlur={controller.blurLocation}
+        placeholder="Rua dos timbiras 300"
+        trailingIcon="map-marker-outline"
+        onTrailingPress={controller.handleLocationSearch}
+        required
+        error={controller.fieldError('location')}
+      />
+      <BrandField
+        label="Telefone"
+        value={controller.phone}
+        onChangeText={controller.setPhone}
+        onBlur={controller.blurPhone}
+        placeholder="( 99 ) 00000-0000"
+        keyboardType="phone-pad"
+        required
+        error={controller.fieldError('phone')}
+      />
+
       <View style={styles.photoWrapper}>
         <Text style={styles.photoLabel}>Foto</Text>
         {controller.photoUri ? (
@@ -51,56 +83,47 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
 
       <FormRow>
         <BrandField
-          label="Nome Completo"
-          value={controller.fullName}
-          onChangeText={controller.setFullName}
-          placeholder="Fulano Beltrano da Silva"
-          autoCapitalize="words"
-        />
-        <BrandField
           label="Apelido"
           value={controller.nickname}
           onChangeText={controller.setNickname}
           placeholder="Fulano"
           autoCapitalize="words"
         />
-      </FormRow>
-
-      <FormRow>
         <BrandField
           label="Idade"
           value={controller.age}
           onChangeText={controller.setAge}
+          onBlur={controller.blurAge}
           placeholder="36"
           keyboardType="number-pad"
+          error={controller.fieldError('age')}
         />
+      </FormRow>
+
+      <FormRow>
         <BrandSelect
           label="Porte físico"
           value={controller.build}
           options={BUILD_OPTIONS}
           onSelect={controller.setBuild}
         />
+        <BrandField
+          label="Altura"
+          value={controller.heightCm}
+          onChangeText={controller.setHeightCm}
+          onBlur={controller.blurHeightCm}
+          placeholder="180 cm"
+          keyboardType="numeric"
+          error={controller.fieldError('heightCm')}
+        />
       </FormRow>
 
-      <View style={styles.row}>
-        <View style={styles.rowItem}>
-          <BrandField
-            label="Altura"
-            value={controller.heightCm}
-            onChangeText={controller.setHeightCm}
-            placeholder="180 cm"
-            keyboardType="numeric"
-          />
-        </View>
-        <View style={styles.rowItem}>
-          <BrandSelect
-            label="Cor/Etnia"
-            value={controller.ethnicity}
-            options={ETHNICITY_OPTIONS}
-            onSelect={controller.setEthnicity}
-          />
-        </View>
-      </View>
+      <BrandSelect
+        label="Cor/Etnia"
+        value={controller.ethnicity}
+        options={ETHNICITY_OPTIONS}
+        onSelect={controller.setEthnicity}
+      />
 
       <BrandField
         label="Roupas"
@@ -159,13 +182,6 @@ function makeStyles(brand: BrandColors) {
       backgroundColor: brand.pin,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    row: {
-      flexDirection: 'row',
-      gap: 14,
-    },
-    rowItem: {
-      flex: 1,
     },
   });
 }

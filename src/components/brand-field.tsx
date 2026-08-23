@@ -27,6 +27,12 @@ type Props = {
   onTrailingPress?: () => void;
   /** Labels claros para fundos escuros (ex.: home navy). */
   tone?: 'default' | 'onDark';
+  /** Marca o campo como obrigatório (asterisco no label). */
+  required?: boolean;
+  /** Mensagem de erro: borda vermelha + texto abaixo do campo. */
+  error?: string;
+  /** Dispara ao sair do campo (validação dirty). */
+  onBlur?: () => void;
 };
 
 export function BrandField({
@@ -40,6 +46,9 @@ export function BrandField({
   trailingIcon,
   onTrailingPress,
   tone = 'default',
+  required,
+  error,
+  onBlur,
 }: Props) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
@@ -48,8 +57,11 @@ export function BrandField({
 
   return (
     <View style={styles.wrapper}>
-      <Text style={[styles.label, tone === 'onDark' && styles.labelOnDark]}>{label}</Text>
-      <Animated.View style={[styles.field, borderStyle]}>
+      <Text style={[styles.label, tone === 'onDark' && styles.labelOnDark]}>
+        {label}
+        {required ? <Text style={styles.requiredMark}> *</Text> : null}
+      </Text>
+      <Animated.View style={[styles.field, error ? styles.fieldError : borderStyle]}>
         <TextInput
           style={styles.input}
           value={value}
@@ -60,7 +72,10 @@ export function BrandField({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={() => {
+            setFocused(false);
+            onBlur?.();
+          }}
         />
         {trailingIcon ? (
           <Pressable onPress={onTrailingPress} hitSlop={8}>
@@ -68,6 +83,7 @@ export function BrandField({
           </Pressable>
         ) : null}
       </Animated.View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -85,6 +101,9 @@ function makeStyles(brand: BrandColors) {
     labelOnDark: {
       color: brand.cream,
     },
+    requiredMark: {
+      color: brand.error,
+    },
     field: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -96,11 +115,19 @@ function makeStyles(brand: BrandColors) {
       borderColor: brand.fieldBorder,
       backgroundColor: brand.fieldBackground,
     },
+    fieldError: {
+      borderColor: brand.error,
+    },
     input: {
       flex: 1,
       fontSize: 16,
       color: brand.textDark,
       paddingVertical: 12,
+    },
+    errorText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: brand.error,
     },
   });
 }

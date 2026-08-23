@@ -41,40 +41,18 @@ export function CadastrarPessoaDetailsSection({ controller }: CadastrarPessoaDet
         />
       </FormRow>
       <BrandField
-        label="Localidade"
-        value={controller.location}
-        onChangeText={controller.setLocation}
-        placeholder="Rua dos timbiras 300"
-        trailingIcon="map-marker-outline"
-        onTrailingPress={controller.handleLocationSearch}
+        label="Última aparição"
+        value={controller.lastSeen}
+        onChangeText={controller.setLastSeen}
+        placeholder="01/01/2001"
+        keyboardType="numeric"
       />
-
-      <View style={styles.row}>
-        <View style={styles.rowItem}>
-          <BrandField
-            label="Última aparição"
-            value={controller.lastSeen}
-            onChangeText={controller.setLastSeen}
-            placeholder="01/01/2001"
-            keyboardType="numeric"
-          />
-        </View>
-        <View style={styles.rowItem}>
-          <BrandField
-            label="Telefone"
-            value={controller.phone}
-            onChangeText={controller.setPhone}
-            placeholder="( 99 ) 00000-0000"
-            keyboardType="phone-pad"
-          />
-        </View>
-      </View>
 
       <BrandButton
         label="Cadastrar"
         variant="blue"
         loading={controller.submitting}
-        disabled={!controller.canSubmit || !controller.nearFormEnd}
+        disabled={!controller.nearFormEnd}
         onPress={controller.handleRegister}
         style={controller.nearFormEnd ? styles.submit : styles.submitHidden}
       />
@@ -85,13 +63,6 @@ export function CadastrarPessoaDetailsSection({ controller }: CadastrarPessoaDet
 const styles = StyleSheet.create({
   form: {
     gap: 18,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 14,
-  },
-  rowItem: {
-    flex: 1,
   },
   submit: {
     marginTop: 8,

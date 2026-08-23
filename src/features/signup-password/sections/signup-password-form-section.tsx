@@ -18,6 +18,9 @@ export function SignupPasswordFormSection({ controller }: SignupPasswordFormSect
           onChangeText={controller.setPassword}
           placeholder="••••••••••••••"
           secureTextEntry
+          required
+          error={controller.fieldError('password')}
+          onBlur={controller.blurPassword}
         />
         <BrandField
           label="Confirmar Senha"
@@ -25,6 +28,9 @@ export function SignupPasswordFormSection({ controller }: SignupPasswordFormSect
           onChangeText={controller.setConfirm}
           placeholder="••••••••••••••"
           secureTextEntry
+          required
+          error={controller.fieldError('confirm')}
+          onBlur={controller.blurConfirm}
         />
       </View>
 

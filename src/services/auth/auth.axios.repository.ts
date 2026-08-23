@@ -1,6 +1,7 @@
 import { create as createAxios } from 'axios';
 
 import { env } from '@/lib/env';
+import { onlyDigits } from '@/lib/masks';
 import type { AuthRepository } from '@/services/auth/auth.repository';
 import type { AuthResult, LoginPayload, SignupPayload } from '@/services/auth/auth.types';
 
@@ -41,10 +42,10 @@ export const authAxiosRepository: AuthRepository = {
   async signup(payload: SignupPayload) {
     const { data } = await authApi.post<ApiAuthResponse>('/Auth/register', {
       name: payload.name,
-      document: payload.cpf,
+      document: onlyDigits(payload.cpf),
       email: payload.email,
-      cellPhone: payload.phone,
-      cep: payload.cep,
+      cellPhone: onlyDigits(payload.phone),
+      cep: onlyDigits(payload.cep),
       password: payload.password,
     });
     return mapAuthResult(data);
