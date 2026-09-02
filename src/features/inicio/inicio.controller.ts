@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
-import { clearSession, getRefreshToken } from '@/lib/session';
+import { clearSession, getRefreshToken, getSessionUser } from '@/lib/session';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { usePeopleQuery } from '@/services/people/people.service';
 
@@ -12,6 +12,7 @@ export function useInicioController() {
   const peopleQuery = usePeopleQuery();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(() => getSessionUser() != null);
 
   const people = peopleQuery.data ?? [];
 
@@ -46,7 +47,8 @@ export function useInicioController() {
           await getAuthRepository().logout(refreshToken);
         } finally {
           await clearSession();
-          router.replace('/');
+          setLoggedIn(false);
+          router.replace('/inicio');
         }
       })();
     });
@@ -55,6 +57,7 @@ export function useInicioController() {
     people,
     pins,
     loading: peopleQuery.isLoading,
+    loggedIn,
     menuOpen,
     openMenu: () => setMenuOpen(true),
     closeMenu,
@@ -65,6 +68,7 @@ export function useInicioController() {
     goToHomeFromMenu: () => goTo(() => router.push('/inicio')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
     goToNearbyFromMenu: () => goTo(() => router.push('/pessoas-proximas')),
+    goToLogin: () => goTo(() => router.push('/login')),
     logout,
   };
 }

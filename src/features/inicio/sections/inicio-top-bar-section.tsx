@@ -102,13 +102,20 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
       icon: 'map-marker-radius-outline',
       onPress: controller.goToNearbyFromMenu,
     },
-    {
-      key: 'logout',
-      label: 'Sair',
-      icon: 'logout',
-      onPress: controller.logout,
-      danger: true,
-    },
+    controller.loggedIn
+      ? {
+          key: 'logout',
+          label: 'Sair',
+          icon: 'logout' as const,
+          onPress: controller.logout,
+          danger: true,
+        }
+      : {
+          key: 'login',
+          label: 'Entrar',
+          icon: 'login' as const,
+          onPress: controller.goToLogin,
+        },
   ];
 
   const handleOpenMenu = () => {
