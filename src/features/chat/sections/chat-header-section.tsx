@@ -21,15 +21,22 @@ export function ChatHeaderSection({ controller }: Props) {
       <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}>
         <MaterialCommunityIcons name="chevron-left" size={30} color={brand.textDark} />
       </Pressable>
-      <Image
-        source={require('@/assets/images/sofia-avatar.jpg')}
-        style={styles.avatar}
-        resizeMode="cover"
-      />
-      <View style={styles.titles}>
-        <Text style={styles.name}>Sofia</Text>
-        <Text style={styles.subtitle}>aqui com você</Text>
-      </View>
+      <Pressable
+        onPress={() => router.push('/sofia-perfil' as Href)}
+        style={styles.identity}
+        accessibilityRole="button"
+        accessibilityLabel="Sobre a Sofia"
+      >
+        <Image
+          source={require('@/assets/images/sofia-avatar.jpg')}
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+        <View style={styles.titles}>
+          <Text style={styles.name}>Sofia</Text>
+          <Text style={styles.subtitle}>aqui com você</Text>
+        </View>
+      </Pressable>
       <Pressable
         onPress={() => router.push('/exercises' as Href)}
         hitSlop={12}
@@ -63,6 +70,12 @@ function makeStyles(brand: BrandColors) {
     },
     iconBtn: {
       padding: 4,
+    },
+    identity: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     avatar: {
       width: 42,

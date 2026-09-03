@@ -102,6 +102,12 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
       icon: 'map-marker-radius-outline',
       onPress: controller.goToNearbyFromMenu,
     },
+    {
+      key: 'settings',
+      label: 'Configurações',
+      icon: 'cog-outline',
+      onPress: controller.goToTheme,
+    },
     controller.loggedIn
       ? {
           key: 'logout',

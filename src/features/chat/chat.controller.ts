@@ -1,8 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { type Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { acceptSofiaDisclaimer, isSofiaDisclaimerAccepted } from '@/lib/sofia-prefs';
+import {
+  acceptSofiaDisclaimer,
+  isSofiaDisclaimerAccepted,
+  isSofiaWelcomeComplete,
+} from '@/lib/sofia-prefs';
 import {
   chatKeys,
   useChatHistoryQuery,
@@ -27,6 +32,7 @@ function todayLabel() {
 
 /** Centraliza estado e envio de mensagens do chat com a IA (Sofia). */
 export function useChatController() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const historyQuery = useChatHistoryQuery();
   const sendMutation = useSendMessageMutation();
@@ -37,10 +43,19 @@ export function useChatController() {
   const [disclaimerReady, setDisclaimerReady] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [welcomeGate, setWelcomeGate] = useState<'checking' | 'ok'>('checking');
 
   useEffect(() => {
     let mounted = true;
     void (async () => {
+      const welcomeDone = await isSofiaWelcomeComplete();
+      if (!mounted) return;
+      if (!welcomeDone) {
+        router.replace('/sofia-welcome' as Href);
+        return;
+      }
+      setWelcomeGate('ok');
+
       const accepted = await isSofiaDisclaimerAccepted();
       if (mounted) {
         setDisclaimerAccepted(accepted);
@@ -50,7 +65,7 @@ export function useChatController() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [router]);
 
   const messages: ChatMessage[] = [...(historyQuery.data ?? []), ...optimistic];
 
@@ -110,6 +125,7 @@ export function useChatController() {
     confirmClear,
     setConfirmClear,
     handleClear,
+    welcomeGate,
   };
 }
 

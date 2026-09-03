@@ -38,6 +38,8 @@ const BrandLight = {
   statusCancelado: '#6B7280',
   chatBubbleAI: '#ECEBF6',
   chatBubbleUser: '#1B4DB8',
+  /** Texto sobre a bolha do usuário (branco na identidade; escuro nas paletas Sofia) */
+  onChatBubbleUser: '#FFFFFF',
   /** Azul transparente para interpolateColor (não usar `transparent`) */
   blueClear: 'rgba(27, 77, 184, 0)',
   /** Ícone / texto sobre azul ou pin (sempre claro) */
@@ -76,18 +78,20 @@ const BrandDark = {
   statusCancelado: '#6B7280',
   chatBubbleAI: '#1A1D21',
   chatBubbleUser: '#3264D1',
+  onChatBubbleUser: '#FFFFFF',
   blueClear: 'rgba(50, 100, 209, 0)',
   onPrimary: '#FFFFFF',
   overlay: 'rgba(0, 0, 0, 0.65)',
 } as const;
 
-export const BrandPalettes = {
+export type ColorSchemeName = 'light' | 'dark';
+/** Tokens de cor como string para permitir overlay das paletas Sofia. */
+export type BrandColors = { [K in keyof typeof BrandLight]: string };
+
+export const BrandPalettes: Record<ColorSchemeName, BrandColors> = {
   light: BrandLight,
   dark: BrandDark,
-} as const;
-
-export type ColorSchemeName = keyof typeof BrandPalettes;
-export type BrandColors = (typeof BrandPalettes)[ColorSchemeName];
+};
 
 /** Alias da paleta light (fallback). Preferir `useBrand()` na UI. */
 export const Brand: BrandColors = BrandLight;

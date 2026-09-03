@@ -26,7 +26,7 @@ export default function GrupoChatPage() {
           <View style={styles.header}>
             <ScreenHeader title="Grupo do apoio" />
           </View>
-          <View style={styles.flex}>
+          <View style={styles.messages}>
             <GrupoChatMessagesSection controller={controller} />
           </View>
           <GrupoChatInputSection controller={controller} />
@@ -44,9 +44,15 @@ function makeStyles(brand: BrandColors) {
     },
     shell: {
       flex: 1,
+      minHeight: 0,
     },
     flex: {
       flex: 1,
+      minHeight: 0,
+    },
+    messages: {
+      flex: 1,
+      minHeight: 0,
     },
     header: {
       paddingHorizontal: PageGutter,

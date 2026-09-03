@@ -1,11 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { GrupoChatController } from '@/features/grupo-chat/grupo-chat.controller';
 import { useBrand } from '@/lib/brand-theme';
+import { useScrollListToEnd } from '@/lib/use-scroll-list-to-end';
 import type { GroupChatMessage } from '@/services/grupo-chat/grupo-chat.types';
 
 interface GrupoChatMessagesSectionProps {
@@ -15,7 +16,8 @@ interface GrupoChatMessagesSectionProps {
 export function GrupoChatMessagesSection({ controller }: GrupoChatMessagesSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
-  const listRef = useRef<FlatList<GroupChatMessage>>(null);
+  const lastMessageId = controller.messages.at(-1)?.id;
+  const { listRef, scrollToEnd } = useScrollListToEnd<GroupChatMessage>(lastMessageId ?? '');
 
   const renderItem = ({ item }: { item: GroupChatMessage }) => {
     if (item.isMine) {
@@ -51,9 +53,10 @@ export function GrupoChatMessagesSection({ controller }: GrupoChatMessagesSectio
       data={controller.messages}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      style={styles.list}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
-      onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+      onContentSizeChange={() => scrollToEnd()}
       ListHeaderComponent={<Text style={styles.dateLabel}>{controller.today}</Text>}
     />
   );
@@ -63,19 +66,25 @@ function makeStyles(brand: BrandColors) {
   return StyleSheet.create({
     content: {
       paddingHorizontal: PageGutter,
-      paddingVertical: 16,
-      gap: 18,
+      paddingTop: 16,
+      paddingBottom: 20,
+      flexGrow: 1,
+    },
+    list: {
+      flex: 1,
+      minHeight: 0,
     },
     dateLabel: {
       alignSelf: 'center',
       fontSize: 13,
       fontWeight: '600',
       color: brand.textMuted,
-      marginBottom: 6,
+      marginBottom: 18,
     },
     row: {
       maxWidth: '82%',
       gap: 4,
+      marginBottom: 18,
     },
     rowMine: {
       alignSelf: 'flex-end',
@@ -123,7 +132,7 @@ function makeStyles(brand: BrandColors) {
       lineHeight: 21,
     },
     textMine: {
-      color: brand.onPrimary,
+      color: brand.onChatBubbleUser,
       fontWeight: '600',
     },
     textOther: {

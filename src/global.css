@@ -35,6 +35,7 @@
   --status-cancelado: #6b7280;
   --chat-bubble-ai: #ecebf6;
   --chat-bubble-user: #1b4db8;
+  --on-chat-bubble-user: #ffffff;
   --on-primary: #ffffff;
 }
 
@@ -67,6 +68,16 @@
     --status-cancelado: #6b7280;
     --chat-bubble-ai: #1a1d21;
     --chat-bubble-user: #3264d1;
+    --on-chat-bubble-user: #ffffff;
     --on-primary: #ffffff;
   }
+}
+
+/* Preferência explícita (data-theme) prevalece sobre o sistema quando o JS aplicar o tema. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }

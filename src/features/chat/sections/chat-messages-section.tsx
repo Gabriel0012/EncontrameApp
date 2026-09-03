@@ -1,10 +1,12 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
+import { ChatTypingDots } from '@/components/chat-typing-dots';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { ChatController } from '@/features/chat/chat.controller';
 import { useBrand } from '@/lib/brand-theme';
+import { useScrollListToEnd } from '@/lib/use-scroll-list-to-end';
 import type { ChatMessage } from '@/services/chat/chat.types';
 
 interface ChatMessagesSectionProps {
@@ -14,7 +16,10 @@ interface ChatMessagesSectionProps {
 export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
-  const listRef = useRef<FlatList<ChatMessage>>(null);
+  const lastMessageId = controller.messages.at(-1)?.id;
+  const { listRef, scrollToEnd } = useScrollListToEnd<ChatMessage>(
+    `${lastMessageId ?? ''}:${controller.sending ? '1' : '0'}`,
+  );
 
   const renderItem = ({ item }: { item: ChatMessage }) => {
     const isUser = item.role === 'user';
@@ -43,18 +48,24 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
       data={controller.messages}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      style={styles.list}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
-      onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+      onContentSizeChange={() => scrollToEnd()}
       ListHeaderComponent={<Text style={styles.dateLabel}>{controller.today}</Text>}
       ListFooterComponent={
         controller.sending ? (
-          <View style={[styles.row, styles.rowAI]}>
-            <View style={[styles.bubble, styles.bubbleAI]}>
-              <Text style={[styles.text, styles.textAI]}>Sofia está escrevendo…</Text>
+          <View
+            style={[styles.row, styles.rowAI, styles.typingFooter]}
+            onLayout={() => scrollToEnd()}
+          >
+            <View style={[styles.bubble, styles.bubbleAI, styles.typingBubble]}>
+              <ChatTypingDots />
             </View>
           </View>
-        ) : null
+        ) : (
+          <View style={styles.footerSpacer} />
+        )
       }
     />
   );
@@ -64,8 +75,13 @@ function makeStyles(brand: BrandColors) {
   return StyleSheet.create({
     content: {
       paddingHorizontal: PageGutter,
-      paddingVertical: 16,
-      gap: 18,
+      paddingTop: 16,
+      paddingBottom: 20,
+      flexGrow: 1,
+    },
+    list: {
+      flex: 1,
+      minHeight: 0,
     },
     loading: {
       flex: 1,
@@ -82,11 +98,12 @@ function makeStyles(brand: BrandColors) {
       fontSize: 13,
       fontWeight: '600',
       color: brand.textMuted,
-      marginBottom: 6,
+      marginBottom: 18,
     },
     row: {
       maxWidth: '82%',
       gap: 4,
+      marginBottom: 18,
     },
     rowUser: {
       alignSelf: 'flex-end',
@@ -109,12 +126,22 @@ function makeStyles(brand: BrandColors) {
       backgroundColor: brand.chatBubbleAI,
       borderBottomLeftRadius: Radius.sm,
     },
+    typingBubble: {
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+    },
+    typingFooter: {
+      paddingBottom: 8,
+    },
+    footerSpacer: {
+      height: 4,
+    },
     text: {
       fontSize: 15,
       lineHeight: 21,
     },
     textUser: {
-      color: brand.onPrimary,
+      color: brand.onChatBubbleUser,
       fontWeight: '600',
     },
     textAI: {

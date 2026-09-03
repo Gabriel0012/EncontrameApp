@@ -58,6 +58,9 @@ function RootLayoutInner() {
           <Stack.Screen name="chat" />
           <Stack.Screen name="exercises" />
           <Stack.Screen name="grupo-chat" />
+          <Stack.Screen name="sofia-welcome" />
+          <Stack.Screen name="sofia-theme" />
+          <Stack.Screen name="sofia-perfil" />
         </Stack>
       ) : (
         <View style={styles.boot}>

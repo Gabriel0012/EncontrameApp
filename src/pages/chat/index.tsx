@@ -1,5 +1,14 @@
 import { useMemo } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContentShell } from '@/components/content-shell';
@@ -17,6 +26,16 @@ export default function ChatPage() {
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const controller = useChatController();
 
+  if (controller.welcomeGate === 'checking') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.boot}>
+          <ActivityIndicator color={brand.blue} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ContentShell style={styles.shell} noGutter>
@@ -27,7 +46,7 @@ export default function ChatPage() {
           <View style={styles.header}>
             <ChatHeaderSection controller={controller} />
           </View>
-          <View style={styles.flex}>
+          <View style={styles.messages}>
             <ChatMessagesSection controller={controller} />
           </View>
           <ChatInputSection controller={controller} />
@@ -76,12 +95,23 @@ function makeStyles(brand: BrandColors) {
     },
     shell: {
       flex: 1,
+      minHeight: 0,
     },
     flex: {
       flex: 1,
+      minHeight: 0,
+    },
+    messages: {
+      flex: 1,
+      minHeight: 0,
     },
     header: {
       paddingHorizontal: PageGutter,
+    },
+    boot: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     modalBackdrop: {
       flex: 1,

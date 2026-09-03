@@ -1,8 +1,9 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
 import { clearSession, getRefreshToken, getSessionUser } from '@/lib/session';
+import { isSofiaWelcomeComplete } from '@/lib/sofia-prefs';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { usePeopleQuery } from '@/services/people/people.service';
 
@@ -63,7 +64,13 @@ export function useInicioController() {
     closeMenu,
     goToNearby: () => router.push('/pessoas-proximas'),
     goToRegister: () => router.push('/cadastrar-pessoa'),
-    goToChat: () => goTo(() => router.push('/chat')),
+    goToChat: () =>
+      goTo(() => {
+        void isSofiaWelcomeComplete().then((done) => {
+          router.push((done ? '/chat' : '/sofia-welcome') as Href);
+        });
+      }),
+    goToTheme: () => goTo(() => router.push('/sofia-theme' as Href)),
     goToGroupChat: () => goTo(() => router.push('/grupo-chat')),
     goToHomeFromMenu: () => goTo(() => router.push('/inicio')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
