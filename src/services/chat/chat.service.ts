@@ -1,9 +1,9 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getChatRepository } from '@/services/chat/chat.repository';
 import type { SendMessagePayload } from '@/services/chat/chat.types';
 
-const chatKeys = {
+export const chatKeys = {
   history: ['chat', 'history'] as const,
 };
 
@@ -21,5 +21,15 @@ export function useChatHistoryQuery() {
 export function useSendMessageMutation() {
   return useMutation({
     mutationFn: (payload: SendMessagePayload) => getChatRepository().send(payload),
+  });
+}
+
+export function useClearChatHistoryMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => getChatRepository().clearHistory(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chatKeys.history });
+    },
   });
 }

@@ -1,25 +1,52 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { type BrandColors } from '@/constants/brand';
+import type { ChatController } from '@/features/chat/chat.controller';
 import { useBrand } from '@/lib/brand-theme';
 
-export function ChatHeaderSection() {
+type Props = {
+  controller: ChatController;
+};
+
+export function ChatHeaderSection({ controller }: Props) {
   const router = useRouter();
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
 
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
+      <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}>
         <MaterialCommunityIcons name="chevron-left" size={30} color={brand.textDark} />
       </Pressable>
-      <View style={styles.avatar}>
-        <MaterialCommunityIcons name="account" size={28} color={brand.avatarIcon} />
+      <Image
+        source={require('@/assets/images/sofia-avatar.jpg')}
+        style={styles.avatar}
+        resizeMode="cover"
+      />
+      <View style={styles.titles}>
+        <Text style={styles.name}>Sofia</Text>
+        <Text style={styles.subtitle}>aqui com você</Text>
       </View>
-      <Text style={styles.name}>Sofia</Text>
+      <Pressable
+        onPress={() => router.push('/exercises' as Href)}
+        hitSlop={12}
+        style={styles.iconBtn}
+        accessibilityLabel="Exercícios rápidos"
+      >
+        <MaterialCommunityIcons name="heart-outline" size={22} color={brand.textDark} />
+      </Pressable>
+      <Pressable
+        onPress={() => controller.setConfirmClear(true)}
+        hitSlop={12}
+        style={styles.iconBtn}
+        accessibilityLabel="Apagar conversa"
+        disabled={controller.clearing}
+      >
+        <MaterialCommunityIcons name="trash-can-outline" size={22} color={brand.textMuted} />
+      </Pressable>
     </View>
   );
 }
@@ -29,27 +56,31 @@ function makeStyles(brand: BrandColors) {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      gap: 8,
       paddingVertical: 8,
       borderBottomWidth: 1,
       borderBottomColor: brand.divider,
     },
-    back: {
-      marginLeft: -6,
+    iconBtn: {
+      padding: 4,
     },
     avatar: {
       width: 42,
       height: 42,
       borderRadius: 21,
       backgroundColor: brand.avatarBackground,
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
+    },
+    titles: {
+      flex: 1,
     },
     name: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: '800',
       color: brand.textDark,
+    },
+    subtitle: {
+      fontSize: 12,
+      color: brand.textMuted,
     },
   });
 }

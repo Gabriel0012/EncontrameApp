@@ -18,9 +18,13 @@ export const chatAxiosRepository: ChatRepository = {
   },
 
   async send(payload: SendMessagePayload) {
-    const { data } = await api.post<ApiChatMessage[]>('/IAChat/messages', {
-      message: payload.text,
-    });
+    const { data } = await api.post<ApiChatMessage[]>(
+      '/IAChat/messages',
+      {
+        message: payload.text,
+      },
+      { timeout: 45000 },
+    );
 
     const assistant =
       [...data].reverse().find((item) => normalizeRole(item.sentBy) === 'assistant') ?? data.at(-1);
@@ -30,6 +34,10 @@ export const chatAxiosRepository: ChatRepository = {
     }
 
     return mapMessage(assistant);
+  },
+
+  async clearHistory() {
+    await api.delete('/IAChat/messages');
   },
 };
 

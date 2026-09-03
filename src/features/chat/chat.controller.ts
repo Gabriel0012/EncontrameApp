@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { useChatHistoryQuery, useSendMessageMutation } from '@/services/chat/chat.service';
+import { acceptSofiaDisclaimer, isSofiaDisclaimerAccepted } from '@/lib/sofia-prefs';
+import {
+  chatKeys,
+  useChatHistoryQuery,
+  useClearChatHistoryMutation,
+  useSendMessageMutation,
+} from '@/services/chat/chat.service';
 import type { ChatMessage } from '@/services/chat/chat.types';
 
 function nowTime() {
@@ -20,20 +27,38 @@ function todayLabel() {
 
 /** Centraliza estado e envio de mensagens do chat com a IA (Sofia). */
 export function useChatController() {
+  const queryClient = useQueryClient();
   const historyQuery = useChatHistoryQuery();
   const sendMutation = useSendMessageMutation();
+  const clearMutation = useClearChatHistoryMutation();
 
-  // Mensagens da conversa vindas do histórico (query) + as adicionadas na sessão.
-  const [sessionMessages, setSessionMessages] = useState<ChatMessage[]>([]);
+  const [optimistic, setOptimistic] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [disclaimerReady, setDisclaimerReady] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
-  const messages: ChatMessage[] = [...(historyQuery.data ?? []), ...sessionMessages];
+  useEffect(() => {
+    let mounted = true;
+    void (async () => {
+      const accepted = await isSofiaDisclaimerAccepted();
+      if (mounted) {
+        setDisclaimerAccepted(accepted);
+        setDisclaimerReady(true);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  const canSend = input.trim().length > 0 && !sendMutation.isPending;
+  const messages: ChatMessage[] = [...(historyQuery.data ?? []), ...optimistic];
+
+  const canSend = input.trim().length > 0 && !sendMutation.isPending && disclaimerAccepted;
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || !disclaimerAccepted) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -41,14 +66,32 @@ export function useChatController() {
       text,
       time: nowTime(),
     };
-    setSessionMessages((prev) => [...prev, userMessage]);
+    setOptimistic((prev) => [...prev, userMessage]);
     setInput('');
 
     try {
-      const reply = await sendMutation.mutateAsync({ text });
-      setSessionMessages((prev) => [...prev, reply]);
+      await sendMutation.mutateAsync({ text });
+      setOptimistic([]);
+      await queryClient.invalidateQueries({ queryKey: chatKeys.history });
     } catch {
+      setOptimistic((prev) => prev.filter((message) => message.id !== userMessage.id));
+      setInput(text);
       Alert.alert('Falha no envio', 'Não foi possível enviar a mensagem. Tente novamente.');
+    }
+  };
+
+  const handleAcceptDisclaimer = async () => {
+    await acceptSofiaDisclaimer();
+    setDisclaimerAccepted(true);
+  };
+
+  const handleClear = async () => {
+    setConfirmClear(false);
+    try {
+      await clearMutation.mutateAsync();
+      setOptimistic([]);
+    } catch {
+      Alert.alert('Não foi possível apagar', 'Tente novamente em instantes.');
     }
   };
 
@@ -58,8 +101,15 @@ export function useChatController() {
     setInput,
     canSend,
     sending: sendMutation.isPending,
+    clearing: clearMutation.isPending,
+    loading: historyQuery.isLoading,
     today: todayLabel(),
     handleSend,
+    disclaimerVisible: disclaimerReady && !disclaimerAccepted,
+    handleAcceptDisclaimer,
+    confirmClear,
+    setConfirmClear,
+    handleClear,
   };
 }
 

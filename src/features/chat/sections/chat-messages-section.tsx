@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
@@ -28,6 +28,15 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
     );
   };
 
+  if (controller.loading && controller.messages.length === 0) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={brand.blue} />
+        <Text style={styles.loadingText}>Um momento…</Text>
+      </View>
+    );
+  }
+
   return (
     <FlatList
       ref={listRef}
@@ -38,6 +47,15 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
       showsVerticalScrollIndicator={false}
       onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
       ListHeaderComponent={<Text style={styles.dateLabel}>{controller.today}</Text>}
+      ListFooterComponent={
+        controller.sending ? (
+          <View style={[styles.row, styles.rowAI]}>
+            <View style={[styles.bubble, styles.bubbleAI]}>
+              <Text style={[styles.text, styles.textAI]}>Sofia está escrevendo…</Text>
+            </View>
+          </View>
+        ) : null
+      }
     />
   );
 }
@@ -48,6 +66,16 @@ function makeStyles(brand: BrandColors) {
       paddingHorizontal: PageGutter,
       paddingVertical: 16,
       gap: 18,
+    },
+    loading: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    loadingText: {
+      fontSize: 13,
+      color: brand.textMuted,
     },
     dateLabel: {
       alignSelf: 'center',

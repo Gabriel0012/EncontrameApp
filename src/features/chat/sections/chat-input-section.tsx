@@ -21,7 +21,7 @@ export function ChatInputSection({ controller }: ChatInputSectionProps) {
         style={styles.input}
         value={controller.input}
         onChangeText={controller.setInput}
-        placeholder="Digite sua mensagem aqui..."
+        placeholder="Escreva o que está sentindo…"
         placeholderTextColor={brand.placeholder}
         multiline
       />

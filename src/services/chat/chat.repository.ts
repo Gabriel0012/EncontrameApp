@@ -7,6 +7,7 @@ import type { ChatMessage, SendMessagePayload } from '@/services/chat/chat.types
 export interface ChatRepository {
   history(): Promise<ChatMessage[]>;
   send(payload: SendMessagePayload): Promise<ChatMessage>;
+  clearHistory(): Promise<void>;
 }
 
 /**
