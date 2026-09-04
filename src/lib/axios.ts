@@ -1,5 +1,7 @@
 import { create as createAxios, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
+import { notifyApiError } from '@/lib/api-error-events';
+import { apiErrorDisplayMessage } from '@/lib/api-errors';
 import { notifySessionExpired } from '@/lib/auth-events';
 import { env } from '@/lib/env';
 import {
@@ -42,29 +44,28 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as RetriableConfig | undefined;
     const status = error.response?.status;
+    const url = original?.url ?? '';
+    const shouldRetry401 =
+      Boolean(original) && status === 401 && !original?._retry && !isAuthPublicPath(url);
 
-    if (!original || status !== 401 || original._retry) {
-      return Promise.reject(error);
+    if (shouldRetry401 && original) {
+      original._retry = true;
+
+      try {
+        const accessToken = await refreshAccessTokenShared();
+        original.headers.Authorization = `Bearer ${accessToken}`;
+        return api(original);
+      } catch (refreshError) {
+        await clearSession();
+        notifySessionExpired();
+        return Promise.reject(refreshError);
+      }
     }
 
-    const url = original.url ?? '';
-    if (isAuthPublicPath(url)) {
-      return Promise.reject(error);
+    if (!url.includes('/Auth/refresh') && !url.includes('/Auth/logout')) {
+      notifyApiError(apiErrorDisplayMessage(error));
     }
-
-    original._retry = true;
-
-    try {
-      const accessToken = await refreshAccessTokenShared();
-      original.headers.Authorization = `Bearer ${accessToken}`;
-      return api(original);
-    } catch (refreshError) {
-      // Só limpa storage / redireciona quando o refresh realmente falhou
-      // (token ausente no storage ou /Auth/refresh rejeitou).
-      await clearSession();
-      notifySessionExpired();
-      return Promise.reject(refreshError);
-    }
+    return Promise.reject(error);
   },
 );
 

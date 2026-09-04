@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Alert, Platform } from 'react-native';
 
 import { parseApiError } from '@/lib/api-errors';
-import { fieldErrorMessage, generalErrorMessage } from '@/lib/error-messages';
 import { maskDigits, maskPhone } from '@/lib/masks';
 import { useFieldErrors } from '@/lib/use-field-errors';
 import {
@@ -282,21 +281,13 @@ export function useCadastrarPessoaController() {
       Alert.alert('Cadastro concluído', 'A pessoa foi cadastrada com sucesso.');
       router.replace('/inicio');
     } catch (error) {
-      const { code, fields } = parseApiError(error, API_FIELD_MAP);
-      const { photo, ...formFields } = fields;
+      const { fields } = parseApiError(error, API_FIELD_MAP);
+      const formFields = Object.fromEntries(
+        Object.entries(fields).filter(([field]) => field !== 'photo'),
+      );
 
       if (Object.keys(formFields).length > 0) {
         setErrors(formFields);
-      }
-
-      // A foto não tem campo de texto: só cabe alerta.
-      if (photo) {
-        Alert.alert('Foto inválida', fieldErrorMessage('photo', photo));
-        return;
-      }
-
-      if (Object.keys(formFields).length === 0) {
-        Alert.alert('Falha no cadastro', generalErrorMessage(code));
       }
     }
   };

@@ -39,17 +39,15 @@ export function fieldErrorMessage(field: string, code: string) {
 }
 
 /** Mensagem geral, usada quando a falha não aponta para um campo. */
+const generalByCode: Record<string, string> = {
+  validation_failed: 'Verifique os campos destacados.',
+  conflict: 'Estes dados já estão cadastrados.',
+  invalid_credentials: 'E-mail/CPF ou senha inválidos.',
+  not_found: 'Registro não encontrado.',
+  llm_unavailable: 'A Sofia está indisponível no momento. Tente novamente em instantes.',
+};
+
 export function generalErrorMessage(code?: string) {
-  switch (code) {
-    case 'validation_failed':
-      return 'Verifique os campos destacados.';
-    case 'conflict':
-      return 'Estes dados já estão cadastrados.';
-    case 'invalid_credentials':
-      return 'E-mail/CPF ou senha inválidos.';
-    case 'not_found':
-      return 'Registro não encontrado.';
-    default:
-      return 'Não foi possível concluir. Tente novamente.';
-  }
+  if (!code) return 'Não foi possível concluir. Tente novamente.';
+  return generalByCode[code] ?? 'Não foi possível concluir. Tente novamente.';
 }

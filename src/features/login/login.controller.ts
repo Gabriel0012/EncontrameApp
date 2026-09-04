@@ -1,6 +1,5 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { parseApiError } from '@/lib/api-errors';
 import { generalErrorMessage } from '@/lib/error-messages';
@@ -63,10 +62,7 @@ export function useLoginController() {
 
       if (code === 'invalid_credentials') {
         setFormError(generalErrorMessage(code));
-        return;
       }
-
-      Alert.alert('Falha no login', generalErrorMessage(code));
     }
   };
 

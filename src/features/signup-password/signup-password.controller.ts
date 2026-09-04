@@ -1,9 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { parseApiError } from '@/lib/api-errors';
-import { fieldErrorMessage, generalErrorMessage } from '@/lib/error-messages';
 import { useFieldErrors } from '@/lib/use-field-errors';
 import { PASSWORD_MIN_LENGTH, collectErrors, textError, type ErrorCode } from '@/lib/validation';
 import { useSignupMutation } from '@/services/auth/auth.service';
@@ -73,24 +71,16 @@ export function useSignupPasswordController() {
       await signupMutation.mutateAsync(payload);
       router.replace('/login');
     } catch (error) {
-      const { code, fields } = parseApiError(error, API_FIELD_MAP);
+      const { fields } = parseApiError(error, API_FIELD_MAP);
 
       if (fields.password) {
         setErrors({ password: fields.password });
         return;
       }
 
-      const stepOneFields = Object.keys(fields);
-      if (stepOneFields.length > 0) {
-        Alert.alert(
-          'Revise seus dados',
-          stepOneFields.map((field) => fieldErrorMessage(field, fields[field])).join('\n'),
-        );
+      if (Object.keys(fields).length > 0) {
         router.back();
-        return;
       }
-
-      Alert.alert('Falha no cadastro', generalErrorMessage(code));
     }
   };
 

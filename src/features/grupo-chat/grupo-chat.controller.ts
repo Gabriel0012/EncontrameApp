@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import {
   useGroupChatHistoryQuery,
@@ -53,7 +52,6 @@ export function useGrupoChatController() {
       await sendMutation.mutateAsync({ text });
     } catch {
       setSessionMessages((prev) => prev.filter((message) => message.id !== optimisticMessage.id));
-      Alert.alert('Falha no envio', 'Não foi possível enviar a mensagem. Tente novamente.');
     }
   };
 

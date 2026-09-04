@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { BrandColors } from '@/constants/brand';
+import { ApiErrorModalProvider } from '@/lib/api-error-modal';
 import { setSessionExpiredHandler } from '@/lib/auth-events';
 import { BrandThemeProvider, useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { queryClient } from '@/lib/query-client';
@@ -76,7 +77,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <BrandThemeProvider>
-          <RootLayoutInner />
+          <ApiErrorModalProvider>
+            <RootLayoutInner />
+          </ApiErrorModalProvider>
         </BrandThemeProvider>
       </SafeAreaProvider>
     </QueryClientProvider>

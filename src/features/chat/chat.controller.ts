@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 
 import {
   acceptSofiaDisclaimer,
@@ -91,7 +90,6 @@ export function useChatController() {
     } catch {
       setOptimistic((prev) => prev.filter((message) => message.id !== userMessage.id));
       setInput(text);
-      Alert.alert('Falha no envio', 'Não foi possível enviar a mensagem. Tente novamente.');
     }
   };
 
@@ -106,7 +104,7 @@ export function useChatController() {
       await clearMutation.mutateAsync();
       setOptimistic([]);
     } catch {
-      Alert.alert('Não foi possível apagar', 'Tente novamente em instantes.');
+      setOptimistic([]);
     }
   };
 

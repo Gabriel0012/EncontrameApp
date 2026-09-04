@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios';
 
+import { fieldErrorMessage, generalErrorMessage } from '@/lib/error-messages';
 import type { ErrorCode, FieldErrors } from '@/lib/validation';
 
 interface ApiFieldError {
@@ -10,6 +11,8 @@ interface ApiFieldError {
 interface ApiErrorBody {
   message?: string;
   errors?: ApiFieldError[];
+  title?: string;
+  detail?: string;
 }
 
 export interface ParsedApiError {
@@ -31,7 +34,8 @@ export function parseApiError(
   if (!isAxiosError(error)) return { fields: {} };
 
   const body = error.response?.data as ApiErrorBody | string | undefined;
-  if (!body || typeof body === 'string') return { fields: {} };
+  if (!body) return { fields: {} };
+  if (typeof body === 'string') return { code: body, fields: {} };
 
   const fields: FieldErrors = {};
   for (const item of body.errors ?? []) {
@@ -39,5 +43,37 @@ export function parseApiError(
     fields[fieldMap[item.field] ?? item.field] = item.error as ErrorCode;
   }
 
-  return { code: body.message, fields };
+  return { code: body.message || body.detail || body.title, fields };
+}
+
+function isSnakeCode(value: string) {
+  return /^[a-z][a-z0-9_]*$/.test(value);
+}
+
+/** Texto pronto para o modal de erro (código da API traduzido, ou a mensagem original). */
+export function apiErrorDisplayMessage(error: unknown): string {
+  if (isAxiosError(error) && !error.response) {
+    if (error.code === 'ECONNABORTED') {
+      return 'A requisição demorou demais. Tente novamente.';
+    }
+    return 'Não foi possível conectar. Verifique sua internet.';
+  }
+
+  const { code, fields } = parseApiError(error);
+  const fieldMessages = Object.entries(fields).map(([field, fieldCode]) =>
+    fieldErrorMessage(field, fieldCode),
+  );
+  if (fieldMessages.length === 1) return fieldMessages[0];
+  if (fieldMessages.length > 1) return fieldMessages.join('\n');
+
+  if (code) {
+    if (isSnakeCode(code)) return generalErrorMessage(code);
+    return code;
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return generalErrorMessage();
 }
