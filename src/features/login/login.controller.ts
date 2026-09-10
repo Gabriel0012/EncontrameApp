@@ -1,7 +1,8 @@
-import { useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { parseApiError } from '@/lib/api-errors';
+import { safeReturnTo } from '@/lib/auth-guard';
 import { generalErrorMessage } from '@/lib/error-messages';
 import { useFieldErrors } from '@/lib/use-field-errors';
 import { collectErrors, textError } from '@/lib/validation';
@@ -10,6 +11,7 @@ import { useLoginMutation } from '@/services/auth/auth.service';
 /** Centraliza estado, validação e ações da tela de login. */
 export function useLoginController() {
   const router = useRouter();
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
   const loginMutation = useLoginMutation();
   const { errors, setErrors, setFieldCode, markDirty, isDirty, fieldError } = useFieldErrors();
 
@@ -51,7 +53,8 @@ export function useLoginController() {
 
     try {
       await loginMutation.mutateAsync({ identifier, password });
-      router.replace('/inicio');
+      const dest = safeReturnTo(returnTo) ?? '/inicio';
+      router.replace(dest as Href);
     } catch (error) {
       const { code, fields } = parseApiError(error);
 
@@ -78,6 +81,7 @@ export function useLoginController() {
     formError,
     submitting: loginMutation.isPending,
     handleLogin,
+    goToSignup: () => router.push('/signup'),
   };
 }
 

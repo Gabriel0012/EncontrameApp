@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
@@ -61,6 +61,11 @@ export function LoginFormSection({
         onPress={controller.handleLogin}
         style={styles.submit}
       />
+      <Pressable onPress={controller.goToSignup} hitSlop={12} style={styles.signupHit}>
+        <Text style={[styles.signupLink, tone === 'onDark' && styles.signupLinkOnDark]}>
+          Se cadastrar
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -81,6 +86,20 @@ function makeStyles(brand: BrandColors) {
     },
     submit: {
       marginTop: 8,
+    },
+    signupHit: {
+      alignSelf: 'center',
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+    },
+    signupLink: {
+      color: brand.blue,
+      fontSize: 15,
+      fontWeight: '600',
+      textDecorationLine: 'underline',
+    },
+    signupLinkOnDark: {
+      color: brand.cream,
     },
   });
 }

@@ -15,7 +15,15 @@ type Props = {
 export function ScreenHeader({ title, onBack }: Props) {
   const router = useRouter();
   const brand = useBrand();
-  const handleBack = onBack ?? (() => router.back());
+  const handleBack =
+    onBack ??
+    (() => {
+      if (router.canGoBack()) {
+        router.back();
+        return;
+      }
+      router.replace('/inicio');
+    });
   const [highlighted, setHighlighted] = useState(false);
   const opacityStyle = useTimedOpacity(highlighted ? 0.85 : 1);
 

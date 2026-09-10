@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter } from 'expo-router';
+import { type Href, Stack, usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -8,16 +8,20 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { BrandColors } from '@/constants/brand';
 import { ApiErrorModalProvider } from '@/lib/api-error-modal';
 import { setSessionExpiredHandler } from '@/lib/auth-events';
+import { isProtectedPath } from '@/lib/auth-guard';
 import { BrandThemeProvider, useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { queryClient } from '@/lib/query-client';
-import { hydrateSession } from '@/lib/session';
+import { getSessionUser, hydrateSession } from '@/lib/session';
 
 function RootLayoutInner() {
   const router = useRouter();
+  const pathname = usePathname();
   const brand = useBrand();
   const colorScheme = useBrandColorScheme();
   const [sessionReady, setSessionReady] = useState(false);
   const styles = useMemo(() => makeStyles(brand), [brand]);
+
+  const blocked = sessionReady && isProtectedPath(pathname) && getSessionUser() == null;
 
   useEffect(() => {
     let cancelled = false;
@@ -39,10 +43,17 @@ function RootLayoutInner() {
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!blocked) return;
+    router.replace({ pathname: '/login', params: { returnTo: pathname } } as Href);
+  }, [blocked, pathname, router]);
+
+  const showStack = sessionReady && !blocked;
+
   return (
     <>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      {sessionReady ? (
+      {showStack ? (
         <Stack
           screenOptions={{
             headerShown: false,
