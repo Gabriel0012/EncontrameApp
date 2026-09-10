@@ -1,6 +1,7 @@
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
+import { useGoogleAuth } from '@/features/google-auth/use-google-auth';
 import { parseApiError } from '@/lib/api-errors';
 import { safeReturnTo } from '@/lib/auth-guard';
 import { generalErrorMessage } from '@/lib/error-messages';
@@ -18,6 +19,9 @@ export function useLoginController() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
+
+  const dest = (safeReturnTo(returnTo) ?? '/inicio') as Href;
+  const google = useGoogleAuth({ successHref: dest });
 
   const changeIdentifier = (value: string) => {
     setIdentifier(value);
@@ -53,8 +57,7 @@ export function useLoginController() {
 
     try {
       await loginMutation.mutateAsync({ identifier, password });
-      const dest = safeReturnTo(returnTo) ?? '/inicio';
-      router.replace(dest as Href);
+      router.replace(dest);
     } catch (error) {
       const { code, fields } = parseApiError(error);
 
@@ -78,8 +81,12 @@ export function useLoginController() {
     blurPassword,
     errors,
     fieldError,
-    formError,
+    formError: formError || google.error,
     submitting: loginMutation.isPending,
+    googleAvailable: google.available,
+    googleReady: google.ready,
+    googleSubmitting: google.submitting,
+    handleGoogle: google.promptGoogle,
     handleLogin,
     goToSignup: () => router.push('/signup'),
   };

@@ -25,3 +25,20 @@ export interface AuthResult {
   refreshToken: string;
   user: AuthUser;
 }
+
+export interface GoogleProfile {
+  email: string;
+  name: string;
+}
+
+export type GoogleStartResult =
+  | { status: 'authenticated'; session: AuthResult }
+  | { status: 'needsRegistration'; profile: GoogleProfile };
+
+export interface GoogleRegisterPayload {
+  idToken: string;
+  name: string;
+  cpf: string;
+  phone: string;
+  cep: string;
+}

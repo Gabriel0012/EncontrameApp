@@ -1,8 +1,9 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { type Href, Stack, usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { BrandColors } from '@/constants/brand';
@@ -12,6 +13,12 @@ import { isProtectedPath } from '@/lib/auth-guard';
 import { BrandThemeProvider, useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { queryClient } from '@/lib/query-client';
 import { getSessionUser, hydrateSession } from '@/lib/session';
+
+// Só no popup do OAuth (tem opener). Completa e deixa o app pai fechar a janela
+// antes do Expo Router redirecionar `/` → `/inicio` → `/login`.
+if (Platform.OS === 'web' && typeof window !== 'undefined' && window.opener) {
+  WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
+}
 
 function RootLayoutInner() {
   const router = useRouter();

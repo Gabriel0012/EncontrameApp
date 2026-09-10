@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
+import { GoogleAuthButton } from '@/components/google-auth-button';
 import type { BrandColors } from '@/constants/brand';
 import type { LoginController } from '@/features/login/login.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -61,6 +62,16 @@ export function LoginFormSection({
         onPress={controller.handleLogin}
         style={styles.submit}
       />
+      {controller.googleAvailable ? (
+        <>
+          <Text style={[styles.orLabel, tone === 'onDark' && styles.orLabelOnDark]}>ou</Text>
+          <GoogleAuthButton
+            onPress={controller.handleGoogle}
+            loading={controller.googleSubmitting}
+            disabled={!controller.googleReady || controller.submitting}
+          />
+        </>
+      ) : null}
       <Pressable onPress={controller.goToSignup} hitSlop={12} style={styles.signupHit}>
         <Text style={[styles.signupLink, tone === 'onDark' && styles.signupLinkOnDark]}>
           Se cadastrar
@@ -86,6 +97,15 @@ function makeStyles(brand: BrandColors) {
     },
     submit: {
       marginTop: 8,
+    },
+    orLabel: {
+      alignSelf: 'center',
+      fontSize: 14,
+      fontWeight: '600',
+      color: brand.placeholder,
+    },
+    orLabelOnDark: {
+      color: brand.cream,
     },
     signupHit: {
       alignSelf: 'center',

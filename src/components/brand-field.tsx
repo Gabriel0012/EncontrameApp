@@ -33,6 +33,8 @@ type Props = {
   error?: string;
   /** Dispara ao sair do campo (validação dirty). */
   onBlur?: () => void;
+  /** Quando false, o campo não aceita edição (ex.: e-mail vindo do Google). */
+  editable?: boolean;
 };
 
 export function BrandField({
@@ -49,6 +51,7 @@ export function BrandField({
   required,
   error,
   onBlur,
+  editable = true,
 }: Props) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
@@ -76,6 +79,7 @@ export function BrandField({
             setFocused(false);
             onBlur?.();
           }}
+          editable={editable}
         />
         {trailingIcon ? (
           <Pressable onPress={onTrailingPress} hitSlop={8}>

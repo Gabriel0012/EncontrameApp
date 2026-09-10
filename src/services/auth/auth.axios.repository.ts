@@ -3,7 +3,13 @@ import { create as createAxios } from 'axios';
 import { env } from '@/lib/env';
 import { onlyDigits } from '@/lib/masks';
 import type { AuthRepository } from '@/services/auth/auth.repository';
-import type { AuthResult, LoginPayload, SignupPayload } from '@/services/auth/auth.types';
+import type {
+  AuthResult,
+  GoogleRegisterPayload,
+  GoogleStartResult,
+  LoginPayload,
+  SignupPayload,
+} from '@/services/auth/auth.types';
 
 interface ApiAuthResponse {
   accessToken?: string;
@@ -15,6 +21,15 @@ interface ApiAuthResponse {
     name: string;
     email: string;
   };
+}
+
+interface ApiGoogleStartResponse {
+  status?: string;
+  session?: ApiAuthResponse | null;
+  profile?: {
+    email?: string;
+    name?: string;
+  } | null;
 }
 
 /**
@@ -65,6 +80,22 @@ export const authAxiosRepository: AuthRepository = {
       // Best-effort: limpar sessão local mesmo se a API falhar.
     }
   },
+
+  async googleStart(idToken: string) {
+    const { data } = await authApi.post<ApiGoogleStartResponse>('/Auth/google', { idToken });
+    return mapGoogleStart(data);
+  },
+
+  async googleRegister(payload: GoogleRegisterPayload) {
+    const { data } = await authApi.post<ApiAuthResponse>('/Auth/google/register', {
+      idToken: payload.idToken,
+      name: payload.name,
+      document: onlyDigits(payload.cpf),
+      cellPhone: onlyDigits(payload.phone),
+      cep: onlyDigits(payload.cep),
+    });
+    return mapAuthResult(data);
+  },
 };
 
 function mapAuthResult(data: ApiAuthResponse): AuthResult {
@@ -84,4 +115,22 @@ function mapAuthResult(data: ApiAuthResponse): AuthResult {
       email: data.user.email,
     },
   };
+}
+
+function mapGoogleStart(data: ApiGoogleStartResponse): GoogleStartResult {
+  if (data.status === 'authenticated' && data.session) {
+    return { status: 'authenticated', session: mapAuthResult(data.session) };
+  }
+
+  if (data.status === 'needsRegistration' && data.profile?.email) {
+    return {
+      status: 'needsRegistration',
+      profile: {
+        email: data.profile.email,
+        name: data.profile.name ?? '',
+      },
+    };
+  }
+
+  throw new Error('Resposta inválida do login Google.');
 }

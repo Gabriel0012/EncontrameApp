@@ -1,12 +1,20 @@
 import { env } from '@/lib/env';
 import { authAxiosRepository } from '@/services/auth/auth.axios.repository';
 import { authMockRepository } from '@/services/auth/auth.mock.repository';
-import type { AuthResult, LoginPayload, SignupPayload } from '@/services/auth/auth.types';
+import type {
+  AuthResult,
+  GoogleRegisterPayload,
+  GoogleStartResult,
+  LoginPayload,
+  SignupPayload,
+} from '@/services/auth/auth.types';
 
 /** Contrato comum aos repositórios de autenticação (axios e mock). */
 export interface AuthRepository {
   login(payload: LoginPayload): Promise<AuthResult>;
   signup(payload: SignupPayload): Promise<AuthResult>;
+  googleStart(idToken: string): Promise<GoogleStartResult>;
+  googleRegister(payload: GoogleRegisterPayload): Promise<AuthResult>;
   refresh(refreshToken: string): Promise<AuthResult>;
   logout(refreshToken: string | null): Promise<void>;
 }

@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
+import { parseApiError } from '@/lib/api-errors';
+import { getGoogleSignupDraft, clearGoogleSignupDraft } from '@/lib/google-signup-draft';
 import { maskCep, maskCpf, maskPhone } from '@/lib/masks';
 import { useFieldErrors } from '@/lib/use-field-errors';
 import {
@@ -14,18 +16,35 @@ import {
   optionalFormatError,
   textError,
 } from '@/lib/validation';
+import { useGoogleRegisterMutation } from '@/services/auth/auth.service';
+
+const API_FIELD_MAP = { document: 'cpf', cellPhone: 'phone' };
 
 /** Centraliza estado, validação e navegação da etapa 1 do cadastro (dados pessoais). */
 export function useSignupController() {
   const router = useRouter();
   const { errors, setErrors, setFieldCode, markDirty, isDirty, fieldError } = useFieldErrors();
+  const googleRegister = useGoogleRegisterMutation();
 
-  const [name, setName] = useState('');
+  const initialDraft = getGoogleSignupDraft();
+
+  const [name, setName] = useState(initialDraft?.name ?? '');
   const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialDraft?.email ?? '');
   const [phone, setPhone] = useState('');
   const [cep, setCep] = useState('');
   const [clause, setClause] = useState('');
+  const [fromGoogle, setFromGoogle] = useState(Boolean(initialDraft));
+  const [formError, setFormError] = useState('');
+
+  const applyGoogleDraft = useCallback(() => {
+    const draft = getGoogleSignupDraft();
+    if (!draft) return;
+    setName(draft.name);
+    setEmail(draft.email);
+    setFromGoogle(true);
+    setFormError('');
+  }, []);
 
   const changeName = (value: string) => {
     setName(value);
@@ -80,7 +99,7 @@ export function useSignupController() {
     setFieldCode('cep', optionalFormatError(cep, isCep));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const found = collectErrors({
       name: textError(name, NAME_MIN_LENGTH),
       cpf: formatError(cpf, isCpf),
@@ -90,7 +109,35 @@ export function useSignupController() {
     });
 
     setErrors(found);
+    setFormError('');
     if (Object.keys(found).length > 0) return;
+
+    const draft = getGoogleSignupDraft();
+    if (fromGoogle && draft) {
+      try {
+        await googleRegister.mutateAsync({
+          idToken: draft.idToken,
+          name,
+          cpf,
+          phone,
+          cep,
+        });
+        clearGoogleSignupDraft();
+        router.replace('/inicio');
+      } catch (error) {
+        const { fields, code } = parseApiError(error, API_FIELD_MAP);
+        if (Object.keys(fields).length > 0) {
+          setErrors(fields);
+          return;
+        }
+        setFormError(
+          code === 'invalid_credentials'
+            ? 'A sessão do Google expirou. Toque em Continuar com Google novamente.'
+            : 'Não foi possível concluir o cadastro.',
+        );
+      }
+      return;
+    }
 
     router.push({
       pathname: '/signup-password',
@@ -122,6 +169,10 @@ export function useSignupController() {
     setClause,
     errors,
     fieldError,
+    formError,
+    fromGoogle,
+    applyGoogleDraft,
+    submitting: googleRegister.isPending,
     handleNext,
     handleCepSearch,
   };

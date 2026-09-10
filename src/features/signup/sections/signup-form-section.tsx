@@ -1,17 +1,30 @@
-import { StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
 import { FormRow } from '@/components/form-row';
+import { type BrandColors } from '@/constants/brand';
+import { SignupGoogleControls } from '@/features/signup/sections/signup-google-controls';
 import type { SignupController } from '@/features/signup/signup.controller';
+import { useBrand } from '@/lib/brand-theme';
 
 interface SignupFormSectionProps {
   controller: SignupController;
 }
 
 export function SignupFormSection({ controller }: SignupFormSectionProps) {
+  const brand = useBrand();
+  const styles = useMemo(() => makeStyles(brand), [brand]);
+
   return (
     <View style={styles.form}>
+      {controller.fromGoogle ? null : (
+        <SignupGoogleControls
+          onNeedsRegistration={controller.applyGoogleDraft}
+          disabled={controller.submitting}
+        />
+      )}
       <FormRow>
         <BrandField
           label="Nome"
@@ -43,6 +56,7 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
           keyboardType="email-address"
           autoCapitalize="none"
           required
+          editable={!controller.fromGoogle}
           error={controller.fieldError('email')}
           onBlur={controller.blurEmail}
         />
@@ -77,10 +91,13 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
         />
       </FormRow>
 
+      {controller.formError ? <Text style={styles.formError}>{controller.formError}</Text> : null}
+
       <BrandButton
-        label="Próximo"
+        label={controller.fromGoogle ? 'Criar conta' : 'Próximo'}
         variant="outline"
-        trailingIcon="chevron-double-right"
+        trailingIcon={controller.fromGoogle ? undefined : 'chevron-double-right'}
+        loading={controller.submitting}
         onPress={controller.handleNext}
         style={styles.submit}
       />
@@ -88,12 +105,19 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  form: {
-    marginTop: 20,
-    gap: 18,
-  },
-  submit: {
-    marginTop: 12,
-  },
-});
+function makeStyles(brand: BrandColors) {
+  return StyleSheet.create({
+    form: {
+      marginTop: 20,
+      gap: 18,
+    },
+    formError: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: brand.error,
+    },
+    submit: {
+      marginTop: 12,
+    },
+  });
+}
