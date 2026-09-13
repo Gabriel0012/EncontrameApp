@@ -5,6 +5,7 @@ import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
 import { GoogleAuthButton } from '@/components/google-auth-button';
 import type { BrandColors } from '@/constants/brand';
+import { BiometricEnrollSection } from '@/features/biometric/sections/biometric-enroll-section';
 import type { LoginController } from '@/features/login/login.controller';
 import { useBrand } from '@/lib/brand-theme';
 
@@ -29,6 +30,19 @@ export function LoginFormSection({
 
   return (
     <View style={[styles.form, compact && styles.formCompact]}>
+      {controller.biometricAvailable ? (
+        <>
+          <BrandButton
+            label={controller.biometricLabel}
+            variant="outline"
+            loading={controller.biometricSubmitting}
+            disabled={controller.submitting}
+            onPress={controller.handleBiometricLogin}
+            trailingIcon={controller.biometricIcon}
+          />
+          <Text style={[styles.orLabel, tone === 'onDark' && styles.orLabelOnDark]}>ou</Text>
+        </>
+      ) : null}
       <BrandField
         label="E-mail / CPF"
         value={controller.identifier}
@@ -59,6 +73,7 @@ export function LoginFormSection({
         label="Entrar"
         variant={submitVariant}
         loading={controller.submitting}
+        disabled={controller.biometricSubmitting}
         onPress={controller.handleLogin}
         style={styles.submit}
       />
@@ -68,7 +83,7 @@ export function LoginFormSection({
           <GoogleAuthButton
             onPress={controller.handleGoogle}
             loading={controller.googleSubmitting}
-            disabled={!controller.googleReady || controller.submitting}
+            disabled={!controller.googleReady || controller.submitting || controller.biometricSubmitting}
           />
         </>
       ) : null}
@@ -77,6 +92,18 @@ export function LoginFormSection({
           Se cadastrar
         </Text>
       </Pressable>
+      {controller.biometricAvailable ? (
+        <Pressable
+          onPress={controller.handleUseAnotherAccount}
+          hitSlop={12}
+          style={styles.signupHit}
+        >
+          <Text style={[styles.otherAccount, tone === 'onDark' && styles.signupLinkOnDark]}>
+            Usar outra conta
+          </Text>
+        </Pressable>
+      ) : null}
+      <BiometricEnrollSection controller={controller.enroll} />
     </View>
   );
 }
@@ -120,6 +147,11 @@ function makeStyles(brand: BrandColors) {
     },
     signupLinkOnDark: {
       color: brand.cream,
+    },
+    otherAccount: {
+      color: brand.textMuted,
+      fontSize: 14,
+      fontWeight: '600',
     },
   });
 }

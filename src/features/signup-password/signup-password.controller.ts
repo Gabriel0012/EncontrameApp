@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
+import { useBiometricEnroll } from '@/features/biometric/use-biometric-enroll';
 import { parseApiError } from '@/lib/api-errors';
 import { useFieldErrors } from '@/lib/use-field-errors';
 import { PASSWORD_MIN_LENGTH, collectErrors, textError, type ErrorCode } from '@/lib/validation';
@@ -22,6 +23,7 @@ export function useSignupPasswordController() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const signupMutation = useSignupMutation();
+  const enroll = useBiometricEnroll();
   const { errors, setErrors, setFieldCode, markDirty, isDirty, fieldError } = useFieldErrors();
 
   const [password, setPassword] = useState('');
@@ -69,7 +71,8 @@ export function useSignupPasswordController() {
 
     try {
       await signupMutation.mutateAsync(payload);
-      router.replace('/login');
+      await enroll.promptIfAvailable();
+      router.replace('/inicio');
     } catch (error) {
       const { fields } = parseApiError(error, API_FIELD_MAP);
 
@@ -95,6 +98,7 @@ export function useSignupPasswordController() {
     fieldError,
     submitting: signupMutation.isPending,
     handleRegister,
+    enroll,
   };
 }
 

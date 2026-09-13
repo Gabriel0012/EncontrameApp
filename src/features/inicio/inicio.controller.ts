@@ -2,7 +2,9 @@ import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
-import { clearSession, getRefreshToken, getSessionUser } from '@/lib/session';
+import { getBiometricEnabled } from '@/lib/biometric';
+import { queryClient } from '@/lib/query-client';
+import { clearSession, getRefreshToken, getSessionUser, lockSession } from '@/lib/session';
 import { isSofiaWelcomeComplete } from '@/lib/sofia-prefs';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { usePeopleQuery } from '@/services/people/people.service';
@@ -43,11 +45,21 @@ export function useInicioController() {
   const logout = () =>
     goTo(() => {
       void (async () => {
+        const biometricOn = await getBiometricEnabled();
+        if (biometricOn) {
+          await lockSession();
+          queryClient.clear();
+          setLoggedIn(false);
+          router.replace('/inicio');
+          return;
+        }
+
         const refreshToken = getRefreshToken();
         try {
           await getAuthRepository().logout(refreshToken);
         } finally {
           await clearSession();
+          queryClient.clear();
           setLoggedIn(false);
           router.replace('/inicio');
         }

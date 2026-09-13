@@ -8,7 +8,10 @@
     "scheme": "encontrameapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "O Encontra-me usa a Face ID para entrar na sua conta neste celular."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -40,6 +43,12 @@
         }
       ],
       "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "O Encontra-me usa a Face ID para entrar na sua conta neste celular."
+        }
+      ],
       [
         "expo-image-picker",
         {

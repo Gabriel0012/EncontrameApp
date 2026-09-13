@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
+import { getBiometricEnabled, setBiometricEnabled } from '@/lib/biometric';
 import type { AuthUser } from '@/services/auth/auth.types';
 
 const ACCESS_TOKEN_KEY = 'encontrame.auth.accessToken';
@@ -36,7 +37,13 @@ export function getSessionUser(): AuthUser | null {
 /** Carrega tokens/usuário persistidos para a memória (chamar no boot do app). */
 export async function hydrateSession(): Promise<Session | null> {
   if (!hydratePromise) {
-    hydratePromise = readSessionFromStorage().finally(() => {
+    hydratePromise = (async () => {
+      // Com biometria ligada a sessão fica travada até o desbloqueio na tela de login.
+      if (await getBiometricEnabled()) {
+        return null;
+      }
+      return readSessionFromStorage();
+    })().finally(() => {
       hydratePromise = null;
     });
   }
@@ -47,6 +54,7 @@ export async function hydrateSession(): Promise<Session | null> {
  * Garante que a memória reflita o storage.
  * Usado pelo interceptor 401 quando a memória ainda está vazia (ex.: race pós-F5).
  * Não apaga o storage se as chaves estiverem ausentes — só atualiza a memória.
+ * Não destrava sessão protegida por biometria.
  */
 export async function ensureSessionHydrated(): Promise<Session | null> {
   if (memoryAccessToken && memoryRefreshToken && memoryUser) {
@@ -61,14 +69,33 @@ export async function ensureSessionHydrated(): Promise<Session | null> {
 }
 
 export async function saveSession(session: Session): Promise<void> {
-  memoryAccessToken = session.accessToken;
-  memoryRefreshToken = session.refreshToken;
-  memoryUser = session.user;
+  applySessionToMemory(session);
   await Promise.all([
     storageSet(ACCESS_TOKEN_KEY, session.accessToken),
     storageSet(REFRESH_TOKEN_KEY, session.refreshToken),
     storageSet(USER_KEY, JSON.stringify(session.user)),
   ]);
+}
+
+/** Lê tokens persistidos sem colocá-los na memória (sessão ainda travada). */
+export async function peekStoredSession(): Promise<Session | null> {
+  return peekSessionFromStorage();
+}
+
+export async function hasStoredSession(): Promise<boolean> {
+  return (await peekSessionFromStorage()) != null;
+}
+
+/** Coloca na memória a sessão persistida (após a biometria confirmar). */
+export async function unlockSession(): Promise<Session | null> {
+  return readSessionFromStorage();
+}
+
+/** Limpa só a memória; tokens e preferência biométrica continuam no aparelho. */
+export async function lockSession(): Promise<void> {
+  memoryAccessToken = null;
+  memoryRefreshToken = null;
+  memoryUser = null;
 }
 
 export async function clearSession(): Promise<void> {
@@ -79,10 +106,11 @@ export async function clearSession(): Promise<void> {
     storageDelete(ACCESS_TOKEN_KEY),
     storageDelete(REFRESH_TOKEN_KEY),
     storageDelete(USER_KEY),
+    setBiometricEnabled(false),
   ]);
 }
 
-async function readSessionFromStorage(): Promise<Session | null> {
+async function peekSessionFromStorage(): Promise<Session | null> {
   const [accessToken, refreshToken, userJson] = await Promise.all([
     storageGet(ACCESS_TOKEN_KEY),
     storageGet(REFRESH_TOKEN_KEY),
@@ -90,24 +118,37 @@ async function readSessionFromStorage(): Promise<Session | null> {
   ]);
 
   if (!accessToken || !refreshToken || !userJson) {
-    // Não chama clearSession: ausência na memória pós-F5 não deve apagar o storage.
-    memoryAccessToken = accessToken;
-    memoryRefreshToken = refreshToken;
-    memoryUser = null;
     return null;
   }
 
   try {
     const user = JSON.parse(userJson) as AuthUser;
-    memoryAccessToken = accessToken;
-    memoryRefreshToken = refreshToken;
-    memoryUser = user;
     return { accessToken, refreshToken, user };
   } catch {
-    // JSON corrompido — aí sim limpa.
     await clearSession();
     return null;
   }
+}
+
+async function readSessionFromStorage(): Promise<Session | null> {
+  const session = await peekSessionFromStorage();
+
+  if (!session) {
+    // Não chama clearSession: ausência na memória pós-F5 não deve apagar o storage.
+    memoryAccessToken = null;
+    memoryRefreshToken = null;
+    memoryUser = null;
+    return null;
+  }
+
+  applySessionToMemory(session);
+  return session;
+}
+
+function applySessionToMemory(session: Session): void {
+  memoryAccessToken = session.accessToken;
+  memoryRefreshToken = session.refreshToken;
+  memoryUser = session.user;
 }
 
 /**

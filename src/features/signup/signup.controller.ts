@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 
+import { useBiometricEnroll } from '@/features/biometric/use-biometric-enroll';
 import { parseApiError } from '@/lib/api-errors';
 import { getGoogleSignupDraft, clearGoogleSignupDraft } from '@/lib/google-signup-draft';
 import { maskCep, maskCpf, maskPhone } from '@/lib/masks';
@@ -25,6 +26,7 @@ export function useSignupController() {
   const router = useRouter();
   const { errors, setErrors, setFieldCode, markDirty, isDirty, fieldError } = useFieldErrors();
   const googleRegister = useGoogleRegisterMutation();
+  const enroll = useBiometricEnroll();
 
   const initialDraft = getGoogleSignupDraft();
 
@@ -123,6 +125,7 @@ export function useSignupController() {
           cep,
         });
         clearGoogleSignupDraft();
+        await enroll.promptIfAvailable();
         router.replace('/inicio');
       } catch (error) {
         const { fields, code } = parseApiError(error, API_FIELD_MAP);
@@ -175,6 +178,7 @@ export function useSignupController() {
     submitting: googleRegister.isPending,
     handleNext,
     handleCepSearch,
+    enroll,
   };
 }
 

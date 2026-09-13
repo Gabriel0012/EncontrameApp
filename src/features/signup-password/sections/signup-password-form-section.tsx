@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
+import { BiometricEnrollSection } from '@/features/biometric/sections/biometric-enroll-section';
 import type { SignupPasswordController } from '@/features/signup-password/signup-password.controller';
 
 interface SignupPasswordFormSectionProps {
@@ -42,6 +43,7 @@ export function SignupPasswordFormSection({ controller }: SignupPasswordFormSect
           onPress={controller.handleRegister}
         />
       </View>
+      <BiometricEnrollSection controller={controller.enroll} />
     </>
   );
 }

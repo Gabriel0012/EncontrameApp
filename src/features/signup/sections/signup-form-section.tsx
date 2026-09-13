@@ -5,6 +5,7 @@ import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
 import { FormRow } from '@/components/form-row';
 import { type BrandColors } from '@/constants/brand';
+import { BiometricEnrollSection } from '@/features/biometric/sections/biometric-enroll-section';
 import { SignupGoogleControls } from '@/features/signup/sections/signup-google-controls';
 import type { SignupController } from '@/features/signup/signup.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -101,6 +102,7 @@ export function SignupFormSection({ controller }: SignupFormSectionProps) {
         onPress={controller.handleNext}
         style={styles.submit}
       />
+      <BiometricEnrollSection controller={controller.enroll} />
     </View>
   );
 }

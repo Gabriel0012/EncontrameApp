@@ -25,6 +25,8 @@ interface UseGoogleAuthOptions {
   successHref?: Href;
   /** Chamado quando o e-mail ainda não tem cadastro (já com draft gravado). */
   onNeedsRegistration?: () => void;
+  /** Roda após autenticar (ex.: oferecer biometria) e antes de navegar. */
+  beforeSuccess?: () => Promise<void>;
 }
 
 /** Prompt Google (web) e decide entre sessão imediata ou cadastro incompleto. */
@@ -67,6 +69,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
       const result = await googleStart.mutateAsync(idToken);
       if (result.status === 'authenticated') {
         clearGoogleSignupDraft();
+        await options.beforeSuccess?.();
         router.replace((options.successHref ?? '/inicio') as Href);
         return;
       }

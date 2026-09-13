@@ -1,8 +1,19 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { saveSession } from '@/lib/session';
+import { queryClient } from '@/lib/query-client';
+import {
+  clearSession,
+  peekStoredSession,
+  saveSession,
+  unlockSession,
+} from '@/lib/session';
 import { getAuthRepository } from '@/services/auth/auth.repository';
-import type { GoogleRegisterPayload, LoginPayload, SignupPayload } from '@/services/auth/auth.types';
+import type {
+  AuthResult,
+  GoogleRegisterPayload,
+  LoginPayload,
+  SignupPayload,
+} from '@/services/auth/auth.types';
 
 /**
  * Camada de acesso à API de autenticação exposta como hooks do React Query.
@@ -48,4 +59,38 @@ export function useGoogleRegisterMutation() {
       return result;
     },
   });
+}
+
+/** Destrava a sessão persistida e renova o par de tokens via /Auth/refresh. */
+export async function unlockAndRefreshSession(): Promise<AuthResult> {
+  const session = await unlockSession();
+  if (!session) {
+    throw new Error('Sessão biométrica ausente.');
+  }
+
+  const result = await getAuthRepository().refresh(session.refreshToken);
+  const user = result.user ?? session.user;
+
+  if (!result.accessToken || !result.refreshToken) {
+    throw new Error('Resposta de refresh incompleta.');
+  }
+
+  const next: AuthResult = {
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+    user,
+  };
+  await saveSession(next);
+  return next;
+}
+
+/** Logout completo: revoga o refresh persistido e apaga tokens + biometria. */
+export async function revokeStoredSession(): Promise<void> {
+  const stored = await peekStoredSession();
+  try {
+    await getAuthRepository().logout(stored?.refreshToken ?? null);
+  } finally {
+    await clearSession();
+    queryClient.clear();
+  }
 }

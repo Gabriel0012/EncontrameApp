@@ -3,6 +3,7 @@ import { create as createAxios, type AxiosError, type InternalAxiosRequestConfig
 import { notifyApiError } from '@/lib/api-error-events';
 import { apiErrorDisplayMessage } from '@/lib/api-errors';
 import { notifySessionExpired } from '@/lib/auth-events';
+import { getBiometricEnabled } from '@/lib/biometric';
 import { env } from '@/lib/env';
 import {
   clearSession,
@@ -10,6 +11,7 @@ import {
   getAccessToken,
   getRefreshToken,
   getSessionUser,
+  peekStoredSession,
   saveSession,
 } from '@/lib/session';
 import { getAuthRepository } from '@/services/auth/auth.repository';
@@ -56,8 +58,12 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);
       } catch (refreshError) {
-        await clearSession();
-        notifySessionExpired();
+        const locked =
+          !getAccessToken() && (await getBiometricEnabled()) && (await peekStoredSession());
+        if (!locked) {
+          await clearSession();
+          notifySessionExpired();
+        }
         return Promise.reject(refreshError);
       }
     }
