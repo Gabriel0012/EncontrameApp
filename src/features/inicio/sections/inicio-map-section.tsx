@@ -10,7 +10,11 @@ interface InicioMapSectionProps {
 export function InicioMapSection({ controller }: InicioMapSectionProps) {
   return (
     <View style={styles.wrapper}>
-      <BrandMap pins={controller.pins} onPress={controller.goToNearby} />
+      <BrandMap
+        pins={controller.pins}
+        userLocation={controller.userLocation}
+        onPress={controller.goToNearby}
+      />
     </View>
   );
 }

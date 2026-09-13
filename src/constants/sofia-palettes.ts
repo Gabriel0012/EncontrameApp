@@ -218,6 +218,8 @@ export function applySofiaPaletteToBrand(base: BrandColors, palette: SofiaPalett
     textDark: palette.onSurface,
     textMuted: palette.onSurfaceSecondary,
     divider: palette.border,
+    mapBackground: palette.brandSoft,
+    mapStroke: palette.border,
     error: palette.error,
     avatarBackground: palette.brandSoft,
     avatarIcon: palette.muted,

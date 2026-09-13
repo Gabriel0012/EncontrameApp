@@ -6,6 +6,7 @@ import { getBiometricEnabled } from '@/lib/biometric';
 import { queryClient } from '@/lib/query-client';
 import { clearSession, getRefreshToken, getSessionUser, lockSession } from '@/lib/session';
 import { isSofiaWelcomeComplete } from '@/lib/sofia-prefs';
+import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { usePeopleQuery } from '@/services/people/people.service';
 
@@ -13,6 +14,7 @@ import { usePeopleQuery } from '@/services/people/people.service';
 export function useInicioController() {
   const router = useRouter();
   const peopleQuery = usePeopleQuery();
+  const userLocation = useUserLocation();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(() => getSessionUser() != null);
@@ -69,6 +71,7 @@ export function useInicioController() {
   return {
     people,
     pins,
+    userLocation,
     loading: peopleQuery.isLoading,
     loggedIn,
     menuOpen,

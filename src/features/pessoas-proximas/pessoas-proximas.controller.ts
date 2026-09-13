@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
+import { useUserLocation } from '@/lib/use-user-location';
 import { useNearbyPeopleQuery } from '@/services/people/people.service';
 
 /** Centraliza busca e pins da tela de pessoas próximas. */
@@ -9,6 +10,7 @@ export function usePessoasProximasController() {
   const [query, setQuery] = useState('');
 
   const nearbyQuery = useNearbyPeopleQuery(query);
+  const userLocation = useUserLocation();
   const people = nearbyQuery.data ?? [];
 
   const pins: MapPin[] = people.flatMap((person) => {
@@ -34,6 +36,7 @@ export function usePessoasProximasController() {
     search,
     setSearch,
     pins,
+    userLocation,
     loading: nearbyQuery.isLoading || nearbyQuery.isFetching,
     handleSearch,
   };

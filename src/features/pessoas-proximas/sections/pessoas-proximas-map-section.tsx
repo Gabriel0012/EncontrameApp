@@ -17,7 +17,7 @@ export function PessoasProximasMapSection({ controller }: PessoasProximasMapSect
 
   return (
     <View style={styles.wrapper}>
-      <BrandMap pins={controller.pins} rounded />
+      <BrandMap pins={controller.pins} userLocation={controller.userLocation} rounded />
 
       <View style={styles.searchOverlay}>
         <View style={styles.searchField}>
