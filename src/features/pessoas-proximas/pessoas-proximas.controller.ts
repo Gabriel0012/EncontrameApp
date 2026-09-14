@@ -11,8 +11,12 @@ export function usePessoasProximasController() {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
 
-  const nearbyQuery = useNearbyPeopleQuery(query);
-  const userLocation = useUserLocation();
+  const { location: userLocation, denied: locationDenied } = useUserLocation();
+  const nearbyQuery = useNearbyPeopleQuery({
+    query,
+    latitude: userLocation?.latitude,
+    longitude: userLocation?.longitude,
+  });
   const people = nearbyQuery.data ?? [];
 
   const pins: MapPin[] = people.flatMap((person) => {
@@ -42,6 +46,7 @@ export function usePessoasProximasController() {
     setSearch,
     pins,
     userLocation,
+    locationDenied,
     loading: nearbyQuery.isLoading || nearbyQuery.isFetching,
     handleSearch,
   };

@@ -1,5 +1,6 @@
+import { DEFAULT_NEARBY_RADIUS_KM, haversineKm } from '@/lib/geo';
 import type { PeopleRepository } from '@/services/people/people.repository';
-import type { CreatePersonPayload, Person, ReportLastSeenPayload } from '@/services/people/people.types';
+import type { CreatePersonPayload, NearbyPeopleParams, Person, ReportLastSeenPayload } from '@/services/people/people.types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -59,6 +60,20 @@ let mockPeople: Person[] = [
     statusId: 4,
     statusDescription: 'Alerta',
   },
+  {
+    id: 'p5',
+    fullName: 'Maria do Rio',
+    nickname: 'Maria',
+    age: 31,
+    location: 'Rio de Janeiro, RJ',
+    lastSeen: 'Copacabana, Rio de Janeiro',
+    dtLastSeen: '2024-08-18T09:00:00.000Z',
+    photoUri: 'https://picsum.photos/seed/encontrame-p5/200/200',
+    coords: { latitude: -22.971, longitude: -43.182 },
+    restricted: false,
+    statusId: 2,
+    statusDescription: 'Procurado',
+  },
 ];
 
 /** Implementação mockada: permite desenvolver sem depender da API. */
@@ -68,9 +83,28 @@ export const peopleMockRepository: PeopleRepository = {
     return mockPeople;
   },
 
-  async listNearby(_query: string) {
+  async listNearby({ query, latitude, longitude, radiusKm }: NearbyPeopleParams) {
     await delay(500);
-    return mockPeople;
+    const radius = radiusKm ?? DEFAULT_NEARBY_RADIUS_KM;
+    const nearby = mockPeople.filter((person) => {
+      if (!person.coords) {
+        return false;
+      }
+      return haversineKm(latitude, longitude, person.coords.latitude, person.coords.longitude) <= radius;
+    });
+
+    const needle = query?.trim().toLowerCase();
+    if (!needle) {
+      return nearby;
+    }
+
+    return nearby.filter((person) => {
+      const haystack = [person.fullName, person.nickname, person.location, person.lastSeen]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(needle);
+    });
   },
 
   async getById(id: string) {

@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { DEFAULT_NEARBY_RADIUS_KM, haversineKm, snapNearbyCoord } from '@/lib/geo';
 import { isLocalPersonId } from '@/lib/person-status';
 import { getSessionUser } from '@/lib/session';
 import { useSessionUser } from '@/lib/use-session-user';
@@ -11,12 +12,13 @@ import {
 } from '@/services/people/people.local.store';
 import { getPeopleRepository } from '@/services/people/people.repository';
 import { syncLocalPeople } from '@/services/people/people.sync';
-import type { CreatePersonPayload, Person, ReportLastSeenPayload } from '@/services/people/people.types';
+import type { CreatePersonPayload, NearbyPeopleParams, Person, ReportLastSeenPayload } from '@/services/people/people.types';
 
 const peopleKeys = {
   all: ['people'] as const,
   list: (viewerId: string) => ['people', 'list', viewerId] as const,
-  nearby: (viewerId: string, query: string) => ['people', 'nearby', viewerId, query] as const,
+  nearby: (viewerId: string, query: string, lat: number, lng: number) =>
+    ['people', 'nearby', viewerId, query, lat, lng] as const,
   detail: (id: string) => ['people', 'detail', id] as const,
 };
 
@@ -48,16 +50,35 @@ export function usePeopleQuery() {
   });
 }
 
-export function useNearbyPeopleQuery(query: string) {
+export function useNearbyPeopleQuery(params: {
+  query: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+}) {
   const viewerId = viewerKey(useSessionUser()?.id);
+  const hasCoords =
+    params.latitude != null &&
+    params.longitude != null &&
+    Number.isFinite(params.latitude) &&
+    Number.isFinite(params.longitude);
+  const latitude = hasCoords ? snapNearbyCoord(params.latitude!) : null;
+  const longitude = hasCoords ? snapNearbyCoord(params.longitude!) : null;
 
   return useQuery({
-    queryKey: peopleKeys.nearby(viewerId, query),
+    queryKey: peopleKeys.nearby(viewerId, params.query, latitude ?? 0, longitude ?? 0),
+    enabled: hasCoords,
     queryFn: async () => {
+      const nearbyParams: NearbyPeopleParams = {
+        query: params.query,
+        latitude: latitude!,
+        longitude: longitude!,
+        radiusKm: params.radiusKm,
+      };
       await syncLocalPeople();
-      const local = filterLocalByQuery(await listLocalPersons(), query);
+      const local = filterLocalNearby(await listLocalPersons(), nearbyParams);
       try {
-        const remote = await getPeopleRepository().listNearby(query);
+        const remote = await getPeopleRepository().listNearby(nearbyParams);
         return mergeLocalPeople(local, remote);
       } catch (error) {
         if (local.length > 0) return local;
@@ -118,6 +139,18 @@ export function useReportLastSeenMutation(id: string) {
 async function listLocalPersons(): Promise<Person[]> {
   const pending = await listLocalPending();
   return pending.map((item) => item.person);
+}
+
+function filterLocalNearby(people: Person[], params: NearbyPeopleParams): Person[] {
+  const radius = params.radiusKm ?? DEFAULT_NEARBY_RADIUS_KM;
+  const nearby = people.filter((person) => {
+    if (!person.coords) return false;
+    return (
+      haversineKm(params.latitude, params.longitude, person.coords.latitude, person.coords.longitude) <=
+      radius
+    );
+  });
+  return filterLocalByQuery(nearby, params.query ?? '');
 }
 
 function filterLocalByQuery(people: Person[], query: string): Person[] {

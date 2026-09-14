@@ -1,6 +1,6 @@
 import { api } from '@/lib/axios';
 import type { PeopleRepository } from '@/services/people/people.repository';
-import type { CreatePersonPayload, Person, ReportLastSeenPayload } from '@/services/people/people.types';
+import type { CreatePersonPayload, NearbyPeopleParams, Person, ReportLastSeenPayload } from '@/services/people/people.types';
 
 /** Payload/resposta alinhados ao MissingPerson da API .NET. */
 interface ApiMissingPerson {
@@ -34,9 +34,14 @@ export const peopleAxiosRepository: PeopleRepository = {
     return data.map(mapPerson);
   },
 
-  async listNearby(query: string) {
+  async listNearby({ query, latitude, longitude, radiusKm }: NearbyPeopleParams) {
     const { data } = await api.get<ApiMissingPerson[]>('/MissingPerson/nearby', {
-      params: { q: query || undefined },
+      params: {
+        q: query || undefined,
+        lat: latitude,
+        lng: longitude,
+        ...(radiusKm != null ? { radiusKm } : {}),
+      },
     });
     return data.map(mapPerson);
   },

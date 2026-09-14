@@ -19,6 +19,12 @@ export function PessoasProximasMapSection({ controller }: PessoasProximasMapSect
     <View style={styles.wrapper}>
       <BrandMap pins={controller.pins} userLocation={controller.userLocation} rounded />
 
+      {controller.locationDenied ? (
+        <View style={styles.locationHint}>
+          <Text style={styles.locationHintText}>Ative a localização para ver pessoas próximas.</Text>
+        </View>
+      ) : null}
+
       <View style={styles.searchOverlay}>
         <View style={styles.searchField}>
           <TextInput
@@ -82,6 +88,24 @@ function makeStyles(brand: BrandColors) {
       color: brand.onPrimary,
       fontSize: 15,
       fontWeight: '700',
+    },
+    locationHint: {
+      position: 'absolute',
+      left: 14,
+      right: 14,
+      bottom: 18,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: Radius.md,
+      backgroundColor: brand.surface,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+    },
+    locationHintText: {
+      color: brand.textDark,
+      fontSize: 14,
+      fontWeight: '600',
+      textAlign: 'center',
     },
   });
 }

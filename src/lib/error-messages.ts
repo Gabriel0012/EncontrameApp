@@ -32,6 +32,9 @@ const byField: Record<string, string> = {
   'age.out_of_range': 'Idade inválida.',
   'height.out_of_range': 'Altura inválida.',
   'location.required': 'Informe o endereço ou use sua localização.',
+  'lat.required': 'Ative a localização para ver pessoas próximas.',
+  'lng.required': 'Ative a localização para ver pessoas próximas.',
+  'radiusKm.out_of_range': 'O raio deve ser de até 200 km.',
 };
 
 /** Mensagem de um campo específico do formulário. */

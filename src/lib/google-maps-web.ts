@@ -52,20 +52,32 @@ export type GoogleGeocoder = {
   ) => void;
 };
 
-export type GooglePlacePrediction = {
-  description: string;
-  place_id: string;
+export type GooglePlace = {
+  fetchFields: (opts: { fields: string[] }) => Promise<unknown>;
+  location?: GoogleLatLng | LatLngLiteral | null;
+  formattedAddress?: string | null;
 };
 
-export type GoogleAutocompleteService = {
-  getPlacePredictions: (
-    request: {
+export type GooglePlacePrediction = {
+  placeId?: string;
+  text?: { text?: string };
+  toPlace?: () => GooglePlace;
+};
+
+export type GoogleAutocompleteSuggestion = {
+  placePrediction?: GooglePlacePrediction | null;
+};
+
+/** Places API (New) — AutocompleteSuggestion / Place. Não usar AutocompleteService (legacy). */
+export type GooglePlacesLibrary = {
+  Place: new (opts: { id: string }) => GooglePlace;
+  AutocompleteSuggestion: {
+    fetchAutocompleteSuggestions: (request: {
       input: string;
-      componentRestrictions?: { country: string };
+      includedRegionCodes?: string[];
       language?: string;
-    },
-    callback: (predictions: GooglePlacePrediction[] | null, status: string) => void,
-  ) => void;
+    }) => Promise<{ suggestions: GoogleAutocompleteSuggestion[] }>;
+  };
 };
 
 export type GoogleMapsApi = {
@@ -77,9 +89,6 @@ export type GoogleMapsApi = {
   Size: new (width: number, height: number) => unknown;
   Point: new (x: number, y: number) => unknown;
   importLibrary?: (name: string) => Promise<unknown>;
-  places?: {
-    AutocompleteService: new () => GoogleAutocompleteService;
-  };
   event: {
     addListener: (
       instance: object,
@@ -149,7 +158,7 @@ export function loadGoogleMapsJs(apiKey: string): Promise<GoogleMapsApi> {
     const script = document.createElement('script');
     script.id = SCRIPT_ID;
     script.async = true;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&language=pt-BR&region=BR&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&language=pt-BR&region=BR`;
     script.onload = onReady;
     script.onerror = () => {
       loadPromise = null;
@@ -162,18 +171,37 @@ export function loadGoogleMapsJs(apiKey: string): Promise<GoogleMapsApi> {
   return loadPromise;
 }
 
-/** Garante Places (autocomplete). A chave com referrer HTTP não serve no REST, só no JS. */
-export async function loadGooglePlaces(
-  apiKey: string,
-): Promise<NonNullable<GoogleMapsApi['places']> | null> {
+/** Carrega Places API (New). Projetos novos não podem ativar a Places legada. */
+export async function loadPlacesLibrary(apiKey: string): Promise<GooglePlacesLibrary | null> {
   const maps = await loadGoogleMapsJs(apiKey);
-  if (maps.places?.AutocompleteService) {
-    return maps.places;
+  if (typeof maps.importLibrary !== 'function') {
+    return null;
   }
 
-  if (typeof maps.importLibrary === 'function') {
-    await maps.importLibrary('places');
+  const library = (await maps.importLibrary('places')) as GooglePlacesLibrary;
+  if (!library?.AutocompleteSuggestion?.fetchAutocompleteSuggestions || !library.Place) {
+    return null;
   }
 
-  return getGoogleMaps()?.places ?? null;
+  return library;
+}
+
+export function coordsFromPlaceLocation(
+  location: GooglePlace['location'],
+): LatLngLiteral | null {
+  if (!location) {
+    return null;
+  }
+
+  const lat = location.lat;
+  const lng = location.lng;
+  if (typeof lat === 'function' && typeof lng === 'function') {
+    return { lat: lat.call(location), lng: lng.call(location) };
+  }
+
+  if (typeof lat === 'number' && typeof lng === 'number') {
+    return { lat, lng };
+  }
+
+  return null;
 }

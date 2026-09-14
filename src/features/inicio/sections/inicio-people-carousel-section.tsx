@@ -29,7 +29,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
   const { isWide } = useWideLayout();
   const card = isWide ? CARD_WIDE : CARD_MOBILE;
   const styles = useMemo(() => makeStyles(brand, isWide), [brand, isWide]);
-  const { people } = controller;
+  const { people, locationDenied } = controller;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -39,6 +39,9 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
 
   return (
     <View style={styles.wrapper}>
+      {locationDenied ? (
+        <Text style={styles.locationHint}>Ative a localização para ver pessoas próximas.</Text>
+      ) : null}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -104,6 +107,13 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
   return StyleSheet.create({
     wrapper: {
       gap: 10,
+    },
+    locationHint: {
+      color: brand.textMuted,
+      fontSize: isWide ? 16 : 14,
+      fontWeight: '600',
+      textAlign: 'center',
+      paddingHorizontal: 12,
     },
     track: {
       gap: isWide ? CARD_WIDE.gap : CARD_MOBILE.gap,

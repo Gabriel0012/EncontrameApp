@@ -58,3 +58,11 @@ export interface ReportLastSeenPayload {
   latitude: number;
   longitude: number;
 }
+
+/** Filtro geo da listagem de pessoas próximas. */
+export type NearbyPeopleParams = {
+  query?: string;
+  latitude: number;
+  longitude: number;
+  radiusKm?: number;
+};

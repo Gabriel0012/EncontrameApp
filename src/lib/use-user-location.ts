@@ -7,11 +7,17 @@ export type UserLocation = {
   accuracy: number | null;
 };
 
+export type UserLocationState = {
+  location: UserLocation | null;
+  denied: boolean;
+};
+
 /**
  * Pede permissão de localização (web e nativo) e acompanha a posição atual.
  */
-export function useUserLocation() {
+export function useUserLocation(): UserLocationState {
   const [location, setLocation] = useState<UserLocation | null>(null);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +37,11 @@ export function useUserLocation() {
 
     void (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (cancelled || status !== 'granted') {
+      if (cancelled) {
+        return;
+      }
+      if (status !== 'granted') {
+        setDenied(true);
         return;
       }
 
@@ -56,7 +66,7 @@ export function useUserLocation() {
     };
   }, []);
 
-  return location;
+  return { location, denied };
 }
 
 /** Raio do círculo de precisão, limitado para não cobrir a cidade inteira. */

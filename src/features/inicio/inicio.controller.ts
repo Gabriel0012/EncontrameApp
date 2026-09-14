@@ -9,14 +9,18 @@ import { isSofiaWelcomeComplete } from '@/lib/sofia-prefs';
 import { useSessionUser } from '@/lib/use-session-user';
 import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
-import { usePeopleQuery } from '@/services/people/people.service';
+import { useNearbyPeopleQuery } from '@/services/people/people.service';
 
 /** Centraliza dados e navegação da tela inicial (dashboard). */
 export function useInicioController() {
   const router = useRouter();
   const sessionUser = useSessionUser();
-  const peopleQuery = usePeopleQuery();
-  const userLocation = useUserLocation();
+  const { location: userLocation, denied: locationDenied } = useUserLocation();
+  const peopleQuery = useNearbyPeopleQuery({
+    query: '',
+    latitude: userLocation?.latitude,
+    longitude: userLocation?.longitude,
+  });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const loggedIn = sessionUser != null;
@@ -74,6 +78,7 @@ export function useInicioController() {
     people,
     pins,
     userLocation,
+    locationDenied,
     loading: peopleQuery.isLoading,
     loggedIn,
     menuOpen,

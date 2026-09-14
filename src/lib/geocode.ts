@@ -3,8 +3,9 @@ import { Platform } from 'react-native';
 
 import { env } from '@/lib/env';
 import {
+  coordsFromPlaceLocation,
   loadGoogleMapsJs,
-  loadGooglePlaces,
+  loadPlacesLibrary,
   type GoogleGeocoderResult,
 } from '@/lib/google-maps-web';
 
@@ -62,17 +63,10 @@ export async function resolveAddressSuggestion(
   }
 
   if (suggestion.placeId && Platform.OS === 'web') {
-    const results = await geocodeWeb({ placeId: suggestion.placeId });
-    const first = results[0];
-    if (!first) {
-      return null;
+    const place = await fetchPlaceWeb(suggestion.placeId);
+    if (place) {
+      return place;
     }
-
-    return {
-      label: first.formatted_address || suggestion.label,
-      latitude: first.geometry.location.lat(),
-      longitude: first.geometry.location.lng(),
-    };
   }
 
   return geocodeAddress(suggestion.label).then((point) =>
@@ -103,45 +97,69 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
   return first.name?.trim() || null;
 }
 
+/** Places API (New) 403/bloqueio: não insistir a cada tecla; o Geocoder cobre a busca. */
+let placesNewUnavailable = false;
+
 async function suggestPlacesWeb(input: string): Promise<AddressSuggestion[]> {
-  if (!env.googleMapsWebApiKey) {
+  if (!env.googleMapsWebApiKey || placesNewUnavailable) {
     return [];
   }
 
   try {
-    const places = await loadGooglePlaces(env.googleMapsWebApiKey);
+    const places = await loadPlacesLibrary(env.googleMapsWebApiKey);
     if (!places) {
+      placesNewUnavailable = true;
       return [];
     }
 
-    const service = new places.AutocompleteService();
-    const predictions = await new Promise<AddressSuggestion[]>((resolve) => {
-      service.getPlacePredictions(
-        {
-          input,
-          componentRestrictions: { country: 'br' },
-          language: 'pt-BR',
-        },
-        (items, status) => {
-          if (status !== 'OK' || !items) {
-            resolve([]);
-            return;
-          }
-
-          resolve(
-            items.map((item) => ({
-              id: item.place_id,
-              label: item.description,
-              placeId: item.place_id,
-            })),
-          );
-        },
-      );
+    const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input,
+      includedRegionCodes: ['br'],
+      language: 'pt-BR',
     });
 
-    return predictions;
+    return suggestions.flatMap((suggestion) => {
+      const prediction = suggestion.placePrediction;
+      const placeId = prediction?.placeId;
+      const label = prediction?.text?.text?.trim();
+      if (!placeId || !label) {
+        return [];
+      }
+
+      return [{ id: placeId, label, placeId }];
+    });
   } catch {
+    placesNewUnavailable = true;
     return [];
+  }
+}
+
+async function fetchPlaceWeb(placeId: string): Promise<(GeoResult & { label: string }) | null> {
+  if (!env.googleMapsWebApiKey || placesNewUnavailable) {
+    return null;
+  }
+
+  try {
+    const places = await loadPlacesLibrary(env.googleMapsWebApiKey);
+    if (!places) {
+      return null;
+    }
+
+    const place = new places.Place({ id: placeId });
+    await place.fetchFields({ fields: ['location', 'formattedAddress'] });
+    const coords = coordsFromPlaceLocation(place.location);
+    if (!coords) {
+      return null;
+    }
+
+    return {
+      label: place.formattedAddress?.trim() || placeId,
+      latitude: coords.lat,
+      longitude: coords.lng,
+    };
+  } catch {
+    placesNewUnavailable = true;
+    return null;
   }
 }
 
