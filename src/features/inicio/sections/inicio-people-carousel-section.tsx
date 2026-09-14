@@ -60,7 +60,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
           );
 
           return (
-            <Pressable key={person.id} style={styles.card} onPress={controller.goToNearby}>
+            <Pressable key={person.id} style={styles.card} onPress={() => controller.goToPerson(person.id)}>
               <View style={styles.photo}>
                 {person.photoUri ? (
                   <Image

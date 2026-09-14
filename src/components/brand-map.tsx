@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import MapView, { Circle, Marker, type Region } from 'react-native-maps';
 
 import { Radius, type BrandColors } from '@/constants/brand';
@@ -14,6 +14,8 @@ export type MapPin = {
   longitude: number;
   label?: string;
   locked?: boolean;
+  photoUri?: string;
+  onPress?: () => void;
 };
 
 type Props = {
@@ -114,35 +116,14 @@ export function BrandMap({
         toolbarEnabled={false}
       >
         {pins.map((pin) => (
-          <Marker
+          <PersonPinMarker
             key={pin.id}
-            coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
-            title={pin.label}
-            tracksViewChanges={false}
-            onPress={
-              onPress
-                ? (event) => {
-                    event.stopPropagation();
-                    onPress();
-                  }
-                : undefined
-            }
-          >
-            <View style={styles.pin}>
-              <View style={styles.pinBadge}>
-                <MaterialCommunityIcons
-                  name={pin.locked ? 'lock' : 'account'}
-                  size={16}
-                  color={brand.onPrimary}
-                />
-              </View>
-              {pin.label ? (
-                <Text style={styles.pinLabel} numberOfLines={1}>
-                  {pin.label}
-                </Text>
-              ) : null}
-            </View>
-          </Marker>
+            pin={pin}
+            brand={brand}
+            styles={styles}
+            isPreview={isPreview}
+            onPreviewPress={onPress}
+          />
         ))}
         {userLocation ? (
           <>
@@ -185,6 +166,61 @@ export function BrandMap({
   );
 }
 
+function PersonPinMarker({
+  pin,
+  brand,
+  styles,
+  isPreview,
+  onPreviewPress,
+}: {
+  pin: MapPin;
+  brand: BrandColors;
+  styles: ReturnType<typeof makeStyles>;
+  isPreview: boolean;
+  onPreviewPress?: () => void;
+}) {
+  const [photoReady, setPhotoReady] = useState(!pin.photoUri);
+
+  return (
+    <Marker
+      coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
+      title={pin.label}
+      tracksViewChanges={!photoReady}
+      onPress={(event) => {
+        event.stopPropagation();
+        if (isPreview) {
+          onPreviewPress?.();
+          return;
+        }
+        pin.onPress?.();
+      }}
+    >
+      <View style={styles.pin}>
+        {pin.photoUri ? (
+          <Image
+            source={{ uri: pin.photoUri }}
+            style={styles.pinPhoto}
+            onLoad={() => setPhotoReady(true)}
+          />
+        ) : (
+          <View style={styles.pinBadge}>
+            <MaterialCommunityIcons
+              name={pin.locked ? 'lock' : 'account'}
+              size={16}
+              color={brand.onPrimary}
+            />
+          </View>
+        )}
+        {pin.label ? (
+          <Text style={styles.pinLabel} numberOfLines={1}>
+            {pin.label}
+          </Text>
+        ) : null}
+      </View>
+    </Marker>
+  );
+}
+
 function makeStyles(brand: BrandColors) {
   return StyleSheet.create({
     map: {
@@ -209,6 +245,14 @@ function makeStyles(brand: BrandColors) {
       justifyContent: 'center',
       borderWidth: 2,
       borderColor: brand.onPrimary,
+    },
+    pinPhoto: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 2,
+      borderColor: brand.onPrimary,
+      backgroundColor: brand.avatarBackground,
     },
     pinLabel: {
       marginTop: 2,

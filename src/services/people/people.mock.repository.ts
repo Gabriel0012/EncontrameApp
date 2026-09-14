@@ -1,16 +1,18 @@
 import type { PeopleRepository } from '@/services/people/people.repository';
-import type { CreatePersonPayload, Person } from '@/services/people/people.types';
+import type { CreatePersonPayload, Person, ReportLastSeenPayload } from '@/services/people/people.types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const mockPeople: Person[] = [
+let mockPeople: Person[] = [
   {
     id: 'p1',
     fullName: 'Fulano da Silva',
     nickname: 'Fulano',
     age: 36,
     location: 'Belo Horizonte, MG',
-    lastSeen: '01/01/2024',
+    lastSeen: 'Savassi, Belo Horizonte',
+    dtLastSeen: '2024-01-01T12:00:00.000Z',
+    photoUri: 'https://picsum.photos/seed/encontrame-p1/200/200',
     coords: { latitude: -19.918, longitude: -43.938 },
     restricted: false,
     statusId: 1,
@@ -22,7 +24,9 @@ const mockPeople: Person[] = [
     nickname: 'Fulana',
     age: 25,
     location: 'Belo Horizonte, MG',
-    lastSeen: '12/03/2024',
+    lastSeen: 'Pampulha, Belo Horizonte',
+    dtLastSeen: '2024-03-12T15:00:00.000Z',
+    photoUri: 'https://picsum.photos/seed/encontrame-p2/200/200',
     coords: { latitude: -19.924, longitude: -43.945 },
     restricted: true,
     statusId: 2,
@@ -34,7 +38,8 @@ const mockPeople: Person[] = [
     nickname: 'Beltrano',
     age: 42,
     location: 'Contagem, MG',
-    lastSeen: '20/05/2024',
+    lastSeen: 'Centro de Contagem',
+    dtLastSeen: '2024-05-20T10:00:00.000Z',
     coords: { latitude: -19.931, longitude: -44.053 },
     restricted: true,
     statusId: 1,
@@ -46,7 +51,9 @@ const mockPeople: Person[] = [
     nickname: 'Ciclano',
     age: 19,
     location: 'Belo Horizonte, MG',
-    lastSeen: '02/07/2024',
+    lastSeen: 'Centro, Belo Horizonte',
+    dtLastSeen: '2024-07-02T18:00:00.000Z',
+    photoUri: 'https://picsum.photos/seed/encontrame-p4/200/200',
     coords: { latitude: -19.912, longitude: -43.928 },
     restricted: false,
     statusId: 4,
@@ -64,6 +71,15 @@ export const peopleMockRepository: PeopleRepository = {
   async listNearby(_query: string) {
     await delay(500);
     return mockPeople;
+  },
+
+  async getById(id: string) {
+    await delay(300);
+    const person = mockPeople.find((item) => item.id === id);
+    if (!person) {
+      throw new Error('Pessoa não encontrada.');
+    }
+    return person;
   },
 
   async create(payload: CreatePersonPayload) {
@@ -88,5 +104,20 @@ export const peopleMockRepository: PeopleRepository = {
       statusId: 1,
       statusDescription: 'Pendente',
     } satisfies Person;
+  },
+
+  async reportLastSeen(id: string, payload: ReportLastSeenPayload) {
+    await delay(400);
+    mockPeople = mockPeople.map((person) =>
+      person.id === id
+        ? {
+            ...person,
+            lastSeen: payload.location,
+            location: payload.location,
+            coords: { latitude: payload.latitude, longitude: payload.longitude },
+            dtLastSeen: new Date().toISOString(),
+          }
+        : person,
+    );
   },
 };

@@ -1,13 +1,15 @@
 import { env } from '@/lib/env';
 import { peopleAxiosRepository } from '@/services/people/people.axios.repository';
 import { peopleMockRepository } from '@/services/people/people.mock.repository';
-import type { CreatePersonPayload, Person } from '@/services/people/people.types';
+import type { CreatePersonPayload, Person, ReportLastSeenPayload } from '@/services/people/people.types';
 
 /** Contrato comum aos repositórios de pessoas (axios e mock). */
 export interface PeopleRepository {
   list(): Promise<Person[]>;
   listNearby(query: string): Promise<Person[]>;
+  getById(id: string): Promise<Person>;
   create(payload: CreatePersonPayload): Promise<Person>;
+  reportLastSeen(id: string, payload: ReportLastSeenPayload): Promise<void>;
 }
 
 /**

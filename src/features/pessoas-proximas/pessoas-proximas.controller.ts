@@ -1,3 +1,4 @@
+import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
@@ -6,6 +7,7 @@ import { useNearbyPeopleQuery } from '@/services/people/people.service';
 
 /** Centraliza busca e pins da tela de pessoas próximas. */
 export function usePessoasProximasController() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
 
@@ -24,6 +26,9 @@ export function usePessoasProximasController() {
         latitude: person.coords.latitude,
         longitude: person.coords.longitude,
         locked: person.restricted,
+        photoUri: person.photoUri,
+        label: person.nickname ?? person.fullName,
+        onPress: () => router.push(`/pessoa/${person.id}` as Href),
       },
     ];
   });

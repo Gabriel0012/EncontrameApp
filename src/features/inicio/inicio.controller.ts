@@ -32,6 +32,8 @@ export function useInicioController() {
         latitude: person.coords.latitude,
         longitude: person.coords.longitude,
         locked: person.restricted,
+        photoUri: person.photoUri,
+        label: person.nickname ?? person.fullName,
       },
     ];
   });
@@ -78,6 +80,7 @@ export function useInicioController() {
     openMenu: () => setMenuOpen(true),
     closeMenu,
     goToNearby: () => router.push('/pessoas-proximas'),
+    goToPerson: (personId: string) => router.push(`/pessoa/${personId}` as Href),
     goToRegister: () => router.push('/cadastrar-pessoa'),
     goToChat: () =>
       goTo(() => {

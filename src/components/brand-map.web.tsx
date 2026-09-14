@@ -21,6 +21,8 @@ export type MapPin = {
   longitude: number;
   label?: string;
   locked?: boolean;
+  photoUri?: string;
+  onPress?: () => void;
 };
 
 type Props = {
@@ -52,6 +54,20 @@ function pinIconSvg(color: string, iconColor: string, locked: boolean) {
     : '<circle fill="ICON" cx="14" cy="11" r="3.2"/><path fill="ICON" d="M8.2 20v-1.4c0-2.1 2.6-3.4 5.8-3.4s5.8 1.3 5.8 3.4V20H8.2z"/>';
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"><circle cx="14" cy="14" r="12" fill="${color}" stroke="${iconColor}" stroke-width="2"/>${icon.replaceAll('ICON', iconColor)}</svg>`;
+}
+
+function photoPinSvg(id: string, photoUri: string, ring: string) {
+  const clipId = `face-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const href = photoUri.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="36" height="36" viewBox="0 0 36 36"><defs><clipPath id="${clipId}"><circle cx="18" cy="18" r="15"/></clipPath></defs><circle cx="18" cy="18" r="17" fill="${ring}"/><image href="${href}" xlink:href="${href}" x="3" y="3" width="30" height="30" clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice"/></svg>`;
+}
+
+function pinIcon(pin: MapPin, brand: BrandColors) {
+  if (pin.photoUri) {
+    return photoPinSvg(pin.id, pin.photoUri, brand.onPrimary);
+  }
+
+  return pinIconSvg(brand.pin, brand.onPrimary, Boolean(pin.locked));
 }
 
 /**
@@ -185,24 +201,25 @@ export function BrandMap({
 
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = pins.map((pin) => {
+      const photo = Boolean(pin.photoUri);
       const marker = new gmaps.Marker({
         map,
         position: { lat: pin.latitude, lng: pin.longitude },
         title: pin.label,
         icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-            pinIconSvg(brand.pin, brand.onPrimary, Boolean(pin.locked)),
-          )}`,
-          scaledSize: new gmaps.Size(28, 36),
-          anchor: new gmaps.Point(14, 14),
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand))}`,
+          scaledSize: new gmaps.Size(photo ? 36 : 28, photo ? 36 : 36),
+          anchor: new gmaps.Point(photo ? 18 : 14, photo ? 18 : 14),
         },
       });
 
-      if (onPressRef.current) {
-        gmaps.event.addListener(marker, 'click', () => {
-          onPressRef.current?.();
-        });
-      }
+      gmaps.event.addListener(marker, 'click', () => {
+        if (onPressRef.current) {
+          onPressRef.current();
+          return;
+        }
+        pin.onPress?.();
+      });
 
       return marker;
     });
@@ -228,7 +245,7 @@ export function BrandMap({
     const bounds = new gmaps.LatLngBounds();
     points.forEach((point) => bounds.extend(point));
     map.fitBounds(bounds, 48);
-  }, [brand.onPrimary, brand.pin, hasUser, pins, status]);
+  }, [brand, hasUser, pins, status]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -31,6 +31,7 @@ const byField: Record<string, string> = {
   'confirm.invalid_format': 'A confirmação não corresponde à senha.',
   'age.out_of_range': 'Idade inválida.',
   'height.out_of_range': 'Altura inválida.',
+  'location.required': 'Informe o endereço ou use sua localização.',
 };
 
 /** Mensagem de um campo específico do formulário. */

@@ -1,6 +1,6 @@
 import { api } from '@/lib/axios';
 import type { PeopleRepository } from '@/services/people/people.repository';
-import type { CreatePersonPayload, Person } from '@/services/people/people.types';
+import type { CreatePersonPayload, Person, ReportLastSeenPayload } from '@/services/people/people.types';
 
 /** Payload/resposta alinhados ao MissingPerson da API .NET. */
 interface ApiMissingPerson {
@@ -21,6 +21,10 @@ interface ApiMissingPerson {
   statusId?: number | null;
   statusDescription?: string | null;
   photo?: string | null;
+  lastSeen?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  dtLastSeen?: string | null;
 }
 
 /** Implementação real: fala com /MissingPerson. */
@@ -35,6 +39,11 @@ export const peopleAxiosRepository: PeopleRepository = {
       params: { q: query || undefined },
     });
     return data.map(mapPerson);
+  },
+
+  async getById(id: string) {
+    const { data } = await api.get<ApiMissingPerson>(`/MissingPerson/${id}`);
+    return mapPerson(data);
   },
 
   async create(payload: CreatePersonPayload) {
@@ -67,6 +76,15 @@ export const peopleAxiosRepository: PeopleRepository = {
       photoUri: payload.photoUri,
     };
   },
+
+  async reportLastSeen(id: string, payload: ReportLastSeenPayload) {
+    await api.post(`/MissingPerson/${id}/last-seen`, {
+      location: payload.location,
+      city: payload.city || null,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+    });
+  },
 };
 
 function mapPerson(api: ApiMissingPerson): Person {
@@ -83,6 +101,13 @@ function mapPerson(api: ApiMissingPerson): Person {
     eyes: api.eyes || undefined,
     tattoo: api.tatoo || undefined,
     accessories: api.accessories || undefined,
+    location: api.lastSeen || undefined,
+    lastSeen: api.lastSeen || undefined,
+    dtLastSeen: api.dtLastSeen || undefined,
+    coords:
+      api.latitude != null && api.longitude != null
+        ? { latitude: api.latitude, longitude: api.longitude }
+        : undefined,
     statusId: api.statusId ?? undefined,
     statusDescription: api.statusDescription || undefined,
     photoUri: toPhotoUri(api.photo),

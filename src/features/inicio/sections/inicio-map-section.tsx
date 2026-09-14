@@ -23,5 +23,6 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     marginTop: 12,
+    marginBottom: 12,
   },
 });

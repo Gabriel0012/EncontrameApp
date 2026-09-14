@@ -9,7 +9,7 @@ const PROTECTED_PREFIXES = [
 ] as const;
 
 /** Destinos internos permitidos após o login (protegidas + início). */
-const ALLOWED_RETURN_TO = [...PROTECTED_PREFIXES, '/inicio'] as const;
+const ALLOWED_RETURN_TO = [...PROTECTED_PREFIXES, '/inicio', '/pessoa'] as const;
 
 function stripQueryAndHash(pathname: string) {
   const withoutHash = pathname.split('#')[0] ?? pathname;

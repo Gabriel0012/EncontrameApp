@@ -74,6 +74,7 @@ function RootLayoutInner() {
           <Stack.Screen name="inicio" />
           <Stack.Screen name="cadastrar-pessoa" />
           <Stack.Screen name="pessoas-proximas" />
+          <Stack.Screen name="pessoa/[id]" />
           <Stack.Screen name="chat" />
           <Stack.Screen name="exercises" />
           <Stack.Screen name="grupo-chat" />

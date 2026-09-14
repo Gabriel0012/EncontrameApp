@@ -35,6 +35,7 @@ type Props = {
   onBlur?: () => void;
   /** Quando false, o campo não aceita edição (ex.: e-mail vindo do Google). */
   editable?: boolean;
+  autoComplete?: TextInputProps['autoComplete'];
 };
 
 export function BrandField({
@@ -52,6 +53,7 @@ export function BrandField({
   error,
   onBlur,
   editable = true,
+  autoComplete,
 }: Props) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
@@ -74,6 +76,7 @@ export function BrandField({
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          autoComplete={autoComplete}
           onFocus={() => setFocused(true)}
           onBlur={() => {
             setFocused(false);

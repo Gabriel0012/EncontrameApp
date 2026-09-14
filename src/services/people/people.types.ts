@@ -21,6 +21,7 @@ export interface Person {
   accessories?: string;
   location?: string;
   lastSeen?: string;
+  dtLastSeen?: string;
   phone?: string;
   coords?: GeoPoint;
   /** Quando true, o pin aparece com cadeado (dados restritos). */
@@ -48,4 +49,12 @@ export interface CreatePersonPayload {
   photoUri?: string;
   /** Base64 puro da foto (sem prefixo data URL), enviado à API. */
   photo?: string;
+}
+
+/** Avistamento enviado ao registrar um last-seen. */
+export interface ReportLastSeenPayload {
+  location: string;
+  city?: string;
+  latitude: number;
+  longitude: number;
 }

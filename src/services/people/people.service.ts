@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getPeopleRepository } from '@/services/people/people.repository';
-import type { CreatePersonPayload } from '@/services/people/people.types';
+import type { CreatePersonPayload, ReportLastSeenPayload } from '@/services/people/people.types';
 
 const peopleKeys = {
   all: ['people'] as const,
   nearby: (query: string) => ['people', 'nearby', query] as const,
+  detail: (id: string) => ['people', 'detail', id] as const,
 };
 
 /**
@@ -26,6 +27,14 @@ export function useNearbyPeopleQuery(query: string) {
   });
 }
 
+export function usePersonQuery(id: string) {
+  return useQuery({
+    queryKey: peopleKeys.detail(id),
+    queryFn: () => getPeopleRepository().getById(id),
+    enabled: id.length > 0,
+  });
+}
+
 export function useCreatePersonMutation() {
   const queryClient = useQueryClient();
 
@@ -33,6 +42,20 @@ export function useCreatePersonMutation() {
     mutationFn: (payload: CreatePersonPayload) => getPeopleRepository().create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: peopleKeys.all });
+    },
+  });
+}
+
+export function useReportLastSeenMutation(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: ReportLastSeenPayload) =>
+      getPeopleRepository().reportLastSeen(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: peopleKeys.all });
+      queryClient.invalidateQueries({ queryKey: peopleKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: ['people', 'nearby'] });
     },
   });
 }
