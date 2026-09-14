@@ -223,6 +223,7 @@ export function applySofiaPaletteToBrand(base: BrandColors, palette: SofiaPalett
     error: palette.error,
     avatarBackground: palette.brandSoft,
     avatarIcon: palette.muted,
+    cardInfo: palette.surfaceSecondary,
     chatBubbleAI: palette.bubbleSofia,
     chatBubbleUser: palette.bubbleUser,
     onChatBubbleUser: palette.onSurface,

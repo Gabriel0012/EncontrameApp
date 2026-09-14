@@ -4,8 +4,9 @@ import { useState } from 'react';
 import type { MapPin } from '@/components/brand-map';
 import { getBiometricEnabled } from '@/lib/biometric';
 import { queryClient } from '@/lib/query-client';
-import { clearSession, getRefreshToken, getSessionUser, lockSession } from '@/lib/session';
+import { clearSession, getRefreshToken, lockSession } from '@/lib/session';
 import { isSofiaWelcomeComplete } from '@/lib/sofia-prefs';
+import { useSessionUser } from '@/lib/use-session-user';
 import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { usePeopleQuery } from '@/services/people/people.service';
@@ -13,11 +14,12 @@ import { usePeopleQuery } from '@/services/people/people.service';
 /** Centraliza dados e navegação da tela inicial (dashboard). */
 export function useInicioController() {
   const router = useRouter();
+  const sessionUser = useSessionUser();
   const peopleQuery = usePeopleQuery();
   const userLocation = useUserLocation();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(() => getSessionUser() != null);
+  const loggedIn = sessionUser != null;
 
   const people = peopleQuery.data ?? [];
 
@@ -53,7 +55,6 @@ export function useInicioController() {
         if (biometricOn) {
           await lockSession();
           queryClient.clear();
-          setLoggedIn(false);
           router.replace('/inicio');
           return;
         }
@@ -64,7 +65,6 @@ export function useInicioController() {
         } finally {
           await clearSession();
           queryClient.clear();
-          setLoggedIn(false);
           router.replace('/inicio');
         }
       })();

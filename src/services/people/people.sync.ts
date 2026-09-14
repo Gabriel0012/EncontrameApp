@@ -1,4 +1,3 @@
-import { queryClient } from '@/lib/query-client';
 import { getSessionUser } from '@/lib/session';
 import {
   deleteLocalPending,
@@ -28,20 +27,14 @@ async function runSync(): Promise<void> {
     if (pending.length === 0) return;
 
     const repository = getPeopleRepository();
-    let uploaded = 0;
 
     for (const item of pending) {
       try {
         await repository.create(item.payload);
         await deleteLocalPending(item.id);
-        uploaded += 1;
       } catch {
         // Mantém na fila para a próxima tentativa.
       }
-    }
-
-    if (uploaded > 0) {
-      await queryClient.invalidateQueries({ queryKey: ['people'] });
     }
   } catch {
     // Falha ao ler o store local — tenta de novo no próximo boot/login.

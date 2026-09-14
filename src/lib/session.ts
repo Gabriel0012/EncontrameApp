@@ -19,6 +19,20 @@ let memoryAccessToken: string | null = null;
 let memoryRefreshToken: string | null = null;
 let memoryUser: AuthUser | null = null;
 
+const sessionListeners = new Set<() => void>();
+
+/** Observa login/logout em memória (ex.: React Query key da lista de pessoas). */
+export function subscribeSession(onStoreChange: () => void): () => void {
+  sessionListeners.add(onStoreChange);
+  return () => {
+    sessionListeners.delete(onStoreChange);
+  };
+}
+
+function notifySessionListeners() {
+  sessionListeners.forEach((listener) => listener());
+}
+
 /** Evita várias leituras paralelas do storage no boot / 401. */
 let hydratePromise: Promise<Session | null> | null = null;
 
@@ -96,12 +110,14 @@ export async function lockSession(): Promise<void> {
   memoryAccessToken = null;
   memoryRefreshToken = null;
   memoryUser = null;
+  notifySessionListeners();
 }
 
 export async function clearSession(): Promise<void> {
   memoryAccessToken = null;
   memoryRefreshToken = null;
   memoryUser = null;
+  notifySessionListeners();
   await Promise.all([
     storageDelete(ACCESS_TOKEN_KEY),
     storageDelete(REFRESH_TOKEN_KEY),
@@ -138,6 +154,7 @@ async function readSessionFromStorage(): Promise<Session | null> {
     memoryAccessToken = null;
     memoryRefreshToken = null;
     memoryUser = null;
+    notifySessionListeners();
     return null;
   }
 
@@ -149,6 +166,7 @@ function applySessionToMemory(session: Session): void {
   memoryAccessToken = session.accessToken;
   memoryRefreshToken = session.refreshToken;
   memoryUser = session.user;
+  notifySessionListeners();
 }
 
 /**

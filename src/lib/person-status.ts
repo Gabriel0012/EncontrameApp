@@ -16,7 +16,7 @@ export function isLocalPersonId(id: string): boolean {
   return id.startsWith(LOCAL_PERSON_ID_PREFIX);
 }
 
-/** Cor do badge/texto de status (cadastro local âmbar, antes do Pendente vermelho). */
+/** Cor do badge/texto de status, com contraste no tema claro e no escuro. */
 export function resolvePersonStatusColor(
   brand: BrandColors,
   statusId?: number,
@@ -36,4 +36,9 @@ export function resolvePersonStatusColor(
   if (normalized.includes('cancelado')) return brand.statusCancelado;
 
   return brand.statusCancelado;
+}
+
+/** Texto sobre o badge: branco no tema claro, marinho no escuro. */
+export function resolvePersonStatusOnColor(brand: BrandColors): string {
+  return brand.onStatusBadge;
 }

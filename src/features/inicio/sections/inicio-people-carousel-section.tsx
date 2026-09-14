@@ -14,7 +14,7 @@ import {
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
-import { resolvePersonStatusColor } from '@/lib/person-status';
+import { resolvePersonStatusColor, resolvePersonStatusOnColor } from '@/lib/person-status';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
 interface InicioPeopleCarouselSectionProps {
@@ -53,6 +53,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
             person.statusId,
             person.statusDescription,
           );
+          const badgeTextColor = resolvePersonStatusOnColor(brand);
 
           return (
             <Pressable key={person.id} style={styles.card} onPress={() => controller.goToPerson(person.id)}>
@@ -79,7 +80,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
                 <View style={styles.statusRow}>
                   <Text style={styles.infoText}>Status:</Text>
                   <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
-                    <Text style={styles.statusBadgeText} numberOfLines={1}>
+                    <Text style={[styles.statusBadgeText, { color: badgeTextColor }]} numberOfLines={1}>
                       {statusLabel}
                     </Text>
                   </View>
@@ -111,7 +112,9 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       width: isWide ? CARD_WIDE.width : CARD_MOBILE.width,
       borderRadius: Radius.md,
       overflow: 'hidden',
-      backgroundColor: brand.avatarBackground,
+      backgroundColor: brand.cardInfo,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: brand.divider,
       ...(isWide
         ? {
             flexDirection: 'row' as const,
@@ -149,7 +152,7 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
         : null),
     },
     infoText: {
-      color: brand.onPrimary,
+      color: brand.textDark,
       fontSize: isWide ? 16 : 13,
       fontWeight: '700',
     },
@@ -166,7 +169,6 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       maxWidth: '100%',
     },
     statusBadgeText: {
-      color: brand.onPrimary,
       fontSize: isWide ? 13 : 11,
       fontWeight: '700',
     },
