@@ -14,17 +14,12 @@ import {
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
+import { resolvePersonStatusColor } from '@/lib/person-status';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
 interface InicioPeopleCarouselSectionProps {
   controller: InicioController;
 }
-
-/** Alinhado a StatusIds da API (Pendente=1, Procurado=2, Encontrado=3, Cancelado=99). */
-const STATUS_PENDENTE = 1;
-const STATUS_PROCURADO = 2;
-const STATUS_ENCONTRADO = 3;
-const STATUS_CANCELADO = 99;
 
 const CARD_MOBILE = { width: 150, gap: 12, photoHeight: 200 } as const;
 const CARD_WIDE = { width: 420, gap: 16, photoWidth: 220 } as const;
@@ -53,7 +48,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
       >
         {people.map((person) => {
           const statusLabel = person.statusDescription ?? '—';
-          const badgeColor = resolveStatusBadgeColor(
+          const badgeColor = resolvePersonStatusColor(
             brand,
             person.statusId,
             person.statusDescription,
@@ -102,25 +97,6 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
       </View>
     </View>
   );
-}
-
-function resolveStatusBadgeColor(
-  brand: BrandColors,
-  statusId?: number,
-  description?: string,
-): string {
-  if (statusId === STATUS_PENDENTE) return brand.statusPendente;
-  if (statusId === STATUS_PROCURADO) return brand.statusProcurando;
-  if (statusId === STATUS_ENCONTRADO) return brand.statusEncontrado;
-  if (statusId === STATUS_CANCELADO) return brand.statusCancelado;
-
-  const normalized = description?.trim().toLowerCase() ?? '';
-  if (normalized.includes('pendente')) return brand.statusPendente;
-  if (normalized.includes('procur')) return brand.statusProcurando;
-  if (normalized.includes('encontrado')) return brand.statusEncontrado;
-  if (normalized.includes('cancelado')) return brand.statusCancelado;
-
-  return brand.statusCancelado;
 }
 
 function makeStyles(brand: BrandColors, isWide: boolean) {

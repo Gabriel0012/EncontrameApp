@@ -10,6 +10,7 @@ import {
   suggestAddresses,
   type AddressSuggestion,
 } from '@/lib/geocode';
+import { isLocalPersonId } from '@/lib/person-status';
 import { getSessionUser } from '@/lib/session';
 import { usePersonQuery, useReportLastSeenMutation } from '@/services/people/people.service';
 
@@ -36,6 +37,12 @@ export function usePessoaDetalheController() {
   const suggestGen = useRef(0);
 
   const person = personQuery.data ?? null;
+  const isLocalPerson = isLocalPersonId(id);
+  const sightingBlockedMessage = isLocalPerson
+    ? getSessionUser() == null
+      ? 'Entre na sua conta para enviar este cadastro e registrar avistamentos.'
+      : 'Este cadastro ainda não foi enviado. Conecte-se à internet e tente novamente.'
+    : undefined;
 
   useEffect(() => {
     if (!formOpen) {
@@ -67,6 +74,10 @@ export function usePessoaDetalheController() {
   }, [address, coords, formOpen]);
 
   const openSightingForm = () => {
+    if (isLocalPersonId(id)) {
+      return;
+    }
+
     if (getSessionUser() == null) {
       router.push({ pathname: '/login', params: { returnTo: `/pessoa/${id}` } } as Href);
       return;
@@ -128,6 +139,10 @@ export function usePessoaDetalheController() {
 
   const submitSighting = () => {
     void (async () => {
+      if (isLocalPersonId(id)) {
+        return;
+      }
+
       if (getSessionUser() == null) {
         router.push({ pathname: '/login', params: { returnTo: `/pessoa/${id}` } } as Href);
         return;
@@ -195,6 +210,8 @@ export function usePessoaDetalheController() {
     formMessage,
     locating,
     submitting: reportMutation.isPending,
+    isLocalPerson,
+    sightingBlockedMessage,
     openSightingForm,
     useCurrentLocation,
     submitSighting,

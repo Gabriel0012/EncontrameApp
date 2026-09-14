@@ -5,6 +5,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { PessoaDetalheController } from '@/features/pessoa-detalhe/pessoa-detalhe.controller';
 import { useBrand } from '@/lib/brand-theme';
+import { resolvePersonStatusColor } from '@/lib/person-status';
 
 interface PessoaDetalheHeroSectionProps {
   controller: PessoaDetalheController;
@@ -17,6 +18,12 @@ export function PessoaDetalheHeroSection({ controller }: PessoaDetalheHeroSectio
   if (!person) {
     return null;
   }
+
+  const statusColor = resolvePersonStatusColor(
+    brand,
+    person.statusId,
+    person.statusDescription,
+  );
 
   return (
     <View style={styles.hero}>
@@ -31,7 +38,7 @@ export function PessoaDetalheHeroSection({ controller }: PessoaDetalheHeroSectio
         {person.nickname ? <Text style={styles.nickname}>{person.nickname}</Text> : null}
         {person.age != null ? <Text style={styles.detail}>{person.age} anos</Text> : null}
         {person.statusDescription ? (
-          <Text style={styles.status}>{person.statusDescription}</Text>
+          <Text style={[styles.status, { color: statusColor }]}>{person.statusDescription}</Text>
         ) : null}
       </View>
     </View>
@@ -71,7 +78,6 @@ function makeStyles(brand: BrandColors) {
       marginTop: 4,
       fontSize: 13,
       fontWeight: '700',
-      color: brand.blue,
       textTransform: 'uppercase',
     },
   });

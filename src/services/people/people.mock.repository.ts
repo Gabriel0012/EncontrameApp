@@ -84,7 +84,7 @@ export const peopleMockRepository: PeopleRepository = {
 
   async create(payload: CreatePersonPayload) {
     await delay(600);
-    return {
+    const person = {
       id: `mock-${Date.now()}`,
       fullName: payload.fullName || 'Pessoa cadastrada',
       nickname: payload.nickname,
@@ -104,6 +104,8 @@ export const peopleMockRepository: PeopleRepository = {
       statusId: 1,
       statusDescription: 'Pendente',
     } satisfies Person;
+    mockPeople = [person, ...mockPeople];
+    return person;
   },
 
   async reportLastSeen(id: string, payload: ReportLastSeenPayload) {

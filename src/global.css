@@ -29,7 +29,8 @@
   --avatar-background: #c2c7ce;
   --avatar-icon: #e6e9ed;
   --card-info: #2a2f36;
-  --status-pendente: #e23b3b;
+  --status-cadastro-pendente: #e6a817;
+  --status-pendente: #6b7280;
   --status-procurando: #f5822e;
   --status-encontrado: #2fa36b;
   --status-cancelado: #6b7280;
@@ -62,7 +63,8 @@
     --avatar-background: #2a2f36;
     --avatar-icon: #6f7680;
     --card-info: #2a2f36;
-    --status-pendente: #e23b3b;
+    --status-cadastro-pendente: #e6a817;
+    --status-pendente: #6b7280;
     --status-procurando: #f5822e;
     --status-encontrado: #2fa36b;
     --status-cancelado: #6b7280;

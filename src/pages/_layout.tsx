@@ -13,6 +13,7 @@ import { isProtectedPath } from '@/lib/auth-guard';
 import { BrandThemeProvider, useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { queryClient } from '@/lib/query-client';
 import { getSessionUser, hydrateSession } from '@/lib/session';
+import { syncLocalPeople } from '@/services/people/people.sync';
 
 // Só no popup do OAuth (tem opener). Completa e deixa o app pai fechar a janela
 // antes do Expo Router redirecionar `/` → `/inicio` → `/login`.
@@ -37,6 +38,9 @@ function RootLayoutInner() {
       await hydrateSession();
       if (!cancelled) {
         setSessionReady(true);
+      }
+      if (!cancelled && getSessionUser() != null) {
+        void syncLocalPeople();
       }
     })();
 

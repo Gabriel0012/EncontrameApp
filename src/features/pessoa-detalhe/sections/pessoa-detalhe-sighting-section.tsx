@@ -17,11 +17,15 @@ export function PessoaDetalheSightingSection({ controller }: PessoaDetalheSighti
 
   return (
     <View style={styles.wrap}>
-      <BrandButton
-        label="Vi essa pessoa por perto"
-        variant="orange"
-        onPress={controller.openSightingForm}
-      />
+      {controller.sightingBlockedMessage ? (
+        <Text style={styles.message}>{controller.sightingBlockedMessage}</Text>
+      ) : (
+        <BrandButton
+          label="Vi essa pessoa por perto"
+          variant="orange"
+          onPress={controller.openSightingForm}
+        />
+      )}
 
       {controller.formMessage ? <Text style={styles.message}>{controller.formMessage}</Text> : null}
 

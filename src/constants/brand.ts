@@ -32,7 +32,8 @@ const BrandLight = {
   /** Rodapé neutro dos cards de pessoa (carrossel) */
   cardInfo: '#2A2F36',
   /** Badges de status da pessoa desaparecida */
-  statusPendente: '#E23B3B',
+  statusCadastroPendente: '#E6A817',
+  statusPendente: '#6B7280',
   statusProcurando: '#F5822E',
   statusEncontrado: '#2FA36B',
   statusCancelado: '#6B7280',
@@ -72,7 +73,8 @@ const BrandDark = {
   avatarBackground: '#2A2F36',
   avatarIcon: '#6F7680',
   cardInfo: '#2A2F36',
-  statusPendente: '#E23B3B',
+  statusCadastroPendente: '#E6A817',
+  statusPendente: '#6B7280',
   statusProcurando: '#F5822E',
   statusEncontrado: '#2FA36B',
   statusCancelado: '#6B7280',

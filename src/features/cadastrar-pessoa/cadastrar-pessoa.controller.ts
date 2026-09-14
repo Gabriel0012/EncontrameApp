@@ -5,6 +5,7 @@ import { Alert, Platform } from 'react-native';
 
 import { parseApiError } from '@/lib/api-errors';
 import { maskDigits, maskPhone } from '@/lib/masks';
+import { getSessionUser } from '@/lib/session';
 import { useFieldErrors } from '@/lib/use-field-errors';
 import {
   NAME_MIN_LENGTH,
@@ -277,8 +278,14 @@ export function useCadastrarPessoaController() {
     };
 
     try {
+      const loggedIn = getSessionUser() != null;
       await createMutation.mutateAsync(payload);
-      Alert.alert('Cadastro concluído', 'A pessoa foi cadastrada com sucesso.');
+      Alert.alert(
+        'Cadastro concluído',
+        loggedIn
+          ? 'A pessoa foi cadastrada com sucesso.'
+          : 'Cadastro salvo neste aparelho. Entre na sua conta para enviar.',
+      );
       router.replace('/inicio');
     } catch (error) {
       const { fields } = parseApiError(error, API_FIELD_MAP);

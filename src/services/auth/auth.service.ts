@@ -14,6 +14,7 @@ import type {
   LoginPayload,
   SignupPayload,
 } from '@/services/auth/auth.types';
+import { syncLocalPeople } from '@/services/people/people.sync';
 
 /**
  * Camada de acesso à API de autenticação exposta como hooks do React Query.
@@ -24,6 +25,7 @@ export function useLoginMutation() {
     mutationFn: async (payload: LoginPayload) => {
       const result = await getAuthRepository().login(payload);
       await saveSession(result);
+      await syncLocalPeople();
       return result;
     },
   });
@@ -34,6 +36,7 @@ export function useSignupMutation() {
     mutationFn: async (payload: SignupPayload) => {
       const result = await getAuthRepository().signup(payload);
       await saveSession(result);
+      await syncLocalPeople();
       return result;
     },
   });
@@ -45,6 +48,7 @@ export function useGoogleStartMutation() {
       const result = await getAuthRepository().googleStart(idToken);
       if (result.status === 'authenticated') {
         await saveSession(result.session);
+        await syncLocalPeople();
       }
       return result;
     },
@@ -56,6 +60,7 @@ export function useGoogleRegisterMutation() {
     mutationFn: async (payload: GoogleRegisterPayload) => {
       const result = await getAuthRepository().googleRegister(payload);
       await saveSession(result);
+      await syncLocalPeople();
       return result;
     },
   });
@@ -81,6 +86,7 @@ export async function unlockAndRefreshSession(): Promise<AuthResult> {
     user,
   };
   await saveSession(next);
+  await syncLocalPeople();
   return next;
 }
 
