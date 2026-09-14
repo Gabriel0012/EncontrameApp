@@ -15,6 +15,7 @@ export type MapPin = {
   label?: string;
   locked?: boolean;
   photoUri?: string;
+  draggable?: boolean;
   onPress?: () => void;
 };
 
@@ -22,6 +23,8 @@ type Props = {
   pins?: MapPin[];
   userLocation?: UserLocation | null;
   onPress?: () => void;
+  onMapPress?: (latitude: number, longitude: number) => void;
+  onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
   rounded?: boolean;
   style?: ViewStyle;
 };
@@ -70,6 +73,8 @@ export function BrandMap({
   pins = [],
   userLocation = null,
   onPress,
+  onMapPress,
+  onPinDragEnd,
   rounded = false,
   style,
 }: Props) {
@@ -82,6 +87,9 @@ export function BrandMap({
   const hasUser = Boolean(userLocation);
   const isPreview = Boolean(onPress);
   const region = regionFromPins(pins, userLocation);
+  const mapStyleName = [styles.map, rounded && styles.rounded, style];
+  const flattened = StyleSheet.flatten(mapStyleName) as ViewStyle;
+  const fillsParent = flattened.height == null && flattened.minHeight == null;
 
   useEffect(() => {
     const signature = `${pins
@@ -102,13 +110,22 @@ export function BrandMap({
   }, [hasUser, pins, userLocation]);
 
   return (
-    <View style={[styles.map, rounded && styles.rounded, style]}>
+    <View style={[styles.map, fillsParent && styles.fill, rounded && styles.rounded, style]}>
       <MapView
         ref={mapRef}
         style={StyleSheet.absoluteFill}
         customMapStyle={mapStyle}
         initialRegion={region}
-        onPress={onPress}
+        onPress={(event) => {
+          if (isPreview) {
+            onPress?.();
+            return;
+          }
+          const coordinate = event.nativeEvent.coordinate;
+          if (coordinate) {
+            onMapPress?.(coordinate.latitude, coordinate.longitude);
+          }
+        }}
         scrollEnabled={!isPreview}
         zoomEnabled={!isPreview}
         pitchEnabled={!isPreview}
@@ -123,6 +140,7 @@ export function BrandMap({
             styles={styles}
             isPreview={isPreview}
             onPreviewPress={onPress}
+            onPinDragEnd={onPinDragEnd}
           />
         ))}
         {userLocation ? (
@@ -172,12 +190,14 @@ function PersonPinMarker({
   styles,
   isPreview,
   onPreviewPress,
+  onPinDragEnd,
 }: {
   pin: MapPin;
   brand: BrandColors;
   styles: ReturnType<typeof makeStyles>;
   isPreview: boolean;
   onPreviewPress?: () => void;
+  onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
 }) {
   const [photoReady, setPhotoReady] = useState(!pin.photoUri);
 
@@ -186,6 +206,11 @@ function PersonPinMarker({
       coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
       title={pin.label}
       tracksViewChanges={!photoReady}
+      draggable={!isPreview && Boolean(pin.draggable)}
+      onDragEnd={(event) => {
+        const coordinate = event.nativeEvent.coordinate;
+        onPinDragEnd?.(pin.id, coordinate.latitude, coordinate.longitude);
+      }}
       onPress={(event) => {
         event.stopPropagation();
         if (isPreview) {
@@ -224,11 +249,14 @@ function PersonPinMarker({
 function makeStyles(brand: BrandColors) {
   return StyleSheet.create({
     map: {
-      flex: 1,
+      position: 'relative',
       backgroundColor: brand.mapBackground,
       borderWidth: 1,
       borderColor: brand.mapStroke,
       overflow: 'hidden',
+    },
+    fill: {
+      flex: 1,
     },
     rounded: {
       borderRadius: Radius.lg,

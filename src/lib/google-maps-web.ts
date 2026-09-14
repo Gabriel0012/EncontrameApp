@@ -15,6 +15,8 @@ export type GoogleMarker = {
   setMap: (map: GoogleMap | null) => void;
   setPosition: (latLng: LatLngLiteral) => void;
   setIcon: (icon: unknown) => void;
+  setDraggable?: (draggable: boolean) => void;
+  getPosition?: () => GoogleLatLng | null;
 };
 
 export type GoogleCircle = {
@@ -93,7 +95,7 @@ export type GoogleMapsApi = {
     addListener: (
       instance: object,
       eventName: string,
-      handler: () => void,
+      handler: (event?: { latLng?: GoogleLatLng }) => void,
     ) => GoogleMapsListener;
     trigger: (instance: object, eventName: string) => void;
     clearInstanceListeners: (instance: object) => void;

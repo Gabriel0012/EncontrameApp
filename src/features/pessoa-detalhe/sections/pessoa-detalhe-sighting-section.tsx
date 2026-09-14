@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
+import { BrandMap } from '@/components/brand-map';
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { PessoaDetalheController } from '@/features/pessoa-detalhe/pessoa-detalhe.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -59,6 +60,17 @@ export function PessoaDetalheSightingSection({ controller }: PessoaDetalheSighti
               </View>
             ) : null}
           </View>
+          <View style={styles.mapFrame}>
+            <BrandMap
+              pins={controller.sightingPins}
+              userLocation={controller.userLocation}
+              rounded
+              style={styles.map}
+              onMapPress={controller.placeSightingOnMap}
+              onPinDragEnd={controller.handlePinDragEnd}
+            />
+          </View>
+          <Text style={styles.hint}>Toque no mapa ou arraste o pin para indicar o local.</Text>
           <BrandButton
             label="Usar minha localização"
             variant="outline"
@@ -94,6 +106,17 @@ function makeStyles(brand: BrandColors) {
       marginTop: 8,
       fontSize: 13,
       color: brand.textMuted,
+    },
+    mapFrame: {
+      height: 240,
+      width: '100%',
+      overflow: 'hidden',
+    },
+    map: {
+      height: 240,
+      width: '100%',
+      flexGrow: 0,
+      flexShrink: 0,
     },
     suggestions: {
       marginTop: 8,

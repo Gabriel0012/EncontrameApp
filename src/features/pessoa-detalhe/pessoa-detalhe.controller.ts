@@ -1,7 +1,8 @@
 import * as Location from 'expo-location';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { MapPin } from '@/components/brand-map';
 import { fieldErrorMessage } from '@/lib/error-messages';
 import {
   geocodeAddress,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/geocode';
 import { isLocalPersonId } from '@/lib/person-status';
 import { getSessionUser } from '@/lib/session';
+import { useUserLocation } from '@/lib/use-user-location';
 import { usePersonQuery, useReportLastSeenMutation } from '@/services/people/people.service';
 
 const SUGGEST_MIN_CHARS = 3;
@@ -25,6 +27,7 @@ export function usePessoaDetalheController() {
 
   const personQuery = usePersonQuery(id);
   const reportMutation = useReportLastSeenMutation(id);
+  const { location: userLocation } = useUserLocation();
 
   const [formOpen, setFormOpen] = useState(false);
   const [address, setAddress] = useState('');
@@ -137,6 +140,42 @@ export function usePessoaDetalheController() {
     })();
   };
 
+  const placeSightingOnMap = (latitude: number, longitude: number) => {
+    const generation = ++suggestGen.current;
+    setCoords({ latitude, longitude });
+    setSuggestions([]);
+    setSuggesting(false);
+    if (addressError) setAddressError(undefined);
+
+    void reverseGeocode(latitude, longitude).then((label) => {
+      if (generation !== suggestGen.current) {
+        return;
+      }
+      setAddress(label ?? 'Localização atual');
+    });
+  };
+
+  const handlePinDragEnd = (_id: string, latitude: number, longitude: number) => {
+    placeSightingOnMap(latitude, longitude);
+  };
+
+  const sightingPins: MapPin[] = useMemo(() => {
+    if (!coords) {
+      return [];
+    }
+
+    return [
+      {
+        id: person?.id ?? 'sighting',
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        label: person?.nickname ?? person?.fullName,
+        photoUri: person?.photoUri,
+        draggable: true,
+      },
+    ];
+  }, [coords, person]);
+
   const submitSighting = () => {
     void (async () => {
       if (isLocalPersonId(id)) {
@@ -212,6 +251,10 @@ export function usePessoaDetalheController() {
     submitting: reportMutation.isPending,
     isLocalPerson,
     sightingBlockedMessage,
+    sightingPins,
+    userLocation,
+    placeSightingOnMap,
+    handlePinDragEnd,
     openSightingForm,
     useCurrentLocation,
     submitSighting,

@@ -22,6 +22,7 @@ export type MapPin = {
   label?: string;
   locked?: boolean;
   photoUri?: string;
+  draggable?: boolean;
   onPress?: () => void;
 };
 
@@ -29,6 +30,8 @@ type Props = {
   pins?: MapPin[];
   userLocation?: UserLocation | null;
   onPress?: () => void;
+  onMapPress?: (latitude: number, longitude: number) => void;
+  onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
   rounded?: boolean;
   style?: ViewStyle;
 };
@@ -78,6 +81,8 @@ export function BrandMap({
   pins = [],
   userLocation = null,
   onPress,
+  onMapPress,
+  onPinDragEnd,
   rounded = false,
   style,
 }: Props) {
@@ -97,6 +102,8 @@ export function BrandMap({
   const userCircleRef = useRef<GoogleCircle | null>(null);
   const userLocationRef = useRef(userLocation);
   const onPressRef = useRef(onPress);
+  const onMapPressRef = useRef(onMapPress);
+  const onPinDragEndRef = useRef(onPinDragEnd);
   const sessionKey = `${Boolean(apiKey)}:${isPreview}:${host ? 'ready' : 'wait'}`;
   const [session, setSession] = useState<{ key: string; ok: boolean } | null>(null);
 
@@ -111,6 +118,14 @@ export function BrandMap({
   useEffect(() => {
     onPressRef.current = onPress;
   }, [onPress]);
+
+  useEffect(() => {
+    onMapPressRef.current = onMapPress;
+  }, [onMapPress]);
+
+  useEffect(() => {
+    onPinDragEndRef.current = onPinDragEnd;
+  }, [onPinDragEnd]);
 
   useEffect(() => {
     userLocationRef.current = userLocation;
@@ -152,14 +167,23 @@ export function BrandMap({
         mapsApiRef.current = gmaps;
         mapRef.current = map;
         setSession({ key: sessionKey, ok: true });
+        requestAnimationFrame(() => {
+          gmaps.event.trigger(map, 'resize');
+        });
 
-        if (onPressRef.current) {
-          listeners.push(
-            gmaps.event.addListener(map, 'click', () => {
-              onPressRef.current?.();
-            }),
-          );
-        }
+        listeners.push(
+          gmaps.event.addListener(map, 'click', (event) => {
+            if (onPressRef.current) {
+              onPressRef.current();
+              return;
+            }
+
+            const latLng = event?.latLng;
+            if (latLng) {
+              onMapPressRef.current?.(latLng.lat(), latLng.lng());
+            }
+          }),
+        );
 
         if (typeof ResizeObserver !== 'undefined') {
           const observer = new ResizeObserver(() => {
@@ -206,6 +230,7 @@ export function BrandMap({
         map,
         position: { lat: pin.latitude, lng: pin.longitude },
         title: pin.label,
+        draggable: Boolean(pin.draggable) && !onPressRef.current,
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand))}`,
           scaledSize: new gmaps.Size(photo ? 36 : 28, photo ? 36 : 36),
@@ -219,6 +244,14 @@ export function BrandMap({
           return;
         }
         pin.onPress?.();
+      });
+
+      gmaps.event.addListener(marker, 'dragend', () => {
+        const position = marker.getPosition?.();
+        if (!position) {
+          return;
+        }
+        onPinDragEndRef.current?.(pin.id, position.lat(), position.lng());
       });
 
       return marker;
@@ -325,9 +358,13 @@ export function BrandMap({
     status === 'missing-key'
       ? 'Defina EXPO_PUBLIC_GOOGLE_MAPS_WEB_API_KEY no .env'
       : 'Não foi possível carregar o mapa';
+  const mapBoxStyle = [styles.map, rounded && styles.rounded, style];
+  const flattened = StyleSheet.flatten(mapBoxStyle) as ViewStyle;
+  const fillsParent = flattened.height == null && flattened.minHeight == null;
+  const explicitHeight = typeof flattened.height === 'number' ? flattened.height : undefined;
 
   return (
-    <View style={[styles.map, rounded && styles.rounded, style]}>
+    <View style={[styles.map, fillsParent && styles.fill, rounded && styles.rounded, style]}>
       {apiKey
         ? createElement('div', {
             ref: (node: HTMLDivElement | null) => {
@@ -338,7 +375,8 @@ export function BrandMap({
               position: 'absolute',
               inset: 0,
               width: '100%',
-              height: '100%',
+              height: explicitHeight ?? '100%',
+              minHeight: explicitHeight,
             },
           })
         : null}
@@ -356,11 +394,14 @@ export function BrandMap({
 function makeStyles(brand: BrandColors) {
   return StyleSheet.create({
     map: {
-      flex: 1,
+      position: 'relative',
       backgroundColor: brand.mapBackground,
       borderWidth: 1,
       borderColor: brand.mapStroke,
       overflow: 'hidden',
+    },
+    fill: {
+      flex: 1,
     },
     rounded: {
       borderRadius: Radius.lg,
