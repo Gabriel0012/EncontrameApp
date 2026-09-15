@@ -98,6 +98,8 @@ export function useInicioController() {
     goToHomeFromMenu: () => goTo(() => router.push('/inicio')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
     goToNearbyFromMenu: () => goTo(() => router.push('/pessoas-proximas')),
+    goToAllPeopleFromMenu: () => goTo(() => router.push('/pessoas-desaparecidas' as Href)),
+    goToAllPeople: () => router.push('/pessoas-desaparecidas' as Href),
     goToLogin: () => goTo(() => router.push('/login')),
     logout,
   };

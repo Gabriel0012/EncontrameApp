@@ -103,6 +103,12 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
       onPress: controller.goToNearbyFromMenu,
     },
     {
+      key: 'all-people',
+      label: 'Pessoas desaparecidas',
+      icon: 'account-search-outline',
+      onPress: controller.goToAllPeopleFromMenu,
+    },
+    {
       key: 'settings',
       label: 'Configurações',
       icon: 'cog-outline',

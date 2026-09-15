@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { DEFAULT_NEARBY_RADIUS_KM, haversineKm, snapNearbyCoord } from '@/lib/geo';
 import { isLocalPersonId } from '@/lib/person-status';
@@ -12,11 +12,21 @@ import {
 } from '@/services/people/people.local.store';
 import { getPeopleRepository } from '@/services/people/people.repository';
 import { syncLocalPeople } from '@/services/people/people.sync';
-import type { CreatePersonPayload, NearbyPeopleParams, Person, ReportLastSeenPayload } from '@/services/people/people.types';
+import type {
+  CreatePersonPayload,
+  NearbyPeopleParams,
+  PeopleSearchPage,
+  PeopleSearchParams,
+  Person,
+  ReportLastSeenPayload,
+} from '@/services/people/people.types';
+
+const DEFAULT_PAGE_SIZE = 12;
 
 const peopleKeys = {
   all: ['people'] as const,
-  list: (viewerId: string) => ['people', 'list', viewerId] as const,
+  search: (viewerId: string, filters: Omit<PeopleSearchParams, 'page' | 'pageSize'>) =>
+    ['people', 'search', viewerId, filters] as const,
   nearby: (viewerId: string, query: string, lat: number, lng: number) =>
     ['people', 'nearby', viewerId, query, lat, lng] as const,
   detail: (id: string) => ['people', 'detail', id] as const,
@@ -27,22 +37,54 @@ function viewerKey(userId?: string | null) {
 }
 
 /**
- * Camada de acesso à API de pessoas exposta como hooks do React Query.
- * O repositório (axios ou mock) é resolvido por env dentro de cada chamada.
+ * Busca paginada de pessoas desaparecidas (filtros no backend).
  */
-export function usePeopleQuery() {
+export function usePeopleSearchQuery(params: PeopleSearchParams) {
   const viewerId = viewerKey(useSessionUser()?.id);
+  const filters = {
+    query: params.query ?? '',
+    statusId: params.statusId,
+    ageMin: params.ageMin,
+    ageMax: params.ageMax,
+    city: params.city ?? '',
+    state: params.state ?? '',
+    country: params.country ?? '',
+    neighborhood: params.neighborhood ?? '',
+    addressScope: params.addressScope ?? 'lastSeen',
+  };
+  const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
 
-  return useQuery({
-    queryKey: peopleKeys.list(viewerId),
-    queryFn: async () => {
+  return useInfiniteQuery({
+    queryKey: peopleKeys.search(viewerId, filters),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: PeopleSearchPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+    queryFn: async ({ pageParam }) => {
       await syncLocalPeople();
-      const local = await listLocalPersons();
+      const local = filterLocalSearch(await listLocalPersons(), { ...params, page: 1, pageSize: 1000 });
       try {
-        const remote = await getPeopleRepository().list();
-        return mergeLocalPeople(local, remote);
+        const remote = await getPeopleRepository().search({
+          ...params,
+          page: pageParam,
+          pageSize,
+        });
+        if (pageParam === 1) {
+          return {
+            ...remote,
+            items: mergeLocalPeople(local, remote.items),
+          };
+        }
+        return remote;
       } catch (error) {
-        if (local.length > 0) return local;
+        if (pageParam === 1 && local.length > 0) {
+          return {
+            items: local,
+            page: 1,
+            pageSize,
+            totalCount: local.length,
+            totalPages: 1,
+          } satisfies PeopleSearchPage;
+        }
         throw error;
       }
     },
@@ -153,6 +195,28 @@ function filterLocalNearby(people: Person[], params: NearbyPeopleParams): Person
   return filterLocalByQuery(nearby, params.query ?? '');
 }
 
+function filterLocalSearch(people: Person[], params: PeopleSearchParams): Person[] {
+  const byName = filterLocalByQuery(people, params.query ?? '');
+  const useOrigin = params.addressScope === 'origin';
+  return byName.filter((person) => {
+    if (params.statusId != null && person.statusId !== params.statusId) return false;
+    if (params.ageMin != null && (person.age == null || person.age < params.ageMin)) return false;
+    if (params.ageMax != null && (person.age == null || person.age > params.ageMax)) return false;
+    if (params.city && !includesField(useOrigin ? person.originCity : person.city, params.city)) return false;
+    if (params.state && !includesField(useOrigin ? person.originState : person.state, params.state)) return false;
+    if (params.country && !includesField(useOrigin ? person.originCountry : person.country, params.country)) {
+      return false;
+    }
+    if (
+      params.neighborhood &&
+      !includesField(useOrigin ? person.originNeighborhood : person.neighborhood, params.neighborhood)
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
 function filterLocalByQuery(people: Person[], query: string): Person[] {
   const needle = query.trim().toLowerCase();
   if (!needle) return people;
@@ -164,4 +228,8 @@ function filterLocalByQuery(people: Person[], query: string): Person[] {
       .toLowerCase();
     return haystack.includes(needle);
   });
+}
+
+function includesField(value: string | undefined, needle: string) {
+  return Boolean(value?.toLowerCase().includes(needle.trim().toLowerCase()));
 }

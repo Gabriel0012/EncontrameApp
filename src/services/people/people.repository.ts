@@ -1,11 +1,18 @@
 import { env } from '@/lib/env';
 import { peopleAxiosRepository } from '@/services/people/people.axios.repository';
 import { peopleMockRepository } from '@/services/people/people.mock.repository';
-import type { CreatePersonPayload, NearbyPeopleParams, Person, ReportLastSeenPayload } from '@/services/people/people.types';
+import type {
+  CreatePersonPayload,
+  NearbyPeopleParams,
+  PeopleSearchParams,
+  PeopleSearchPage,
+  Person,
+  ReportLastSeenPayload,
+} from '@/services/people/people.types';
 
 /** Contrato comum aos repositórios de pessoas (axios e mock). */
 export interface PeopleRepository {
-  list(): Promise<Person[]>;
+  search(params: PeopleSearchParams): Promise<PeopleSearchPage>;
   listNearby(params: NearbyPeopleParams): Promise<Person[]>;
   getById(id: string): Promise<Person>;
   create(payload: CreatePersonPayload): Promise<Person>;

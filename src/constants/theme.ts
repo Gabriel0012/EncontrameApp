@@ -43,6 +43,8 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+/** Listagem em 2 colunas no desktop precisa de um pouco mais de largura. */
+export const MaxListingWidth = 1100;
 /** Margem horizontal padrão das telas (alinha shell, top bar, forms, etc.). */
 export const PageGutter = Spacing.four;
 /** Telas a partir deste width usam layout em 2 colunas (web/tablet). */

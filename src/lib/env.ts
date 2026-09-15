@@ -11,4 +11,6 @@ export const env = {
   googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
   /** API key da Maps JavaScript API (web). Não use a chave restrita ao Android. */
   googleMapsWebApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_WEB_API_KEY ?? '',
+  /** Chave fixa enviada no header X-App-Key (consulta pública pelo app). */
+  appKey: process.env.EXPO_PUBLIC_APP_KEY ?? '',
 } as const;

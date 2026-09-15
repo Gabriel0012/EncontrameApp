@@ -4,6 +4,9 @@ export interface GeoPoint {
   longitude: number;
 }
 
+/** Origem vs último avistamento nos filtros de endereço. */
+export type AddressScope = 'origin' | 'lastSeen';
+
 /** Pessoa desaparecida cadastrada / exibida no app. */
 export interface Person {
   id: string;
@@ -22,6 +25,14 @@ export interface Person {
   location?: string;
   lastSeen?: string;
   dtLastSeen?: string;
+  originCity?: string;
+  originState?: string;
+  originCountry?: string;
+  originNeighborhood?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  neighborhood?: string;
   phone?: string;
   coords?: GeoPoint;
   /** Quando true, o pin aparece com cadeado (dados restritos). */
@@ -45,6 +56,10 @@ export interface CreatePersonPayload {
   accessories: string;
   location: string;
   lastSeen: string;
+  originCity?: string;
+  originState?: string;
+  originCountry?: string;
+  originNeighborhood?: string;
   phone: string;
   photoUri?: string;
   /** Base64 puro da foto (sem prefixo data URL), enviado à API. */
@@ -55,6 +70,7 @@ export interface CreatePersonPayload {
 export interface ReportLastSeenPayload {
   location: string;
   city?: string;
+  neighborhood?: string;
   latitude: number;
   longitude: number;
 }
@@ -65,4 +81,28 @@ export type NearbyPeopleParams = {
   latitude: number;
   longitude: number;
   radiusKm?: number;
+};
+
+/** Filtros da listagem paginada de pessoas desaparecidas. */
+export type PeopleSearchParams = {
+  query?: string;
+  statusId?: number;
+  ageMin?: number;
+  ageMax?: number;
+  city?: string;
+  state?: string;
+  country?: string;
+  neighborhood?: string;
+  addressScope?: AddressScope;
+  page?: number;
+  pageSize?: number;
+};
+
+/** Página retornada pela busca de pessoas. */
+export type PeopleSearchPage = {
+  items: Person[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
 };

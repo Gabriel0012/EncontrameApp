@@ -5,6 +5,7 @@ import { apiErrorDisplayMessage } from '@/lib/api-errors';
 import { notifySessionExpired } from '@/lib/auth-events';
 import { getBiometricEnabled } from '@/lib/biometric';
 import { env } from '@/lib/env';
+import { isAccessTokenExpiring } from '@/lib/jwt';
 import {
   clearSession,
   ensureSessionHydrated,
@@ -33,10 +34,29 @@ export const api = createAxios({
 /** Uma promise compartilhada evita vários refreshes em paralelo. */
 let refreshPromise: Promise<string> | null = null;
 
-api.interceptors.request.use((config) => {
-  const token = getAccessToken();
+api.interceptors.request.use(async (config) => {
+  const url = config.url ?? '';
+  let token = getAccessToken();
+
+  // Endpoints [AllowAnonymous] devolvem 200 sem usuário se o JWT estiver expirado,
+  // e a listagem esconde Pendente. Renova (ou omite) o Bearer antes de enviar.
+  if (token && !isAuthPublicPath(url) && isAccessTokenExpiring(token) && getRefreshToken()) {
+    try {
+      token = await refreshAccessTokenShared();
+    } catch {
+      token = null;
+    }
+  } else if (token && isAccessTokenExpiring(token, 0)) {
+    token = null;
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (config.headers) {
+    delete config.headers.Authorization;
+  }
+  if (env.appKey) {
+    config.headers['X-App-Key'] = env.appKey;
   }
   return config;
 });
@@ -47,8 +67,13 @@ api.interceptors.response.use(
     const original = error.config as RetriableConfig | undefined;
     const status = error.response?.status;
     const url = original?.url ?? '';
+    const hadBearer = Boolean(original?.headers?.Authorization);
     const shouldRetry401 =
-      Boolean(original) && status === 401 && !original?._retry && !isAuthPublicPath(url);
+      Boolean(original) &&
+      hadBearer &&
+      status === 401 &&
+      !original?._retry &&
+      !isAuthPublicPath(url);
 
     if (shouldRetry401 && original) {
       original._retry = true;

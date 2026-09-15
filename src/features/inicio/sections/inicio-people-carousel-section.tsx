@@ -39,6 +39,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
 
   return (
     <View style={styles.wrapper}>
+      <Text style={styles.title}>Encontre pessoas próximas</Text>
       {locationDenied ? (
         <Text style={styles.locationHint}>Ative a localização para ver pessoas próximas.</Text>
       ) : null}
@@ -99,6 +100,10 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
           <View key={person.id} style={[styles.dot, index === activeIndex && styles.dotActive]} />
         ))}
       </View>
+
+      <Pressable onPress={controller.goToAllPeople} style={styles.allLink} accessibilityRole="button">
+        <Text style={styles.allLinkText}>Ver todas</Text>
+      </Pressable>
     </View>
   );
 }
@@ -107,6 +112,11 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
   return StyleSheet.create({
     wrapper: {
       gap: 10,
+    },
+    title: {
+      color: brand.textDark,
+      fontSize: isWide ? 16 : 14,
+      fontWeight: '700',
     },
     locationHint: {
       color: brand.textMuted,
@@ -195,6 +205,15 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
     },
     dotActive: {
       backgroundColor: brand.textMuted,
+    },
+    allLink: {
+      alignSelf: 'center',
+      paddingVertical: 4,
+    },
+    allLinkText: {
+      color: brand.blue,
+      fontWeight: '700',
+      fontSize: isWide ? 16 : 14,
     },
   });
 }

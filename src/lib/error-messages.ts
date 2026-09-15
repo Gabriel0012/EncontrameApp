@@ -47,6 +47,7 @@ const generalByCode: Record<string, string> = {
   validation_failed: 'Verifique os campos destacados.',
   conflict: 'Estes dados já estão cadastrados.',
   invalid_credentials: 'E-mail/CPF ou senha inválidos.',
+  unauthorized: 'Não autorizado.',
   not_found: 'Registro não encontrado.',
   llm_unavailable: 'A Sofia está indisponível no momento. Tente novamente em instantes.',
 };

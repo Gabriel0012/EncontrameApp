@@ -44,6 +44,38 @@ export function CadastrarPessoaBasicSection({ controller }: CadastrarPessoaBasic
         required
         error={controller.fieldError('location')}
       />
+      <FormRow>
+        <BrandField
+          label="Cidade de origem"
+          value={controller.originCity}
+          onChangeText={controller.setOriginCity}
+          placeholder="Belo Horizonte"
+          autoCapitalize="words"
+        />
+        <BrandField
+          label="Bairro de origem"
+          value={controller.originNeighborhood}
+          onChangeText={controller.setOriginNeighborhood}
+          placeholder="Savassi"
+          autoCapitalize="words"
+        />
+      </FormRow>
+      <FormRow>
+        <BrandField
+          label="Estado de origem"
+          value={controller.originState}
+          onChangeText={controller.setOriginState}
+          placeholder="MG"
+          autoCapitalize="characters"
+        />
+        <BrandField
+          label="País de origem"
+          value={controller.originCountry}
+          onChangeText={controller.setOriginCountry}
+          placeholder="Brasil"
+          autoCapitalize="words"
+        />
+      </FormRow>
       <BrandField
         label="Telefone"
         value={controller.phone}

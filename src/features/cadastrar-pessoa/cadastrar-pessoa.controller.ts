@@ -52,6 +52,10 @@ export function useCadastrarPessoaController() {
   const [tattoo, setTattoo] = useState('');
   const [accessories, setAccessories] = useState('');
   const [location, setLocation] = useState('');
+  const [originCity, setOriginCity] = useState('');
+  const [originState, setOriginState] = useState('');
+  const [originCountry, setOriginCountry] = useState('Brasil');
+  const [originNeighborhood, setOriginNeighborhood] = useState('');
   const [lastSeen, setLastSeen] = useState('');
   const [phone, setPhone] = useState('');
   /** True quando o botão "Cadastrar" do formulário entra na área visível. */
@@ -272,6 +276,10 @@ export function useCadastrarPessoaController() {
       accessories,
       location,
       lastSeen,
+      originCity,
+      originState,
+      originCountry,
+      originNeighborhood,
       phone,
       photoUri: photoUri || undefined,
       photo: photoBase64 || undefined,
@@ -330,6 +338,14 @@ export function useCadastrarPessoaController() {
     location,
     setLocation: changeLocation,
     blurLocation,
+    originCity,
+    setOriginCity,
+    originState,
+    setOriginState,
+    originCountry,
+    setOriginCountry,
+    originNeighborhood,
+    setOriginNeighborhood,
     lastSeen,
     setLastSeen,
     phone,
