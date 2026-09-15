@@ -36,6 +36,7 @@ export function usePessoaDetalheController() {
   const [suggesting, setSuggesting] = useState(false);
   const [addressError, setAddressError] = useState<string | undefined>();
   const [formMessage, setFormMessage] = useState<string | undefined>();
+  const [thanksOpen, setThanksOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const suggestGen = useRef(0);
 
@@ -88,6 +89,7 @@ export function usePessoaDetalheController() {
 
     setFormOpen(true);
     setFormMessage(undefined);
+    setThanksOpen(false);
     setAddressError(undefined);
     setSuggestions([]);
   };
@@ -216,11 +218,11 @@ export function usePessoaDetalheController() {
           latitude: point.latitude,
           longitude: point.longitude,
         });
-        setFormMessage('Avistamento registrado. Obrigado por ajudar.');
         setFormOpen(false);
         setAddress('');
         setCoords(null);
         setSuggestions([]);
+        setThanksOpen(true);
       } catch {
         setFormMessage('Não foi possível registrar o avistamento. Tente novamente.');
       }
@@ -247,6 +249,7 @@ export function usePessoaDetalheController() {
     pickSuggestion,
     addressError,
     formMessage,
+    thanksOpen,
     locating,
     submitting: reportMutation.isPending,
     isLocalPerson,
@@ -258,6 +261,11 @@ export function usePessoaDetalheController() {
     openSightingForm,
     useCurrentLocation,
     submitSighting,
+    closeThanks: () => setThanksOpen(false),
+    goToInicio: () => {
+      setThanksOpen(false);
+      router.replace('/inicio' as Href);
+    },
   };
 }
 

@@ -9,6 +9,7 @@ import { usePessoaDetalheController } from '@/features/pessoa-detalhe/pessoa-det
 import { PessoaDetalheHeroSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-hero-section';
 import { PessoaDetalheInfoSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-info-section';
 import { PessoaDetalheSightingSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-sighting-section';
+import { PessoaDetalheThanksSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-thanks-section';
 import { useBrand } from '@/lib/brand-theme';
 
 export default function PessoaDetalhePage() {
@@ -36,6 +37,7 @@ export default function PessoaDetalhePage() {
           )}
         </ContentShell>
       </ScrollView>
+      <PessoaDetalheThanksSection controller={controller} />
     </SafeAreaView>
   );
 }
