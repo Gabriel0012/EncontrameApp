@@ -377,6 +377,8 @@ export function BrandMap({
               width: '100%',
               height: explicitHeight ?? '100%',
               minHeight: explicitHeight,
+              overflow: 'hidden',
+              borderRadius: rounded ? Radius.lg : 0,
             },
           })
         : null}
@@ -405,6 +407,7 @@ function makeStyles(brand: BrandColors) {
     },
     rounded: {
       borderRadius: Radius.lg,
+      overflow: 'hidden',
     },
     fallback: {
       ...StyleSheet.absoluteFill,

@@ -113,7 +113,7 @@ export function BrandMap({
     <View style={[styles.map, fillsParent && styles.fill, rounded && styles.rounded, style]}>
       <MapView
         ref={mapRef}
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, rounded && styles.rounded]}
         customMapStyle={mapStyle}
         initialRegion={region}
         onPress={(event) => {
@@ -260,6 +260,7 @@ function makeStyles(brand: BrandColors) {
     },
     rounded: {
       borderRadius: Radius.lg,
+      overflow: 'hidden',
     },
     pin: {
       alignItems: 'center',

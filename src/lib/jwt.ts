@@ -26,16 +26,18 @@ function padBase64(value: string): string {
   return value + '='.repeat(4 - remainder);
 }
 
+type Base64Buffer = {
+  from: (data: string, encoding: string) => { toString: (encoding: string) => string };
+};
+
 function decodeBase64(value: string): string {
-  const globalAtob = (globalThis as { atob?: (data: string) => string }).atob;
-  if (typeof globalAtob === 'function') {
-    return globalAtob(value);
+  if (typeof atob === 'function') {
+    return atob(value);
   }
 
-  const buffer = (globalThis as { Buffer?: { from: (data: string, enc: string) => { toString: (enc: string) => string } } })
-    .Buffer;
-  if (buffer) {
-    return buffer.from(value, 'base64').toString('utf8');
+  const maybeBuffer = (globalThis as { Buffer?: Base64Buffer }).Buffer;
+  if (maybeBuffer) {
+    return maybeBuffer.from(value, 'base64').toString('utf8');
   }
 
   throw new Error('Base64 decode unavailable.');
