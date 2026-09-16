@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { useBiometricEnroll } from '@/features/biometric/use-biometric-enroll';
@@ -21,6 +21,7 @@ function confirmError(password: string, confirm: string): ErrorCode | undefined 
 /** Centraliza validação e cadastro da etapa 2 (senha). */
 export function useSignupPasswordController() {
   const router = useRouter();
+  const navigation = useNavigation();
   const params = useLocalSearchParams();
   const signupMutation = useSignupMutation();
   const enroll = useBiometricEnroll();
@@ -81,8 +82,8 @@ export function useSignupPasswordController() {
         return;
       }
 
-      if (Object.keys(fields).length > 0) {
-        router.back();
+      if (Object.keys(fields).length > 0 && navigation.canGoBack()) {
+        navigation.goBack();
       }
     }
   };

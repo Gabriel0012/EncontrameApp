@@ -7,6 +7,7 @@ import {
   type SofiaPaletteId,
 } from '@/constants/sofia-palettes';
 import { useBrandTheme } from '@/lib/brand-theme';
+import { useSafeBack } from '@/lib/safe-back';
 import { completeSofiaWelcome } from '@/lib/sofia-prefs';
 
 const asText = (value: string | string[] | undefined) =>
@@ -29,19 +30,13 @@ export function useSofiaThemeController() {
     }
   }, [hydrated, paletteId, setPalette]);
 
+  const goBack = useSafeBack('/inicio');
+
   const continueToChat = () => {
     void (async () => {
       await completeSofiaWelcome();
       router.replace('/chat' as Href);
     })();
-  };
-
-  const goBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace('/inicio' as Href);
   };
 
   return {

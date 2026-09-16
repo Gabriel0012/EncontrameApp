@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
+import { useSafeBack } from '@/lib/safe-back';
 import {
   acceptSofiaDisclaimer,
   isSofiaDisclaimerAccepted,
@@ -32,6 +33,7 @@ function todayLabel() {
 /** Centraliza estado e envio de mensagens do chat com a IA (Sofia). */
 export function useChatController() {
   const router = useRouter();
+  const goBack = useSafeBack('/inicio');
   const queryClient = useQueryClient();
   const historyQuery = useChatHistoryQuery();
   const sendMutation = useSendMessageMutation();
@@ -121,6 +123,7 @@ export function useChatController() {
     setConfirmClear,
     handleClear,
     welcomeGate,
+    goBack,
   };
 }
 

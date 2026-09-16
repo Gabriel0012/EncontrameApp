@@ -1,10 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { useBrand } from '@/lib/brand-theme';
+import { useSafeBack } from '@/lib/safe-back';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 
 type Props = {
@@ -13,17 +13,9 @@ type Props = {
 };
 
 export function ScreenHeader({ title, onBack }: Props) {
-  const router = useRouter();
   const brand = useBrand();
-  const handleBack =
-    onBack ??
-    (() => {
-      if (router.canGoBack()) {
-        router.back();
-        return;
-      }
-      router.replace('/inicio');
-    });
+  const defaultBack = useSafeBack('/inicio');
+  const handleBack = onBack ?? defaultBack;
   const [highlighted, setHighlighted] = useState(false);
   const opacityStyle = useTimedOpacity(highlighted ? 0.85 : 1);
 

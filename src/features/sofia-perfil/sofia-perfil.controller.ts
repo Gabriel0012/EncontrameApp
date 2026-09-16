@@ -1,16 +1,11 @@
 import { type Href, useRouter } from 'expo-router';
 
+import { useSafeBack } from '@/lib/safe-back';
+
 /** Perfil da Sofia, no espírito dos detalhes de um contato. */
 export function useSofiaPerfilController() {
   const router = useRouter();
-
-  const goBackToChat = () => {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace('/chat' as Href);
-  };
+  const goBackToChat = useSafeBack('/chat' as Href);
 
   const goToExercises = () => {
     router.push('/exercises' as Href);

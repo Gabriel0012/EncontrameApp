@@ -18,7 +18,7 @@ export function ChatHeaderSection({ controller }: Props) {
 
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}>
+      <Pressable onPress={controller.goBack} hitSlop={12} style={styles.iconBtn}>
         <MaterialCommunityIcons name="chevron-left" size={30} color={brand.textDark} />
       </Pressable>
       <Pressable

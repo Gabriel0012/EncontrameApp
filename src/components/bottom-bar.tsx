@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -8,6 +9,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { Radius, type BrandColors } from '@/constants/brand';
+import { POLICE_REPORT_PHONE } from '@/constants/emergency';
 import { brandTiming } from '@/constants/motion';
 import { useBrand } from '@/lib/brand-theme';
 import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
@@ -26,11 +28,13 @@ function BottomTab({
   isActive,
   onPress,
   brand,
+  accessibilityLabel,
 }: {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   isActive: boolean;
   onPress?: () => void;
   brand: BrandColors;
+  accessibilityLabel?: string;
 }) {
   const [highlighted, setHighlighted] = useState(false);
   const pressOpacity = useTimedOpacity(highlighted ? 0.85 : 1);
@@ -79,6 +83,8 @@ function BottomTab({
       onPressOut={() => setHighlighted(false)}
       onHoverIn={() => setHighlighted(true)}
       onHoverOut={() => setHighlighted(false)}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
     >
       {content}
     </Pressable>
@@ -100,9 +106,19 @@ export function BottomBar({ active }: Props) {
     return null;
   }
 
+  const openPoliceDialer = () => {
+    void Linking.openURL(`tel:${POLICE_REPORT_PHONE}`);
+  };
+
   return (
     <View style={[stylesBar.bar, { paddingBottom: bottomInset, zIndex: 20 }]}>
-      <BottomTab brand={brand} icon="phone" isActive={active === 'phone'} />
+      <BottomTab
+        brand={brand}
+        icon="phone"
+        isActive={active === 'phone'}
+        onPress={openPoliceDialer}
+        accessibilityLabel={`Ligar para a polícia, ${POLICE_REPORT_PHONE}`}
+      />
       <BottomTab
         brand={brand}
         icon="home"
