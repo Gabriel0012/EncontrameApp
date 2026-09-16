@@ -29,6 +29,12 @@ export function useInicioController() {
   const loggedIn = sessionUser != null;
 
   const people = peopleQuery.data ?? [];
+  const waitingLocation = !locationDenied && userLocation == null;
+  const showPeopleSkeleton =
+    waitingLocation ||
+    peopleQuery.isLoading ||
+    peopleQuery.isPlaceholderData ||
+    (peopleQuery.isFetching && people.length === 0);
 
   const pins: MapPin[] = people.flatMap((person) => {
     if (!person.coords) {
@@ -67,6 +73,11 @@ export function useInicioController() {
     setQuery(search.trim());
   };
 
+  const clearSearch = () => {
+    setSearch('');
+    setQuery('');
+  };
+
   const logout = () =>
     goTo(() => {
       void (async () => {
@@ -100,7 +111,9 @@ export function useInicioController() {
     openSearch,
     closeSearch,
     handleSearch,
+    clearSearch,
     loading: peopleQuery.isLoading || peopleQuery.isFetching,
+    showPeopleSkeleton,
     loggedIn,
     menuOpen,
     openMenu: () => {

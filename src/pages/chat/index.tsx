@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContentShell } from '@/components/content-shell';
@@ -20,11 +21,13 @@ import { ChatHeaderSection } from '@/features/chat/sections/chat-header-section'
 import { ChatInputSection } from '@/features/chat/sections/chat-input-section';
 import { ChatMessagesSection } from '@/features/chat/sections/chat-messages-section';
 import { useBrand } from '@/lib/brand-theme';
+import { useComposerKeyboardPadding } from '@/lib/use-composer-keyboard-padding';
 
 export default function ChatPage() {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const controller = useChatController();
+  const composerPadding = useComposerKeyboardPadding();
 
   if (controller.welcomeGate === 'checking') {
     return (
@@ -37,19 +40,24 @@ export default function ChatPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={Platform.OS === 'android' ? ['top'] : ['top', 'bottom']}
+    >
       <ContentShell style={styles.shell} noGutter>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.header}>
-            <ChatHeaderSection controller={controller} />
-          </View>
-          <View style={styles.messages}>
-            <ChatMessagesSection controller={controller} />
-          </View>
-          <ChatInputSection controller={controller} />
+          <Animated.View style={[styles.flex, composerPadding]}>
+            <View style={styles.header}>
+              <ChatHeaderSection controller={controller} />
+            </View>
+            <View style={styles.messages}>
+              <ChatMessagesSection controller={controller} />
+            </View>
+            <ChatInputSection controller={controller} />
+          </Animated.View>
         </KeyboardAvoidingView>
       </ContentShell>
 

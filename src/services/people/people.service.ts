@@ -196,7 +196,7 @@ async function listLocalPersons(): Promise<Person[]> {
 function filterLocalNearby(people: Person[], params: NearbyPeopleParams): Person[] {
   const radius = params.radiusKm ?? DEFAULT_NEARBY_RADIUS_KM;
   const nearby = people.filter((person) => {
-    if (!person.coords) return false;
+    if (!person.coords) return true;
     return (
       haversineKm(params.latitude, params.longitude, person.coords.latitude, person.coords.longitude) <=
       radius

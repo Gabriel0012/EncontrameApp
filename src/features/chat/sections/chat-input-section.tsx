@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Radius, type BrandColors } from '@/constants/brand';
@@ -17,13 +17,23 @@ interface ChatInputSectionProps {
 export function ChatInputSection({ controller }: ChatInputSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
+  const [draft, setDraft] = useState('');
+  const canSend = draft.trim().length > 0 && controller.allowSend;
+
+  const sendDraft = () => {
+    const text = draft;
+    if (!text.trim() || !controller.allowSend) return;
+    setDraft('');
+    void controller.handleSend(text).catch(() => {
+      setDraft(text);
+    });
+  };
+
   const desktopSubmit = useDesktopChatEnterSubmit({
-    value: controller.input,
-    onChangeText: controller.setInput,
-    canSend: controller.canSend,
-    onSend: () => {
-      void controller.handleSend();
-    },
+    value: draft,
+    onChangeText: setDraft,
+    canSend,
+    onSend: sendDraft,
   });
 
   return (
@@ -31,20 +41,20 @@ export function ChatInputSection({ controller }: ChatInputSectionProps) {
       <View style={styles.field}>
         <TextInput
           style={styles.input}
-          value={controller.input}
-          onChangeText={controller.setInput}
+          value={draft}
+          onChangeText={setDraft}
           placeholder="Escreva o que está sentindo…"
           placeholderTextColor={brand.placeholder}
           multiline
-          numberOfLines={1}
           textAlignVertical="center"
+          underlineColorAndroid="transparent"
           {...desktopSubmit}
         />
       </View>
       <Pressable
-        style={[styles.send, !controller.canSend && styles.sendDisabled]}
-        onPress={controller.handleSend}
-        disabled={!controller.canSend}
+        style={[styles.send, !canSend && styles.sendDisabled]}
+        onPress={sendDraft}
+        disabled={!canSend}
       >
         <MaterialCommunityIcons name="send" size={20} color={brand.onPrimary} />
       </Pressable>
@@ -79,6 +89,7 @@ function makeStyles(brand: BrandColors) {
     input: {
       fontSize: 15,
       lineHeight: 20,
+      minHeight: 20,
       padding: 0,
       margin: 0,
       maxHeight: 104,

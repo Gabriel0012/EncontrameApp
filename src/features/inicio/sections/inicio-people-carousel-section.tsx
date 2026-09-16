@@ -38,13 +38,11 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
     () => makeStyles(brand, cardWidth, itemHeight),
     [brand, cardWidth, itemHeight],
   );
-  const { people, loading, locationDenied, userLocation } = controller;
-  const showSkeleton =
-    people.length === 0 && (loading || (!locationDenied && userLocation == null));
+  const { people, showPeopleSkeleton } = controller;
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
-      {showSkeleton ? (
+      {showPeopleSkeleton ? (
         <ScrollView
           horizontal
           scrollEnabled={false}

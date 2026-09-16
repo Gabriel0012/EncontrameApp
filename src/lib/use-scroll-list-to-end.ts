@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Platform, type FlatList } from 'react-native';
+import {
+  Keyboard,
+  Platform,
+  type FlatList,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 
 type ScrollableNode = {
   scrollHeight: number;
   scrollTop: number;
 };
+
+const PIN_THRESHOLD_PX = 80;
+const KEYBOARD_FOLLOW_MS = 450;
 
 function getWebScrollNode(list: object | null): ScrollableNode | null {
   if (!list) return null;
@@ -19,11 +29,13 @@ function getWebScrollNode(list: object | null): ScrollableNode | null {
   return null;
 }
 
-/** Mantém uma FlatList de chat no fim quando o conteúdo cresce. */
+/** Mantém uma FlatList de chat no fim quando o conteúdo cresce ou o teclado abre. */
 export function useScrollListToEnd<T>(trigger: unknown) {
   const listRef = useRef<FlatList<T>>(null);
+  const heightRef = useRef(0);
+  const pinnedToEndRef = useRef(true);
 
-  const scrollToEnd = useCallback(() => {
+  const scrollToEnd = useCallback((animated = false) => {
     const list = listRef.current;
     if (!list) return;
 
@@ -35,8 +47,27 @@ export function useScrollListToEnd<T>(trigger: unknown) {
       }
     }
 
-    list.scrollToEnd({ animated: false });
+    list.scrollToEnd({ animated });
   }, []);
+
+  const onListScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+    pinnedToEndRef.current = distanceFromEnd <= PIN_THRESHOLD_PX;
+  }, []);
+
+  const onListLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const nextHeight = event.nativeEvent.layout.height;
+      const previousHeight = heightRef.current;
+      heightRef.current = nextHeight;
+
+      if (previousHeight > 0 && nextHeight < previousHeight - 4 && pinnedToEndRef.current) {
+        scrollToEnd(false);
+      }
+    },
+    [scrollToEnd],
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => scrollToEnd());
@@ -49,5 +80,49 @@ export function useScrollListToEnd<T>(trigger: unknown) {
     };
   }, [scrollToEnd, trigger]);
 
-  return { listRef, scrollToEnd };
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    let follow: ReturnType<typeof setInterval> | null = null;
+    let followTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const stopFollow = () => {
+      if (follow) {
+        clearInterval(follow);
+        follow = null;
+      }
+      if (followTimeout) {
+        clearTimeout(followTimeout);
+        followTimeout = null;
+      }
+    };
+
+    const startFollow = () => {
+      if (!pinnedToEndRef.current) return;
+      scrollToEnd(false);
+      stopFollow();
+      follow = setInterval(() => {
+        if (pinnedToEndRef.current) {
+          scrollToEnd(false);
+        }
+      }, 32);
+      followTimeout = setTimeout(() => {
+        stopFollow();
+        if (pinnedToEndRef.current) {
+          scrollToEnd(false);
+        }
+      }, KEYBOARD_FOLLOW_MS);
+    };
+
+    const show = Keyboard.addListener(showEvent, startFollow);
+    const hide = Keyboard.addListener(hideEvent, stopFollow);
+
+    return () => {
+      show.remove();
+      hide.remove();
+      stopFollow();
+    };
+  }, [scrollToEnd]);
+
+  return { listRef, scrollToEnd, onListLayout, onListScroll };
 }

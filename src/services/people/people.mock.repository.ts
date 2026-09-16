@@ -286,7 +286,7 @@ export const peopleMockRepository: PeopleRepository = {
     const radius = radiusKm ?? DEFAULT_NEARBY_RADIUS_KM;
     const nearby = mockPeople.filter((person) => {
       if (!person.coords) {
-        return false;
+        return true;
       }
       return haversineKm(latitude, longitude, person.coords.latitude, person.coords.longitude) <= radius;
     });

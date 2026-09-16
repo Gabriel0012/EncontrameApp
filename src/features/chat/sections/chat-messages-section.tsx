@@ -17,7 +17,7 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const lastMessageId = controller.messages.at(-1)?.id;
-  const { listRef, scrollToEnd } = useScrollListToEnd<ChatMessage>(
+  const { listRef, scrollToEnd, onListLayout, onListScroll } = useScrollListToEnd<ChatMessage>(
     `${lastMessageId ?? ''}:${controller.sending ? '1' : '0'}`,
   );
 
@@ -50,6 +50,11 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
       renderItem={renderItem}
       style={styles.list}
       contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      onLayout={onListLayout}
+      onScroll={onListScroll}
+      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       onContentSizeChange={() => scrollToEnd()}
       ListHeaderComponent={<Text style={styles.dateLabel}>{controller.today}</Text>}

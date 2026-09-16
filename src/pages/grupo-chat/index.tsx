@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContentShell } from '@/components/content-shell';
@@ -10,26 +11,33 @@ import { useGrupoChatController } from '@/features/grupo-chat/grupo-chat.control
 import { GrupoChatInputSection } from '@/features/grupo-chat/sections/grupo-chat-input-section';
 import { GrupoChatMessagesSection } from '@/features/grupo-chat/sections/grupo-chat-messages-section';
 import { useBrand } from '@/lib/brand-theme';
+import { useComposerKeyboardPadding } from '@/lib/use-composer-keyboard-padding';
 
 export default function GrupoChatPage() {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const controller = useGrupoChatController();
+  const composerPadding = useComposerKeyboardPadding();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={Platform.OS === 'android' ? ['top'] : ['top', 'bottom']}
+    >
       <ContentShell style={styles.shell} noGutter>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.header}>
-            <ScreenHeader title="Grupo do apoio" />
-          </View>
-          <View style={styles.messages}>
-            <GrupoChatMessagesSection controller={controller} />
-          </View>
-          <GrupoChatInputSection controller={controller} />
+          <Animated.View style={[styles.flex, composerPadding]}>
+            <View style={styles.header}>
+              <ScreenHeader title="Grupo do apoio" />
+            </View>
+            <View style={styles.messages}>
+              <GrupoChatMessagesSection controller={controller} />
+            </View>
+            <GrupoChatInputSection controller={controller} />
+          </Animated.View>
         </KeyboardAvoidingView>
       </ContentShell>
     </SafeAreaView>

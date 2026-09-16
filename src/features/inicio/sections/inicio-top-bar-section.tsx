@@ -74,7 +74,7 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const { isWide } = useWideLayout();
-  const { searchOpen, closeSearch, openSearch, handleSearch } = controller;
+  const { searchOpen, closeSearch, openSearch, handleSearch, clearSearch } = controller;
   const menuButtonRef = useRef<View>(null);
   const searchInputRef = useRef<TextInput>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({
@@ -254,6 +254,16 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
                   onSubmitEditing={controller.handleSearch}
                   accessibilityLabel="Buscar pessoas"
                 />
+                {controller.search.length > 0 ? (
+                  <Pressable
+                    onPress={clearSearch}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Limpar busca"
+                  >
+                    <MaterialCommunityIcons name="close-circle" size={20} color={brand.placeholder} />
+                  </Pressable>
+                ) : null}
               </View>
             </Animated.View>
           </View>
@@ -353,6 +363,7 @@ function makeStyles(brand: BrandColors) {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 8,
       height: 46,
       paddingHorizontal: 16,
       borderRadius: Radius.pill,

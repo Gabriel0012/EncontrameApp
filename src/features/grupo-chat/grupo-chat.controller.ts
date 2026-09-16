@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   useGroupChatHistoryQuery,
@@ -28,14 +28,11 @@ export function useGrupoChatController() {
 
   // Mensagens da conversa vindas do histórico (query) + as adicionadas na sessão.
   const [sessionMessages, setSessionMessages] = useState<GroupChatMessage[]>([]);
-  const [input, setInput] = useState('');
 
   const messages: GroupChatMessage[] = [...(historyQuery.data ?? []), ...sessionMessages];
 
-  const canSend = input.trim().length > 0 && !sendMutation.isPending;
-
-  const handleSend = async () => {
-    const text = input.trim();
+  const handleSend = useCallback(async (raw: string) => {
+    const text = raw.trim();
     if (!text) return;
 
     const optimisticMessage: GroupChatMessage = {
@@ -46,20 +43,18 @@ export function useGrupoChatController() {
       isMine: true,
     };
     setSessionMessages((prev) => [...prev, optimisticMessage]);
-    setInput('');
 
     try {
       await sendMutation.mutateAsync({ text });
     } catch {
       setSessionMessages((prev) => prev.filter((message) => message.id !== optimisticMessage.id));
+      throw new Error('send-failed');
     }
-  };
+  }, [sendMutation]);
 
   return {
     messages,
-    input,
-    setInput,
-    canSend,
+    allowSend: !sendMutation.isPending,
     sending: sendMutation.isPending,
     today: todayLabel(),
     handleSend,

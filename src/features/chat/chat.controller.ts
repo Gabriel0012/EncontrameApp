@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type Href, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   acceptSofiaDisclaimer,
@@ -38,7 +38,6 @@ export function useChatController() {
   const clearMutation = useClearChatHistoryMutation();
 
   const [optimistic, setOptimistic] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
   const [disclaimerReady, setDisclaimerReady] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -68,30 +67,30 @@ export function useChatController() {
 
   const messages: ChatMessage[] = [...(historyQuery.data ?? []), ...optimistic];
 
-  const canSend = input.trim().length > 0 && !sendMutation.isPending && disclaimerAccepted;
+  const handleSend = useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
+      if (!text || !disclaimerAccepted) return;
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || !disclaimerAccepted) return;
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        text,
+        time: nowTime(),
+      };
+      setOptimistic((prev) => [...prev, userMessage]);
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      text,
-      time: nowTime(),
-    };
-    setOptimistic((prev) => [...prev, userMessage]);
-    setInput('');
-
-    try {
-      await sendMutation.mutateAsync({ text });
-      setOptimistic([]);
-      await queryClient.invalidateQueries({ queryKey: chatKeys.history });
-    } catch {
-      setOptimistic((prev) => prev.filter((message) => message.id !== userMessage.id));
-      setInput(text);
-    }
-  };
+      try {
+        await sendMutation.mutateAsync({ text });
+        setOptimistic([]);
+        await queryClient.invalidateQueries({ queryKey: chatKeys.history });
+      } catch {
+        setOptimistic((prev) => prev.filter((message) => message.id !== userMessage.id));
+        throw new Error('send-failed');
+      }
+    },
+    [disclaimerAccepted, queryClient, sendMutation],
+  );
 
   const handleAcceptDisclaimer = async () => {
     await acceptSofiaDisclaimer();
@@ -110,9 +109,7 @@ export function useChatController() {
 
   return {
     messages,
-    input,
-    setInput,
-    canSend,
+    allowSend: disclaimerAccepted && !sendMutation.isPending,
     sending: sendMutation.isPending,
     clearing: clearMutation.isPending,
     loading: historyQuery.isLoading,
