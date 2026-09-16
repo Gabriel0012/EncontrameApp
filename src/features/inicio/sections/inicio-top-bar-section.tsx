@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
@@ -97,12 +97,6 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
       onPress: controller.goToRegisterFromMenu,
     },
     {
-      key: 'nearby',
-      label: 'Pessoas próximas',
-      icon: 'map-marker-radius-outline',
-      onPress: controller.goToNearbyFromMenu,
-    },
-    {
       key: 'all-people',
       label: 'Pessoas desaparecidas',
       icon: 'account-search-outline',
@@ -138,23 +132,47 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   };
 
   return (
-    <View style={styles.bar}>
-      <View style={styles.brand}>
-        <Pressable
-          hitSlop={8}
-          onPress={handleOpenMenu}
-          onPressIn={() => setMenuHighlighted(true)}
-          onPressOut={() => setMenuHighlighted(false)}
-          onHoverIn={() => setMenuHighlighted(true)}
-          onHoverOut={() => setMenuHighlighted(false)}
-        >
-          <View ref={menuButtonRef} collapsable={false}>
-            <Animated.View style={[styles.menuButton, menuOpacity]}>
-              <MaterialCommunityIcons name="menu" size={26} color={brand.label} />
-            </Animated.View>
+    <View style={styles.wrap} pointerEvents="box-none">
+      <View style={styles.panel}>
+        <View style={styles.brand}>
+          <Pressable
+            hitSlop={8}
+            onPress={handleOpenMenu}
+            onPressIn={() => setMenuHighlighted(true)}
+            onPressOut={() => setMenuHighlighted(false)}
+            onHoverIn={() => setMenuHighlighted(true)}
+            onHoverOut={() => setMenuHighlighted(false)}
+          >
+            <View ref={menuButtonRef} collapsable={false}>
+              <Animated.View style={[styles.menuButton, menuOpacity]}>
+                <MaterialCommunityIcons name="menu" size={26} color={brand.label} />
+              </Animated.View>
+            </View>
+          </Pressable>
+          <Text style={styles.title}>Encontra-me</Text>
+        </View>
+
+        <View style={styles.searchRow}>
+          <View style={styles.searchField}>
+            <TextInput
+              style={styles.searchInput}
+              value={controller.search}
+              onChangeText={controller.setSearch}
+              placeholder="Nome, bairro ou cidade"
+              placeholderTextColor={brand.placeholder}
+              returnKeyType="search"
+              onSubmitEditing={controller.handleSearch}
+            />
+            <MaterialCommunityIcons name="magnify" size={20} color={brand.placeholder} />
           </View>
-        </Pressable>
-        <Text style={styles.title}>Encontra-me</Text>
+          <Pressable style={styles.searchButton} onPress={controller.handleSearch}>
+            <Text style={styles.searchButtonLabel}>Buscar</Text>
+          </Pressable>
+        </View>
+
+        {controller.locationDenied ? (
+          <Text style={styles.locationHint}>Ative a localização para ver pessoas próximas.</Text>
+        ) : null}
       </View>
 
       <Modal
@@ -181,11 +199,17 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
 
 function makeStyles(brand: BrandColors) {
   return StyleSheet.create({
-    bar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
+    wrap: {
+      paddingHorizontal: PageGutter,
+      paddingTop: 8,
+    },
+    panel: {
+      gap: 10,
+      padding: 12,
+      borderRadius: Radius.lg,
+      backgroundColor: brand.surface,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
     },
     brand: {
       flexDirection: 'row',
@@ -199,6 +223,45 @@ function makeStyles(brand: BrandColors) {
       fontSize: 22,
       fontWeight: '800',
       color: brand.textDark,
+    },
+    searchRow: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    searchField: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      height: 46,
+      paddingHorizontal: 16,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.fieldBackground,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      color: brand.textDark,
+    },
+    searchButton: {
+      height: 46,
+      paddingHorizontal: 22,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.blue,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    searchButtonLabel: {
+      color: brand.onPrimary,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    locationHint: {
+      color: brand.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
     },
     backdrop: {
       flex: 1,

@@ -1,12 +1,17 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import MapView, { Circle, Marker, type Region } from 'react-native-maps';
+import MapView, { Callout, Circle, Marker, Polyline, type Region } from 'react-native-maps';
 
 import { Radius, type BrandColors } from '@/constants/brand';
 import { useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { brandMapStyle, hexToRgba } from '@/lib/map-style';
 import { type UserLocation, userAccuracyRadius } from '@/lib/use-user-location';
+
+export type MapPinTooltip = {
+  title: string;
+  subtitle: string;
+};
 
 export type MapPin = {
   id: string;
@@ -16,16 +21,35 @@ export type MapPin = {
   locked?: boolean;
   photoUri?: string;
   draggable?: boolean;
+  opacity?: number;
+  emphasized?: boolean;
+  zIndex?: number;
+  tooltip?: MapPinTooltip;
   onPress?: () => void;
+};
+
+export type MapPolyline = {
+  id: string;
+  coordinates: { latitude: number; longitude: number }[];
+  dashed?: boolean;
+};
+
+export type MapPadding = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
 };
 
 type Props = {
   pins?: MapPin[];
+  polylines?: MapPolyline[];
   userLocation?: UserLocation | null;
   onPress?: () => void;
   onMapPress?: (latitude: number, longitude: number) => void;
   onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
   rounded?: boolean;
+  mapPadding?: MapPadding;
   style?: ViewStyle;
 };
 
@@ -71,11 +95,13 @@ function regionFromPins(pins: MapPin[], userLocation?: UserLocation | null): Reg
  */
 export function BrandMap({
   pins = [],
+  polylines = [],
   userLocation = null,
   onPress,
   onMapPress,
   onPinDragEnd,
   rounded = false,
+  mapPadding,
   style,
 }: Props) {
   const brand = useBrand();
@@ -84,6 +110,7 @@ export function BrandMap({
   const mapStyle = useMemo(() => brandMapStyle(brand, colorScheme), [brand, colorScheme]);
   const mapRef = useRef<MapView>(null);
   const pinsSignatureRef = useRef('');
+  const [activePinId, setActivePinId] = useState<string | null>(null);
   const hasUser = Boolean(userLocation);
   const isPreview = Boolean(onPress);
   const region = regionFromPins(pins, userLocation);
@@ -115,12 +142,14 @@ export function BrandMap({
         ref={mapRef}
         style={[StyleSheet.absoluteFill, rounded && styles.rounded]}
         customMapStyle={mapStyle}
+        mapPadding={mapPadding}
         initialRegion={region}
         onPress={(event) => {
           if (isPreview) {
             onPress?.();
             return;
           }
+          setActivePinId(null);
           const coordinate = event.nativeEvent.coordinate;
           if (coordinate) {
             onMapPress?.(coordinate.latitude, coordinate.longitude);
@@ -132,6 +161,17 @@ export function BrandMap({
         rotateEnabled={!isPreview}
         toolbarEnabled={false}
       >
+        {polylines.map((line) => (
+          <Polyline
+            key={line.id}
+            coordinates={line.coordinates}
+            strokeColor={brand.blue}
+            strokeWidth={3}
+            lineDashPattern={line.dashed ? [8, 6] : undefined}
+            geodesic
+            zIndex={0}
+          />
+        ))}
         {pins.map((pin) => (
           <PersonPinMarker
             key={pin.id}
@@ -139,8 +179,10 @@ export function BrandMap({
             brand={brand}
             styles={styles}
             isPreview={isPreview}
+            emphasized={Boolean(pin.emphasized) || activePinId === pin.id}
             onPreviewPress={onPress}
             onPinDragEnd={onPinDragEnd}
+            onSelect={() => setActivePinId(pin.id)}
           />
         ))}
         {userLocation ? (
@@ -189,23 +231,29 @@ function PersonPinMarker({
   brand,
   styles,
   isPreview,
+  emphasized,
   onPreviewPress,
   onPinDragEnd,
+  onSelect,
 }: {
   pin: MapPin;
   brand: BrandColors;
   styles: ReturnType<typeof makeStyles>;
   isPreview: boolean;
+  emphasized: boolean;
   onPreviewPress?: () => void;
   onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
+  onSelect: () => void;
 }) {
   const [photoReady, setPhotoReady] = useState(!pin.photoUri);
 
   return (
     <Marker
       coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
-      title={pin.label}
-      tracksViewChanges={!photoReady}
+      title={pin.tooltip ? undefined : pin.label}
+      opacity={pin.opacity ?? 1}
+      zIndex={pin.zIndex ?? 1}
+      tracksViewChanges={!photoReady || emphasized}
       draggable={!isPreview && Boolean(pin.draggable)}
       onDragEnd={(event) => {
         const coordinate = event.nativeEvent.coordinate;
@@ -217,6 +265,7 @@ function PersonPinMarker({
           onPreviewPress?.();
           return;
         }
+        onSelect();
         pin.onPress?.();
       }}
     >
@@ -224,24 +273,32 @@ function PersonPinMarker({
         {pin.photoUri ? (
           <Image
             source={{ uri: pin.photoUri }}
-            style={styles.pinPhoto}
+            style={emphasized ? styles.pinPhotoLg : styles.pinPhoto}
             onLoad={() => setPhotoReady(true)}
           />
         ) : (
-          <View style={styles.pinBadge}>
+          <View style={emphasized ? styles.pinBadgeLg : styles.pinBadge}>
             <MaterialCommunityIcons
               name={pin.locked ? 'lock' : 'account'}
-              size={16}
+              size={emphasized ? 20 : 16}
               color={brand.onPrimary}
             />
           </View>
         )}
-        {pin.label ? (
+        {pin.label && !pin.tooltip ? (
           <Text style={styles.pinLabel} numberOfLines={1}>
             {pin.label}
           </Text>
         ) : null}
       </View>
+      {pin.tooltip ? (
+        <Callout tooltip>
+          <View style={styles.tooltip}>
+            <Text style={styles.tooltipTitle}>{pin.tooltip.title}</Text>
+            <Text style={styles.tooltipSubtitle}>{pin.tooltip.subtitle}</Text>
+          </View>
+        </Callout>
+      ) : null}
     </Marker>
   );
 }
@@ -275,10 +332,28 @@ function makeStyles(brand: BrandColors) {
       borderWidth: 2,
       borderColor: brand.onPrimary,
     },
+    pinBadgeLg: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: brand.pin,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: brand.onPrimary,
+    },
     pinPhoto: {
       width: 36,
       height: 36,
       borderRadius: 18,
+      borderWidth: 2,
+      borderColor: brand.onPrimary,
+      backgroundColor: brand.avatarBackground,
+    },
+    pinPhotoLg: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       borderWidth: 2,
       borderColor: brand.onPrimary,
       backgroundColor: brand.avatarBackground,
@@ -289,6 +364,25 @@ function makeStyles(brand: BrandColors) {
       fontSize: 11,
       fontWeight: '700',
       color: brand.textDark,
+    },
+    tooltip: {
+      maxWidth: 220,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: Radius.md,
+      backgroundColor: brand.white,
+      borderWidth: 1,
+      borderColor: brand.divider,
+    },
+    tooltipTitle: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: brand.textDark,
+    },
+    tooltipSubtitle: {
+      marginTop: 2,
+      fontSize: 12,
+      color: brand.textMuted,
     },
     userDotOuter: {
       width: 22,

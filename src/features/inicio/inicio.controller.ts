@@ -10,14 +10,17 @@ import { useSessionUser } from '@/lib/use-session-user';
 import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { useNearbyPeopleQuery } from '@/services/people/people.service';
+import type { Person } from '@/services/people/people.types';
 
 /** Centraliza dados e navegação da tela inicial (dashboard). */
 export function useInicioController() {
   const router = useRouter();
   const sessionUser = useSessionUser();
   const { location: userLocation, denied: locationDenied } = useUserLocation();
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
   const peopleQuery = useNearbyPeopleQuery({
-    query: '',
+    query,
     latitude: userLocation?.latitude,
     longitude: userLocation?.longitude,
   });
@@ -40,6 +43,7 @@ export function useInicioController() {
         locked: person.restricted,
         photoUri: person.photoUri,
         label: person.nickname ?? person.fullName,
+        onPress: () => router.push(`/pessoa/${person.id}` as Href),
       },
     ];
   });
@@ -51,6 +55,16 @@ export function useInicioController() {
     closeMenu();
     action();
   };
+
+  const handleSearch = () => {
+    setQuery(search.trim());
+  };
+
+  const locationLine = (person: Person) =>
+    [person.neighborhood, person.city, person.state].filter(Boolean).join(', ') ||
+    person.lastSeen ||
+    person.location ||
+    '';
 
   const logout = () =>
     goTo(() => {
@@ -79,14 +93,16 @@ export function useInicioController() {
     pins,
     userLocation,
     locationDenied,
-    loading: peopleQuery.isLoading,
+    search,
+    setSearch,
+    handleSearch,
+    locationLine,
+    loading: peopleQuery.isLoading || peopleQuery.isFetching,
     loggedIn,
     menuOpen,
     openMenu: () => setMenuOpen(true),
     closeMenu,
-    goToNearby: () => router.push('/pessoas-proximas'),
     goToPerson: (personId: string) => router.push(`/pessoa/${personId}` as Href),
-    goToRegister: () => router.push('/cadastrar-pessoa'),
     goToChat: () =>
       goTo(() => {
         void isSofiaWelcomeComplete().then((done) => {
@@ -97,7 +113,6 @@ export function useInicioController() {
     goToGroupChat: () => goTo(() => router.push('/grupo-chat')),
     goToHomeFromMenu: () => goTo(() => router.push('/inicio')),
     goToRegisterFromMenu: () => goTo(() => router.push('/cadastrar-pessoa')),
-    goToNearbyFromMenu: () => goTo(() => router.push('/pessoas-proximas')),
     goToAllPeopleFromMenu: () => goTo(() => router.push('/pessoas-desaparecidas' as Href)),
     goToAllPeople: () => router.push('/pessoas-desaparecidas' as Href),
     goToLogin: () => goTo(() => router.push('/login')),

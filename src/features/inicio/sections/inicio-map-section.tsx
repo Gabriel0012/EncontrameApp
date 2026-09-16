@@ -1,21 +1,21 @@
 import { StyleSheet, View } from 'react-native';
 
-import { BrandMap } from '@/components/brand-map';
-import { Radius } from '@/constants/brand';
+import { BrandMap, type MapPadding } from '@/components/brand-map';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 
 interface InicioMapSectionProps {
   controller: InicioController;
+  mapPadding: MapPadding;
 }
 
-export function InicioMapSection({ controller }: InicioMapSectionProps) {
+export function InicioMapSection({ controller, mapPadding }: InicioMapSectionProps) {
   return (
-    <View style={styles.wrapper}>
+    <View style={[StyleSheet.absoluteFill, styles.wrapper]}>
       <BrandMap
         pins={controller.pins}
         userLocation={controller.userLocation}
-        onPress={controller.goToNearby}
-        rounded
+        mapPadding={mapPadding}
+        style={styles.map}
       />
     </View>
   );
@@ -23,10 +23,10 @@ export function InicioMapSection({ controller }: InicioMapSectionProps) {
 
 const styles = StyleSheet.create({
   wrapper: {
+    zIndex: 0,
+  },
+  map: {
     flex: 1,
-    marginTop: 12,
-    marginBottom: 12,
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
+    borderWidth: 0,
   },
 });

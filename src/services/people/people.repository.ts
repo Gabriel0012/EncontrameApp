@@ -7,6 +7,7 @@ import type {
   PeopleSearchParams,
   PeopleSearchPage,
   Person,
+  PersonLastSeen,
   ReportLastSeenPayload,
 } from '@/services/people/people.types';
 
@@ -17,6 +18,7 @@ export interface PeopleRepository {
   getById(id: string): Promise<Person>;
   create(payload: CreatePersonPayload): Promise<Person>;
   reportLastSeen(id: string, payload: ReportLastSeenPayload): Promise<void>;
+  listLastSeenHistory(id: string): Promise<PersonLastSeen[]>;
 }
 
 /**

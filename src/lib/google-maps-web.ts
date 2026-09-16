@@ -16,6 +16,8 @@ export type GoogleMarker = {
   setPosition: (latLng: LatLngLiteral) => void;
   setIcon: (icon: unknown) => void;
   setDraggable?: (draggable: boolean) => void;
+  setOpacity?: (opacity: number) => void;
+  setZIndex?: (zIndex: number) => void;
   getPosition?: () => GoogleLatLng | null;
 };
 
@@ -24,6 +26,23 @@ export type GoogleCircle = {
   setCenter: (latLng: LatLngLiteral) => void;
   setRadius: (radius: number) => void;
   setOptions: (options: Record<string, unknown>) => void;
+};
+
+export type GooglePolyline = {
+  setMap: (map: GoogleMap | null) => void;
+  setPath: (path: LatLngLiteral[]) => void;
+  setOptions: (options: Record<string, unknown>) => void;
+};
+
+export type GoogleOverlayView = {
+  setMap: (map: GoogleMap | null) => void;
+  onAdd?: () => void;
+  draw?: () => void;
+  onRemove?: () => void;
+  getPanes?: () => { floatPane?: HTMLElement } | null;
+  getProjection?: () => {
+    fromLatLngToDivPixel: (latLng: LatLngLiteral) => { x: number; y: number } | null;
+  };
 };
 
 export type GoogleLatLngBounds = {
@@ -86,6 +105,8 @@ export type GoogleMapsApi = {
   Map: new (mapDiv: HTMLElement, opts?: Record<string, unknown>) => GoogleMap;
   Marker: new (opts?: Record<string, unknown>) => GoogleMarker;
   Circle: new (opts?: Record<string, unknown>) => GoogleCircle;
+  Polyline: new (opts?: Record<string, unknown>) => GooglePolyline;
+  OverlayView: new () => GoogleOverlayView;
   LatLngBounds: new () => GoogleLatLngBounds;
   Geocoder: new () => GoogleGeocoder;
   Size: new (width: number, height: number) => unknown;

@@ -11,9 +11,17 @@ import {
   type GoogleMap,
   type GoogleMapsApi,
   type GoogleMarker,
+  type GoogleOverlayView,
+  type GooglePolyline,
+  type LatLngLiteral,
 } from '@/lib/google-maps-web';
 import { brandMapStyle } from '@/lib/map-style';
 import { type UserLocation, userAccuracyRadius } from '@/lib/use-user-location';
+
+export type MapPinTooltip = {
+  title: string;
+  subtitle: string;
+};
 
 export type MapPin = {
   id: string;
@@ -23,16 +31,35 @@ export type MapPin = {
   locked?: boolean;
   photoUri?: string;
   draggable?: boolean;
+  opacity?: number;
+  emphasized?: boolean;
+  zIndex?: number;
+  tooltip?: MapPinTooltip;
   onPress?: () => void;
+};
+
+export type MapPolyline = {
+  id: string;
+  coordinates: { latitude: number; longitude: number }[];
+  dashed?: boolean;
+};
+
+export type MapPadding = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
 };
 
 type Props = {
   pins?: MapPin[];
+  polylines?: MapPolyline[];
   userLocation?: UserLocation | null;
   onPress?: () => void;
   onMapPress?: (latitude: number, longitude: number) => void;
   onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
   rounded?: boolean;
+  mapPadding?: MapPadding;
   style?: ViewStyle;
 };
 
@@ -73,17 +100,121 @@ function pinIcon(pin: MapPin, brand: BrandColors) {
   return pinIconSvg(brand.pin, brand.onPrimary, Boolean(pin.locked));
 }
 
+function pinIconSize(pin: MapPin, emphasized: boolean) {
+  const photo = Boolean(pin.photoUri);
+  if (photo) {
+    const size = emphasized ? 48 : 36;
+    return { width: size, height: size, anchorX: size / 2, anchorY: size / 2 };
+  }
+
+  return emphasized
+    ? { width: 40, height: 48, anchorX: 20, anchorY: 20 }
+    : { width: 28, height: 36, anchorX: 14, anchorY: 14 };
+}
+
+function applyMarkerIcon(
+  gmaps: GoogleMapsApi,
+  marker: GoogleMarker,
+  pin: MapPin,
+  brand: BrandColors,
+  emphasized: boolean,
+) {
+  const size = pinIconSize(pin, emphasized);
+  marker.setIcon({
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand))}`,
+    scaledSize: new gmaps.Size(size.width, size.height),
+    anchor: new gmaps.Point(size.anchorX, size.anchorY),
+  });
+  marker.setOpacity?.(pin.opacity ?? 1);
+  marker.setZIndex?.(pin.zIndex ?? 1);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function createTooltipElement(tooltip: MapPinTooltip, brand: BrandColors) {
+  const root = document.createElement('div');
+  root.style.position = 'absolute';
+  root.style.transform = 'translate(-50%, calc(-100% - 12px))';
+  root.style.background = brand.white;
+  root.style.color = brand.textDark;
+  root.style.padding = '10px 12px';
+  root.style.borderRadius = `${Radius.md}px`;
+  root.style.border = `1px solid ${brand.divider}`;
+  root.style.boxShadow = '0 8px 20px rgba(11, 36, 66, 0.18)';
+  root.style.maxWidth = '220px';
+  root.style.pointerEvents = 'none';
+  root.style.zIndex = '3';
+  root.innerHTML = `<div style="font-size:13px;font-weight:800;line-height:1.3">${escapeHtml(tooltip.title)}</div><div style="margin-top:2px;font-size:12px;font-weight:500;color:${brand.textMuted};line-height:1.35">${escapeHtml(tooltip.subtitle)}</div>`;
+  return root;
+}
+
+function attachTooltipOverlay(
+  gmaps: GoogleMapsApi,
+  map: GoogleMap,
+  position: LatLngLiteral,
+  content: HTMLElement,
+): GoogleOverlayView {
+  const overlay = new gmaps.OverlayView();
+  overlay.onAdd = () => {
+    overlay.getPanes?.()?.floatPane?.appendChild(content);
+  };
+  overlay.draw = () => {
+    const point = overlay.getProjection?.()?.fromLatLngToDivPixel(position);
+    if (!point) {
+      return;
+    }
+    content.style.left = `${point.x}px`;
+    content.style.top = `${point.y}px`;
+  };
+  overlay.onRemove = () => {
+    content.remove();
+  };
+  overlay.setMap(map);
+  return overlay;
+}
+
+function dashedPolylineOptions(path: LatLngLiteral[], color: string) {
+  return {
+    path,
+    geodesic: true,
+    strokeOpacity: 0,
+    strokeWeight: 3,
+    clickable: false,
+    zIndex: 0,
+    icons: [
+      {
+        icon: {
+          path: 'M 0,-1 0,1',
+          strokeOpacity: 1,
+          strokeColor: color,
+          scale: 3,
+        },
+        offset: '0',
+        repeat: '14px',
+      },
+    ],
+  };
+}
+
 /**
  * Mapa no navegador via Maps JavaScript API.
  * react-native-maps não roda na web; o Metro usa este arquivo no lugar de brand-map.tsx.
  */
 export function BrandMap({
   pins = [],
+  polylines = [],
   userLocation = null,
   onPress,
   onMapPress,
   onPinDragEnd,
   rounded = false,
+  mapPadding,
   style,
 }: Props) {
   const brand = useBrand();
@@ -98,12 +229,16 @@ export function BrandMap({
   const mapRef = useRef<GoogleMap | null>(null);
   const mapsApiRef = useRef<GoogleMapsApi | null>(null);
   const markersRef = useRef<GoogleMarker[]>([]);
+  const polylinesRef = useRef<GooglePolyline[]>([]);
+  const tooltipRef = useRef<GoogleOverlayView | null>(null);
+  const clearHighlightRef = useRef<() => void>(() => undefined);
   const userMarkerRef = useRef<GoogleMarker | null>(null);
   const userCircleRef = useRef<GoogleCircle | null>(null);
   const userLocationRef = useRef(userLocation);
   const onPressRef = useRef(onPress);
   const onMapPressRef = useRef(onMapPress);
   const onPinDragEndRef = useRef(onPinDragEnd);
+  const mapPaddingRef = useRef(mapPadding);
   const sessionKey = `${Boolean(apiKey)}:${isPreview}:${host ? 'ready' : 'wait'}`;
   const [session, setSession] = useState<{ key: string; ok: boolean } | null>(null);
 
@@ -137,6 +272,13 @@ export function BrandMap({
   }, [mapStyle]);
 
   useEffect(() => {
+    mapPaddingRef.current = mapPadding;
+    if (mapPadding) {
+      mapRef.current?.setOptions({ padding: mapPadding });
+    }
+  }, [mapPadding]);
+
+  useEffect(() => {
     if (!apiKey || !host) {
       return;
     }
@@ -162,6 +304,7 @@ export function BrandMap({
           streetViewControl: false,
           fullscreenControl: false,
           styles: mapStyleRef.current,
+          padding: mapPaddingRef.current,
         });
 
         mapsApiRef.current = gmaps;
@@ -173,6 +316,7 @@ export function BrandMap({
 
         listeners.push(
           gmaps.event.addListener(map, 'click', (event) => {
+            clearHighlightRef.current();
             if (onPressRef.current) {
               onPressRef.current();
               return;
@@ -202,8 +346,12 @@ export function BrandMap({
     return () => {
       cancelled = true;
       listeners.forEach((listener) => listener.remove());
+      tooltipRef.current?.setMap(null);
+      tooltipRef.current = null;
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
+      polylinesRef.current.forEach((line) => line.setMap(null));
+      polylinesRef.current = [];
       userMarkerRef.current?.setMap(null);
       userCircleRef.current?.setMap(null);
       userMarkerRef.current = null;
@@ -223,19 +371,90 @@ export function BrandMap({
       return;
     }
 
+    tooltipRef.current?.setMap(null);
+    tooltipRef.current = null;
     markersRef.current.forEach((marker) => marker.setMap(null));
+    polylinesRef.current.forEach((line) => line.setMap(null));
+
+    let stickyId: string | null = null;
+    let hoveredId: string | null = null;
+
+    const hideTooltip = () => {
+      tooltipRef.current?.setMap(null);
+      tooltipRef.current = null;
+    };
+
+    const showTooltip = (pin: MapPin) => {
+      hideTooltip();
+      if (!pin.tooltip) {
+        return;
+      }
+      const content = createTooltipElement(pin.tooltip, brand);
+      tooltipRef.current = attachTooltipOverlay(gmaps, map, {
+        lat: pin.latitude,
+        lng: pin.longitude,
+      }, content);
+    };
+
+    const setEmphasized = (pinId: string | null) => {
+      markersRef.current.forEach((marker, index) => {
+        const pin = pins[index];
+        if (!pin) {
+          return;
+        }
+        applyMarkerIcon(gmaps, marker, pin, brand, pinId === pin.id);
+      });
+    };
+
+    const activeId = () => stickyId ?? hoveredId;
+
+    clearHighlightRef.current = () => {
+      stickyId = null;
+      hoveredId = null;
+      hideTooltip();
+      setEmphasized(null);
+    };
+
     markersRef.current = pins.map((pin) => {
-      const photo = Boolean(pin.photoUri);
+      const size = pinIconSize(pin, Boolean(pin.emphasized));
       const marker = new gmaps.Marker({
         map,
         position: { lat: pin.latitude, lng: pin.longitude },
-        title: pin.label,
+        title: pin.tooltip ? undefined : pin.label,
         draggable: Boolean(pin.draggable) && !onPressRef.current,
+        opacity: pin.opacity ?? 1,
+        zIndex: pin.zIndex ?? 1,
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand))}`,
-          scaledSize: new gmaps.Size(photo ? 36 : 28, photo ? 36 : 36),
-          anchor: new gmaps.Point(photo ? 18 : 14, photo ? 18 : 14),
+          scaledSize: new gmaps.Size(size.width, size.height),
+          anchor: new gmaps.Point(size.anchorX, size.anchorY),
         },
+      });
+
+      gmaps.event.addListener(marker, 'mouseover', () => {
+        if (onPressRef.current) {
+          return;
+        }
+        hoveredId = pin.id;
+        setEmphasized(activeId());
+        showTooltip(pin);
+      });
+
+      gmaps.event.addListener(marker, 'mouseout', () => {
+        if (onPressRef.current) {
+          return;
+        }
+        hoveredId = null;
+        if (stickyId) {
+          const stickyPin = pins.find((item) => item.id === stickyId);
+          setEmphasized(stickyId);
+          if (stickyPin) {
+            showTooltip(stickyPin);
+          }
+          return;
+        }
+        hideTooltip();
+        setEmphasized(null);
       });
 
       gmaps.event.addListener(marker, 'click', () => {
@@ -243,6 +462,9 @@ export function BrandMap({
           onPressRef.current();
           return;
         }
+        stickyId = pin.id;
+        setEmphasized(pin.id);
+        showTooltip(pin);
         pin.onPress?.();
       });
 
@@ -255,6 +477,27 @@ export function BrandMap({
       });
 
       return marker;
+    });
+
+    polylinesRef.current = polylines.map((line) => {
+      const path = line.coordinates.map((point) => ({
+        lat: point.latitude,
+        lng: point.longitude,
+      }));
+      return new gmaps.Polyline(
+        line.dashed
+          ? { map, ...dashedPolylineOptions(path, brand.blue) }
+          : {
+              map,
+              path,
+              geodesic: true,
+              strokeColor: brand.blue,
+              strokeOpacity: 1,
+              strokeWeight: 3,
+              clickable: false,
+              zIndex: 0,
+            },
+      );
     });
 
     const user = userLocationRef.current;
@@ -278,7 +521,12 @@ export function BrandMap({
     const bounds = new gmaps.LatLngBounds();
     points.forEach((point) => bounds.extend(point));
     map.fitBounds(bounds, 48);
-  }, [brand, hasUser, pins, status]);
+
+    return () => {
+      hideTooltip();
+      clearHighlightRef.current = () => undefined;
+    };
+  }, [brand, hasUser, pins, polylines, status]);
 
   useEffect(() => {
     const map = mapRef.current;

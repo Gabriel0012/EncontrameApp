@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { MapPin } from '@/components/brand-map';
+import type { MapPin, MapPolyline } from '@/components/brand-map';
 import { fieldErrorMessage } from '@/lib/error-messages';
 import {
   geocodeAddress,
@@ -14,10 +14,12 @@ import {
 import { isLocalPersonId } from '@/lib/person-status';
 import { getSessionUser } from '@/lib/session';
 import { useUserLocation } from '@/lib/use-user-location';
-import { usePersonQuery, useReportLastSeenMutation } from '@/services/people/people.service';
+import { usePersonQuery, useLastSeenHistoryQuery, useReportLastSeenMutation } from '@/services/people/people.service';
+import type { PersonLastSeen } from '@/services/people/people.types';
 
 const SUGGEST_MIN_CHARS = 3;
 const SUGGEST_DEBOUNCE_MS = 300;
+const HISTORY_PREVIOUS_OPACITY = 0.55;
 
 /** Centraliza dados, avistamento e navegação da tela de detalhe. */
 export function usePessoaDetalheController() {
@@ -37,8 +39,10 @@ export function usePessoaDetalheController() {
   const [addressError, setAddressError] = useState<string | undefined>();
   const [formMessage, setFormMessage] = useState<string | undefined>();
   const [thanksOpen, setThanksOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const suggestGen = useRef(0);
+  const historyQuery = useLastSeenHistoryQuery(id, historyOpen);
 
   const person = personQuery.data ?? null;
   const isLocalPerson = isLocalPersonId(id);
@@ -178,6 +182,78 @@ export function usePessoaDetalheController() {
     ];
   }, [coords, person]);
 
+  const historyItems = useMemo(() => {
+    if (isLocalPerson) {
+      if (!person?.coords) {
+        return [];
+      }
+
+      return [
+        {
+          id: `${person.id}-local`,
+          location: person.lastSeen ?? person.location,
+          city: person.city,
+          neighborhood: person.neighborhood,
+          state: person.state,
+          latitude: person.coords.latitude,
+          longitude: person.coords.longitude,
+          dtRegistration: person.dtLastSeen ?? new Date().toISOString(),
+        } satisfies PersonLastSeen,
+      ];
+    }
+
+    return [...(historyQuery.data ?? [])].sort((left, right) => {
+      const leftTime = new Date(left.dtRegistration).getTime();
+      const rightTime = new Date(right.dtRegistration).getTime();
+      return leftTime - rightTime;
+    });
+  }, [historyQuery.data, isLocalPerson, person]);
+
+  const mappedSightings = useMemo(
+    () =>
+      historyItems.filter(
+        (item): item is PersonLastSeen & { latitude: number; longitude: number } =>
+          item.latitude != null &&
+          item.longitude != null &&
+          Number.isFinite(item.latitude) &&
+          Number.isFinite(item.longitude),
+      ),
+    [historyItems],
+  );
+
+  const historyPins: MapPin[] = useMemo(() => {
+    const lastIndex = mappedSightings.length - 1;
+    return mappedSightings.map((item, index) => ({
+      id: item.id,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      photoUri: person?.photoUri,
+      opacity: index === lastIndex ? 1 : HISTORY_PREVIOUS_OPACITY,
+      zIndex: index + 1,
+      tooltip: {
+        title: formatSightingDate(item.dtRegistration),
+        subtitle: formatSightingAddress(item),
+      },
+    }));
+  }, [mappedSightings, person?.photoUri]);
+
+  const historyPolylines: MapPolyline[] = useMemo(() => {
+    if (mappedSightings.length < 2) {
+      return [];
+    }
+
+    return [
+      {
+        id: `${id}-trail`,
+        dashed: true,
+        coordinates: mappedSightings.map((item) => ({
+          latitude: item.latitude,
+          longitude: item.longitude,
+        })),
+      },
+    ];
+  }, [id, mappedSightings]);
+
   const submitSighting = () => {
     void (async () => {
       if (isLocalPersonId(id)) {
@@ -250,15 +326,22 @@ export function usePessoaDetalheController() {
     addressError,
     formMessage,
     thanksOpen,
+    historyOpen,
     locating,
     submitting: reportMutation.isPending,
+    historyLoading: historyQuery.isLoading,
+    historyError: historyQuery.isError,
     isLocalPerson,
     sightingBlockedMessage,
     sightingPins,
+    historyPins,
+    historyPolylines,
     userLocation,
     placeSightingOnMap,
     handlePinDragEnd,
     openSightingForm,
+    openHistory: () => setHistoryOpen(true),
+    closeHistory: () => setHistoryOpen(false),
     useCurrentLocation,
     submitSighting,
     closeThanks: () => setThanksOpen(false),
@@ -270,3 +353,28 @@ export function usePessoaDetalheController() {
 }
 
 export type PessoaDetalheController = ReturnType<typeof usePessoaDetalheController>;
+
+function formatSightingDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date);
+}
+
+function formatSightingAddress(item: PersonLastSeen) {
+  const parts = [item.location, item.neighborhood, item.city, item.state].filter(
+    (value): value is string => Boolean(value?.trim()),
+  );
+  const unique: string[] = [];
+  for (const part of parts) {
+    if (!unique.some((existing) => existing.toLowerCase() === part.toLowerCase())) {
+      unique.push(part);
+    }
+  }
+  return unique.join(', ') || 'Local não informado';
+}

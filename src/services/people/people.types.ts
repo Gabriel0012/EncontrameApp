@@ -75,6 +75,18 @@ export interface ReportLastSeenPayload {
   longitude: number;
 }
 
+/** Registro de avistamento (histórico / last seen). */
+export interface PersonLastSeen {
+  id: string;
+  location?: string;
+  city?: string;
+  neighborhood?: string;
+  state?: string;
+  latitude?: number;
+  longitude?: number;
+  dtRegistration: string;
+}
+
 /** Filtro geo da listagem de pessoas próximas. */
 export type NearbyPeopleParams = {
   query?: string;

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { BrandButton } from '@/components/brand-button';
 import { type BrandColors } from '@/constants/brand';
 import type { PessoaDetalheController } from '@/features/pessoa-detalhe/pessoa-detalhe.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -32,10 +33,6 @@ export function PessoaDetalheInfoSection({ controller }: PessoaDetalheInfoSectio
     { label: 'Acessórios', value: person.accessories },
   ].filter((row) => Boolean(row.value));
 
-  if (rows.length === 0) {
-    return null;
-  }
-
   return (
     <View style={styles.list}>
       {rows.map((row) => (
@@ -44,6 +41,11 @@ export function PessoaDetalheInfoSection({ controller }: PessoaDetalheInfoSectio
           <Text style={styles.value}>{row.value}</Text>
         </View>
       ))}
+      <BrandButton
+        label="Histórico de avistamentos"
+        variant="outline"
+        onPress={controller.openHistory}
+      />
     </View>
   );
 }

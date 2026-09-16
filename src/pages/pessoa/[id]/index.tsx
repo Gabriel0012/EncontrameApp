@@ -7,6 +7,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { type BrandColors } from '@/constants/brand';
 import { usePessoaDetalheController } from '@/features/pessoa-detalhe/pessoa-detalhe.controller';
 import { PessoaDetalheHeroSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-hero-section';
+import { PessoaDetalheHistorySection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-history-section';
 import { PessoaDetalheInfoSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-info-section';
 import { PessoaDetalheSightingSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-sighting-section';
 import { PessoaDetalheThanksSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-thanks-section';
@@ -38,6 +39,7 @@ export default function PessoaDetalhePage() {
         </ContentShell>
       </ScrollView>
       <PessoaDetalheThanksSection controller={controller} />
+      <PessoaDetalheHistorySection controller={controller} />
     </SafeAreaView>
   );
 }

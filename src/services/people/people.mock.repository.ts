@@ -5,6 +5,7 @@ import type {
   NearbyPeopleParams,
   PeopleSearchParams,
   Person,
+  PersonLastSeen,
   ReportLastSeenPayload,
 } from '@/services/people/people.types';
 
@@ -122,6 +123,146 @@ let mockPeople: Person[] = [
   },
 ];
 
+let mockHistory: Record<string, PersonLastSeen[]> = {
+  p1: [
+    {
+      id: 'p1-seen-1',
+      location: 'Praça da Estação',
+      city: 'Belo Horizonte',
+      neighborhood: 'Centro',
+      state: 'MG',
+      latitude: -19.9167,
+      longitude: -43.9345,
+      dtRegistration: '2023-12-20T09:00:00.000Z',
+    },
+    {
+      id: 'p1-seen-2',
+      location: 'Mercado Central',
+      city: 'Belo Horizonte',
+      neighborhood: 'Centro',
+      state: 'MG',
+      latitude: -19.9198,
+      longitude: -43.9402,
+      dtRegistration: '2023-12-28T16:30:00.000Z',
+    },
+    {
+      id: 'p1-seen-3',
+      location: 'Savassi',
+      city: 'Belo Horizonte',
+      neighborhood: 'Savassi',
+      state: 'MG',
+      latitude: -19.918,
+      longitude: -43.938,
+      dtRegistration: '2024-01-01T12:00:00.000Z',
+    },
+  ],
+  p2: [
+    {
+      id: 'p2-seen-1',
+      location: 'Mineirão',
+      city: 'Belo Horizonte',
+      neighborhood: 'Pampulha',
+      state: 'MG',
+      latitude: -19.8653,
+      longitude: -43.971,
+      dtRegistration: '2024-02-18T11:00:00.000Z',
+    },
+    {
+      id: 'p2-seen-2',
+      location: 'Lagoa da Pampulha',
+      city: 'Belo Horizonte',
+      neighborhood: 'Pampulha',
+      state: 'MG',
+      latitude: -19.852,
+      longitude: -43.978,
+      dtRegistration: '2024-03-01T14:20:00.000Z',
+    },
+    {
+      id: 'p2-seen-3',
+      location: 'Pampulha, Belo Horizonte',
+      city: 'Belo Horizonte',
+      neighborhood: 'Pampulha',
+      state: 'MG',
+      latitude: -19.924,
+      longitude: -43.945,
+      dtRegistration: '2024-03-12T15:00:00.000Z',
+    },
+  ],
+  p4: [
+    {
+      id: 'p4-seen-1',
+      location: 'Rodoviária',
+      city: 'Belo Horizonte',
+      neighborhood: 'Centro',
+      state: 'MG',
+      latitude: -19.9162,
+      longitude: -43.946,
+      dtRegistration: '2024-06-20T08:15:00.000Z',
+    },
+    {
+      id: 'p4-seen-2',
+      location: 'Centro, Belo Horizonte',
+      city: 'Belo Horizonte',
+      neighborhood: 'Centro',
+      state: 'MG',
+      latitude: -19.912,
+      longitude: -43.928,
+      dtRegistration: '2024-07-02T18:00:00.000Z',
+    },
+  ],
+  p5: [
+    {
+      id: 'p5-seen-1',
+      location: 'Icaraí',
+      city: 'Niterói',
+      neighborhood: 'Icaraí',
+      state: 'RJ',
+      latitude: -22.904,
+      longitude: -43.103,
+      dtRegistration: '2024-07-30T10:00:00.000Z',
+    },
+    {
+      id: 'p5-seen-2',
+      location: 'Botafogo',
+      city: 'Rio de Janeiro',
+      neighborhood: 'Botafogo',
+      state: 'RJ',
+      latitude: -22.951,
+      longitude: -43.182,
+      dtRegistration: '2024-08-10T13:40:00.000Z',
+    },
+    {
+      id: 'p5-seen-3',
+      location: 'Copacabana, Rio de Janeiro',
+      city: 'Rio de Janeiro',
+      neighborhood: 'Copacabana',
+      state: 'RJ',
+      latitude: -22.971,
+      longitude: -43.182,
+      dtRegistration: '2024-08-18T09:00:00.000Z',
+    },
+  ],
+};
+
+function historyFromPerson(person: Person): PersonLastSeen[] {
+  if (person.coords == null) {
+    return [];
+  }
+
+  return [
+    {
+      id: `${person.id}-seen-latest`,
+      location: person.lastSeen ?? person.location,
+      city: person.city,
+      neighborhood: person.neighborhood,
+      state: person.state,
+      latitude: person.coords.latitude,
+      longitude: person.coords.longitude,
+      dtRegistration: person.dtLastSeen ?? new Date().toISOString(),
+    },
+  ];
+}
+
 /** Implementação mockada: permite desenvolver sem depender da API. */
 export const peopleMockRepository: PeopleRepository = {
   async search(params: PeopleSearchParams) {
@@ -201,11 +342,13 @@ export const peopleMockRepository: PeopleRepository = {
       statusDescription: 'Pendente',
     } satisfies Person;
     mockPeople = [person, ...mockPeople];
+    mockHistory[person.id] = historyFromPerson(person);
     return person;
   },
 
   async reportLastSeen(id: string, payload: ReportLastSeenPayload) {
     await delay(400);
+    const dtRegistration = new Date().toISOString();
     mockPeople = mockPeople.map((person) =>
       person.id === id
         ? {
@@ -215,10 +358,35 @@ export const peopleMockRepository: PeopleRepository = {
             city: payload.city,
             neighborhood: payload.neighborhood,
             coords: { latitude: payload.latitude, longitude: payload.longitude },
-            dtLastSeen: new Date().toISOString(),
+            dtLastSeen: dtRegistration,
           }
         : person,
     );
+    const current = mockHistory[id] ?? [];
+    mockHistory = {
+      ...mockHistory,
+      [id]: [
+        ...current,
+        {
+          id: `${id}-seen-${Date.now()}`,
+          location: payload.location,
+          city: payload.city,
+          neighborhood: payload.neighborhood,
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+          dtRegistration,
+        },
+      ],
+    };
+  },
+
+  async listLastSeenHistory(id: string) {
+    await delay(250);
+    const person = mockPeople.find((item) => item.id === id);
+    if (!person) {
+      throw new Error('Pessoa não encontrada.');
+    }
+    return mockHistory[id] ?? historyFromPerson(person);
   },
 };
 

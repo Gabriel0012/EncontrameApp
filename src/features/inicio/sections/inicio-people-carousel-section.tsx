@@ -1,156 +1,152 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import {
-  Image,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useMemo } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Radius, type BrandColors } from '@/constants/brand';
+import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
 import { resolvePersonStatusColor, resolvePersonStatusOnColor } from '@/lib/person-status';
 import { useWideLayout } from '@/lib/use-wide-layout';
+import type { Person } from '@/services/people/people.types';
 
 interface InicioPeopleCarouselSectionProps {
   controller: InicioController;
 }
 
-const CARD_MOBILE = { width: 150, gap: 12, photoHeight: 200 } as const;
-const CARD_WIDE = { width: 420, gap: 16, photoWidth: 220 } as const;
+const CARD_GAP = 12;
+const CARD_HEIGHT = 112;
+const PHOTO_WIDTH = 96;
 
 export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarouselSectionProps) {
   const brand = useBrand();
-  const { isWide } = useWideLayout();
-  const card = isWide ? CARD_WIDE : CARD_MOBILE;
-  const styles = useMemo(() => makeStyles(brand, isWide), [brand, isWide]);
-  const { people, locationDenied } = controller;
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / (card.width + card.gap));
-    setActiveIndex(index);
-  };
+  const { width, isWide } = useWideLayout();
+  const visibleCards = isWide ? 2.2 : 1.5;
+  const cardWidth = (width - PageGutter * 2 - CARD_GAP) / visibleCards;
+  const styles = useMemo(() => makeStyles(brand, cardWidth), [brand, cardWidth]);
+  const { people } = controller;
 
   return (
-    <View style={styles.wrapper}>
-      <Text style={styles.title}>Encontre pessoas próximas</Text>
-      {locationDenied ? (
-        <Text style={styles.locationHint}>Ative a localização para ver pessoas próximas.</Text>
-      ) : null}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.track}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-      >
-        {people.map((person) => {
-          const statusLabel = person.statusDescription ?? '—';
-          const badgeColor = resolvePersonStatusColor(
-            brand,
-            person.statusId,
-            person.statusDescription,
-          );
-          const badgeTextColor = resolvePersonStatusOnColor(brand);
-
-          return (
-            <Pressable key={person.id} style={styles.card} onPress={() => controller.goToPerson(person.id)}>
-              <View style={styles.photo}>
-                {person.photoUri ? (
-                  <Image
-                    source={{ uri: person.photoUri }}
-                    style={styles.photoImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <MaterialCommunityIcons
-                    name="account"
-                    size={isWide ? 120 : 96}
-                    color={brand.avatarIcon}
-                  />
-                )}
-              </View>
-              <View style={styles.info}>
-                <Text style={styles.infoText} numberOfLines={isWide ? 2 : 1}>
-                  Nome: {person.fullName}
-                </Text>
-                <Text style={styles.infoText}>Idade: {person.age ?? '—'}</Text>
-                <View style={styles.statusRow}>
-                  <Text style={styles.infoText}>Status:</Text>
-                  <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
-                    <Text style={[styles.statusBadgeText, { color: badgeTextColor }]} numberOfLines={1}>
-                      {statusLabel}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      <View style={styles.dots}>
-        {people.map((person, index) => (
-          <View key={person.id} style={[styles.dot, index === activeIndex && styles.dotActive]} />
-        ))}
-      </View>
-
+    <View style={styles.wrapper} pointerEvents="box-none">
       <Pressable onPress={controller.goToAllPeople} style={styles.allLink} accessibilityRole="button">
         <Text style={styles.allLinkText}>Ver todas</Text>
       </Pressable>
+
+      {people.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>
+            {controller.loading ? 'Buscando pessoas próximas…' : 'Nenhuma pessoa próxima.'}
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.track}
+        >
+          {people.map((person) => (
+            <CarouselCard
+              key={person.id}
+              person={person}
+              controller={controller}
+              brand={brand}
+              styles={styles}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
 
-function makeStyles(brand: BrandColors, isWide: boolean) {
+function CarouselCard({
+  person,
+  controller,
+  brand,
+  styles,
+}: {
+  person: Person;
+  controller: InicioController;
+  brand: BrandColors;
+  styles: ReturnType<typeof makeStyles>;
+}) {
+  const statusLabel = person.statusDescription ?? '—';
+  const badgeColor = resolvePersonStatusColor(brand, person.statusId, person.statusDescription);
+  const badgeTextColor = resolvePersonStatusOnColor(brand);
+  const location = controller.locationLine(person);
+
+  return (
+    <Pressable
+      style={styles.card}
+      onPress={() => controller.goToPerson(person.id)}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver detalhes de ${person.fullName}`}
+    >
+      <View style={styles.photo}>
+        {person.photoUri ? (
+          <Image source={{ uri: person.photoUri }} style={styles.photoImage} resizeMode="cover" />
+        ) : (
+          <MaterialCommunityIcons name="account" size={48} color={brand.avatarIcon} />
+        )}
+      </View>
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={2}>
+          {person.fullName}
+        </Text>
+        <Text style={styles.meta}>Idade: {person.age ?? '—'}</Text>
+        {location ? (
+          <Text style={styles.meta} numberOfLines={1}>
+            {location}
+          </Text>
+        ) : null}
+        <View style={styles.statusRow}>
+          <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
+            <Text style={[styles.statusBadgeText, { color: badgeTextColor }]} numberOfLines={1}>
+              {statusLabel}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function makeStyles(brand: BrandColors, cardWidth: number) {
   return StyleSheet.create({
     wrapper: {
-      gap: 10,
+      gap: 8,
+      paddingHorizontal: PageGutter,
+      paddingTop: 8,
     },
-    title: {
-      color: brand.textDark,
-      fontSize: isWide ? 16 : 14,
+    allLink: {
+      alignSelf: 'flex-end',
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.surface,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+    },
+    allLinkText: {
+      color: brand.blue,
       fontWeight: '700',
-    },
-    locationHint: {
-      color: brand.textMuted,
-      fontSize: isWide ? 16 : 14,
-      fontWeight: '600',
-      textAlign: 'center',
-      paddingHorizontal: 12,
+      fontSize: 14,
     },
     track: {
-      gap: isWide ? CARD_WIDE.gap : CARD_MOBILE.gap,
+      gap: CARD_GAP,
     },
     card: {
-      width: isWide ? CARD_WIDE.width : CARD_MOBILE.width,
+      width: cardWidth,
+      flexDirection: 'row',
+      minHeight: CARD_HEIGHT,
       borderRadius: Radius.md,
       overflow: 'hidden',
       backgroundColor: brand.cardInfo,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: brand.divider,
-      ...(isWide
-        ? {
-            flexDirection: 'row' as const,
-            height: 200,
-          }
-        : null),
     },
     photo: {
-      ...(isWide
-        ? {
-            width: CARD_WIDE.photoWidth,
-            height: '100%' as const,
-          }
-        : {
-            height: CARD_MOBILE.photoHeight,
-          }),
+      width: PHOTO_WIDTH,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: brand.avatarBackground,
@@ -160,60 +156,51 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       height: '100%',
     },
     info: {
+      flex: 1,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      gap: 4,
+      justifyContent: 'center',
       backgroundColor: brand.cardInfo,
-      paddingHorizontal: isWide ? 20 : 12,
-      paddingVertical: isWide ? 16 : 8,
-      gap: isWide ? 6 : 4,
-      ...(isWide
-        ? {
-            flex: 1,
-            justifyContent: 'center' as const,
-          }
-        : null),
     },
-    infoText: {
+    name: {
       color: brand.textDark,
-      fontSize: isWide ? 16 : 13,
-      fontWeight: '700',
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    meta: {
+      color: brand.textDark,
+      fontSize: 13,
+      fontWeight: '600',
     },
     statusRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 6,
+      marginTop: 4,
     },
     statusBadge: {
       borderRadius: Radius.pill,
-      paddingHorizontal: isWide ? 10 : 8,
-      paddingVertical: isWide ? 4 : 2,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
       maxWidth: '100%',
     },
     statusBadgeText: {
-      fontSize: isWide ? 13 : 11,
+      fontSize: 11,
       fontWeight: '700',
     },
-    dots: {
-      flexDirection: 'row',
+    empty: {
+      minHeight: CARD_HEIGHT,
+      borderRadius: Radius.md,
+      backgroundColor: brand.surface,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+      alignItems: 'center',
       justifyContent: 'center',
-      gap: 6,
+      paddingHorizontal: 16,
     },
-    dot: {
-      width: 7,
-      height: 7,
-      borderRadius: 4,
-      backgroundColor: brand.fieldBorder,
-    },
-    dotActive: {
-      backgroundColor: brand.textMuted,
-    },
-    allLink: {
-      alignSelf: 'center',
-      paddingVertical: 4,
-    },
-    allLinkText: {
-      color: brand.blue,
-      fontWeight: '700',
-      fontSize: isWide ? 16 : 14,
+    emptyText: {
+      color: brand.textMuted,
+      fontWeight: '600',
+      textAlign: 'center',
     },
   });
 }

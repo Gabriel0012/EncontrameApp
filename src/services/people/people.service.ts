@@ -30,6 +30,7 @@ const peopleKeys = {
   nearby: (viewerId: string, query: string, lat: number, lng: number) =>
     ['people', 'nearby', viewerId, query, lat, lng] as const,
   detail: (id: string) => ['people', 'detail', id] as const,
+  lastSeenHistory: (id: string) => ['people', 'last-seen-history', id] as const,
 };
 
 function viewerKey(userId?: string | null) {
@@ -149,6 +150,14 @@ export function usePersonQuery(id: string) {
   });
 }
 
+export function useLastSeenHistoryQuery(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: peopleKeys.lastSeenHistory(id),
+    queryFn: () => getPeopleRepository().listLastSeenHistory(id),
+    enabled: enabled && id.length > 0 && !isLocalPersonId(id),
+  });
+}
+
 export function useCreatePersonMutation() {
   const queryClient = useQueryClient();
 
@@ -174,6 +183,7 @@ export function useReportLastSeenMutation(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: peopleKeys.all });
       queryClient.invalidateQueries({ queryKey: peopleKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: peopleKeys.lastSeenHistory(id) });
     },
   });
 }

@@ -6,6 +6,7 @@ import type {
   PeopleSearchPage,
   PeopleSearchParams,
   Person,
+  PersonLastSeen,
   ReportLastSeenPayload,
 } from '@/services/people/people.types';
 
@@ -40,6 +41,18 @@ interface ApiMissingPerson {
   latitude?: number | null;
   longitude?: number | null;
   dtLastSeen?: string | null;
+}
+
+interface ApiPersonLastSeen {
+  personLastSeenId: number;
+  missingPersonId: number;
+  location?: string | null;
+  city?: string | null;
+  neighborhood?: string | null;
+  state?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  dtRegistration: string;
 }
 
 interface ApiPagedResult {
@@ -124,6 +137,11 @@ export const peopleAxiosRepository: PeopleRepository = {
       longitude: payload.longitude,
     });
   },
+
+  async listLastSeenHistory(id: string) {
+    const { data } = await api.get<ApiPersonLastSeen[]>(`/MissingPerson/${id}/last-seen/history`);
+    return (data ?? []).map(mapLastSeen);
+  },
 };
 
 function toSearchQuery(params: PeopleSearchParams) {
@@ -184,6 +202,19 @@ function mapPerson(apiPerson: ApiMissingPerson): Person {
     statusId: apiPerson.statusId ?? undefined,
     statusDescription: apiPerson.statusDescription || undefined,
     photoUri: toPhotoUri(apiPerson.photo),
+  };
+}
+
+function mapLastSeen(item: ApiPersonLastSeen): PersonLastSeen {
+  return {
+    id: String(item.personLastSeenId),
+    location: item.location || undefined,
+    city: item.city || undefined,
+    neighborhood: item.neighborhood || undefined,
+    state: item.state || undefined,
+    latitude: item.latitude ?? undefined,
+    longitude: item.longitude ?? undefined,
+    dtRegistration: item.dtRegistration,
   };
 }
 

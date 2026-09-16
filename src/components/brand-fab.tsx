@@ -1,6 +1,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  type ImageSourcePropType,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
@@ -11,6 +19,7 @@ type Props = {
   accessibilityLabel: string;
   onPress?: () => void;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  image?: ImageSourcePropType;
   loading?: boolean;
   disabled?: boolean;
   /** Quando false, some com fade e não recebe toque. */
@@ -25,6 +34,7 @@ export function BrandFab({
   accessibilityLabel,
   onPress,
   icon = 'account-plus',
+  image,
   loading = false,
   disabled = false,
   visible = true,
@@ -56,9 +66,11 @@ export function BrandFab({
       style={[styles.anchor, style]}
       pointerEvents={visible ? 'auto' : 'none'}
     >
-      <Animated.View style={[styles.fab, opacity]}>
+      <Animated.View style={[styles.fab, image ? styles.fabPhoto : null, opacity]}>
         {loading ? (
           <ActivityIndicator color={brand.onPrimary} />
+        ) : image ? (
+          <Image source={image} style={styles.image} resizeMode="cover" />
         ) : (
           <MaterialCommunityIcons name={icon} size={28} color={brand.onPrimary} />
         )}
@@ -80,11 +92,20 @@ function makeStyles(brand: BrandColors) {
       backgroundColor: brand.blue,
       alignItems: 'center',
       justifyContent: 'center',
+      overflow: 'hidden',
       shadowColor: brand.navyDeep,
       shadowOpacity: 0.28,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 6 },
       elevation: 8,
+    },
+    fabPhoto: {
+      borderWidth: 2,
+      borderColor: brand.onPrimary,
+    },
+    image: {
+      width: 56,
+      height: 56,
     },
   });
 }
