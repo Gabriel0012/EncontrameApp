@@ -47,7 +47,7 @@ src/
       <api>.mock.repository.ts # implementação mockada (dados simulados)
       <api>.service.ts         # hooks React Query (useXMutation / useXQuery)
   lib/
-    env.ts                     # lê EXPO_PUBLIC_* (useMocks, apiUrl)
+    env.ts                     # lê EXPO_PUBLIC_* (useMocks, apiUrl, keys)
     axios.ts                   # instância única do axios (baseURL via env)
     query-client.ts            # QueryClient
   components/                  # componentes reutilizáveis (prefixo "brand-" p/ os da identidade)
@@ -109,10 +109,25 @@ npm run format:check# Biome: só verifica a formatação
 npm start           # inicia o Metro (Expo Go via QR Code)
 ```
 
-### Variáveis de ambiente (`.env`, prefixo `EXPO_PUBLIC_`)
+### Variáveis de ambiente (prefixo `EXPO_PUBLIC_`)
+
+O Expo injeta `process.env.EXPO_PUBLIC_*` no bundle em `expo start` / `expo export`.
+Precedência: **env da máquina (Windows / Netlify) > `.env.local` > `.env.production` / `.env.development`**.
+
+| Arquivo | Git | Uso |
+|---------|-----|-----|
+| `.env.example` | sim | Template — copiar para `.env.local` |
+| `.env.local` | não | Valores reais de desenvolvimento |
+| `.env.production` | sim | Chaves vazias (como `appsettings.json`). Valores reais no Netlify / máquina |
 
 - `EXPO_PUBLIC_USE_MOCKS` — `true` usa os repositórios mockados (padrão); `false` usa a API real.
-- `EXPO_PUBLIC_API_URL` — URL base da API (usada quando `EXPO_PUBLIC_USE_MOCKS=false`).
+- `EXPO_PUBLIC_API_URL` — URL base da API (já inclui `/api`).
+- `EXPO_PUBLIC_GOOGLE_MAPS_WEB_API_KEY` — Maps JavaScript API (web).
+- `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` — OAuth Google (client ID web).
+- `EXPO_PUBLIC_APP_KEY` — header `X-App-Key` (igual a `AppKey__Value` da API).
+- `GOOGLE_MAPS_API_KEY` — só build nativo Android; não vai no Netlify.
+
+No Netlify: Site configuration → Environment variables (disponíveis no **build**), depois um novo deploy. `netlify.toml` usa `npx expo export --platform web` e publica `dist`.
 
 ## Regras de trabalho para o agente
 

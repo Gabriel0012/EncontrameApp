@@ -1,6 +1,7 @@
 /**
  * Acesso centralizado às variáveis de ambiente públicas do Expo.
  * Só variáveis com prefixo EXPO_PUBLIC_ ficam disponíveis no bundle do app.
+ * Fonte: env da máquina / Netlify, depois `.env.local` / `.env.production` (ver AGENTS.md).
  */
 export const env = {
   /** Quando true, os services usam os repositórios mockados (sem depender da API). */

@@ -604,7 +604,7 @@ export function BrandMap({
 
   const fallbackMessage =
     status === 'missing-key'
-      ? 'Defina EXPO_PUBLIC_GOOGLE_MAPS_WEB_API_KEY no .env'
+      ? 'Defina EXPO_PUBLIC_GOOGLE_MAPS_WEB_API_KEY no ambiente'
       : 'Não foi possível carregar o mapa';
   const mapBoxStyle = [styles.map, rounded && styles.rounded, style];
   const flattened = StyleSheet.flatten(mapBoxStyle) as ViewStyle;
