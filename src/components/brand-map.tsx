@@ -137,12 +137,24 @@ export function BrandMap({
   }, [hasUser, pins, userLocation]);
 
   return (
-    <View style={[styles.map, fillsParent && styles.fill, rounded && styles.rounded, style]}>
+    <View
+      style={[
+        styles.map,
+        fillsParent && styles.fill,
+        rounded && styles.rounded,
+        style,
+        mapPadding && {
+          paddingTop: mapPadding.top,
+          paddingRight: mapPadding.right,
+          paddingBottom: mapPadding.bottom,
+          paddingLeft: mapPadding.left,
+        },
+      ]}
+    >
       <MapView
         ref={mapRef}
-        style={[StyleSheet.absoluteFill, rounded && styles.rounded]}
+        style={[styles.mapView, rounded && styles.rounded]}
         customMapStyle={mapStyle}
-        mapPadding={mapPadding}
         initialRegion={region}
         onPress={(event) => {
           if (isPreview) {
@@ -313,6 +325,9 @@ function makeStyles(brand: BrandColors) {
       overflow: 'hidden',
     },
     fill: {
+      flex: 1,
+    },
+    mapView: {
       flex: 1,
     },
     rounded: {

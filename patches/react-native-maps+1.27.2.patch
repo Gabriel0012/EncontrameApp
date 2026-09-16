@@ -1,0 +1,39 @@
+diff --git a/android/src/main/java/com/rnmaps/maps/MapManager.java b/android/src/main/java/com/rnmaps/maps/MapManager.java
+--- a/android/src/main/java/com/rnmaps/maps/MapManager.java
++++ b/android/src/main/java/com/rnmaps/maps/MapManager.java
+@@ -192,8 +192,10 @@
+             }
+         }
+
+         view.applyBaseMapPadding(left, top, right, bottom);
+-        view.map.setPadding(left, top, right, bottom);
++        if (view.map != null) {
++            view.map.setPadding(left, top, right, bottom);
++        }
+     }
+
+     @ReactProp(name = "showsUserLocation", defaultBoolean = false)
+diff --git a/android/src/main/java/com/rnmaps/maps/MapView.java b/android/src/main/java/com/rnmaps/maps/MapView.java
+--- a/android/src/main/java/com/rnmaps/maps/MapView.java
++++ b/android/src/main/java/com/rnmaps/maps/MapView.java
+@@ -1325,7 +1325,7 @@
+         return event;
+     }
+
+     public void updateExtraData(Object extraData) {
+-        if (setPaddingDeferred && super.getHeight() > 0 && super.getWidth() > 0) {
++        if (setPaddingDeferred && map != null && super.getHeight() > 0 && super.getWidth() > 0) {
+             CameraUpdate cu = CameraUpdateFactory.newCameraPosition(map.getCameraPosition());
+
+             map.setPadding(edgeLeftPadding + baseLeftMapPadding,
+@@ -1491,8 +1491,8 @@
+     int edgeBottomPadding;
+
+     public void applyBaseMapPadding(int left, int top, int right, int bottom) {
+-        if (super.getHeight() <= 0 || super.getWidth() <= 0) {
+-            // the map is not laid out yet and calling setPadding() now has no effect
++        if (map == null || super.getHeight() <= 0 || super.getWidth() <= 0) {
++            // the map is not laid out / GoogleMap not ready yet
+             baseLeftMapPadding = left;
+             baseRightMapPadding = right;
+             baseTopMapPadding = top;
