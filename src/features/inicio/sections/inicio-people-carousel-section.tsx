@@ -1,12 +1,20 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
-import { resolvePersonStatusColor, resolvePersonStatusOnColor } from '@/lib/person-status';
+import { resolvePersonStatusColor } from '@/lib/person-status';
 import { useWideLayout } from '@/lib/use-wide-layout';
 import type { Person } from '@/services/people/people.types';
 
@@ -15,24 +23,42 @@ interface InicioPeopleCarouselSectionProps {
 }
 
 const CARD_GAP = 12;
-const CARD_HEIGHT = 112;
-const PHOTO_WIDTH = 96;
+const NAME_GAP = 6;
+const NAME_HEIGHT = 18;
+const SKELETON_COUNT = 4;
+const STATUS_BORDER_WIDTH = 3;
 
 export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarouselSectionProps) {
   const brand = useBrand();
   const { width, isWide } = useWideLayout();
-  const visibleCards = isWide ? 2.2 : 1.5;
+  const visibleCards = isWide ? 5.5 : 3.6;
   const cardWidth = (width - PageGutter * 2 - CARD_GAP) / visibleCards;
-  const styles = useMemo(() => makeStyles(brand, cardWidth), [brand, cardWidth]);
-  const { people } = controller;
+  const itemHeight = cardWidth + NAME_GAP + NAME_HEIGHT;
+  const styles = useMemo(
+    () => makeStyles(brand, cardWidth, itemHeight),
+    [brand, cardWidth, itemHeight],
+  );
+  const { people, loading, locationDenied, userLocation } = controller;
+  const showSkeleton =
+    people.length === 0 && (loading || (!locationDenied && userLocation == null));
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
-      {people.length === 0 ? (
+      {showSkeleton ? (
+        <ScrollView
+          horizontal
+          scrollEnabled={false}
+          showsHorizontalScrollIndicator={false}
+          style={styles.scroller}
+          contentContainerStyle={styles.track}
+        >
+          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+            <PersonCardSkeleton key={index} index={index} brand={brand} styles={styles} />
+          ))}
+        </ScrollView>
+      ) : people.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>
-            {controller.loading ? 'Buscando pessoas próximas…' : 'Nenhuma pessoa próxima.'}
-          </Text>
+          <Text style={styles.emptyText}>Nenhuma pessoa próxima.</Text>
         </View>
       ) : (
         <ScrollView
@@ -71,48 +97,62 @@ function CarouselCard({
   brand: BrandColors;
   styles: ReturnType<typeof makeStyles>;
 }) {
-  const statusLabel = person.statusDescription ?? '—';
-  const badgeColor = resolvePersonStatusColor(brand, person.statusId, person.statusDescription);
-  const badgeTextColor = resolvePersonStatusOnColor(brand);
-  const location = controller.locationLine(person);
+  const statusColor = resolvePersonStatusColor(brand, person.statusId, person.statusDescription);
 
   return (
     <Pressable
-      style={styles.card}
+      style={styles.item}
       onPress={() => controller.goToPerson(person.id)}
       accessibilityRole="button"
       accessibilityLabel={`Ver detalhes de ${person.fullName}`}
     >
-      <View style={styles.photo}>
+      <View style={[styles.card, { borderColor: statusColor }]}>
         {person.photoUri ? (
           <Image source={{ uri: person.photoUri }} style={styles.photoImage} resizeMode="cover" />
         ) : (
-          <MaterialCommunityIcons name="account" size={48} color={brand.avatarIcon} />
+          <MaterialCommunityIcons name="account" size={36} color={brand.avatarIcon} />
         )}
       </View>
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={2}>
-          {person.fullName}
-        </Text>
-        <Text style={styles.meta}>Idade: {person.age ?? '—'}</Text>
-        {location ? (
-          <Text style={styles.meta} numberOfLines={1}>
-            {location}
-          </Text>
-        ) : null}
-        <View style={styles.statusRow}>
-          <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
-            <Text style={[styles.statusBadgeText, { color: badgeTextColor }]} numberOfLines={1}>
-              {statusLabel}
-            </Text>
-          </View>
-        </View>
-      </View>
+      <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+        {person.fullName}
+      </Text>
     </Pressable>
   );
 }
 
-function makeStyles(brand: BrandColors, cardWidth: number) {
+function PersonCardSkeleton({
+  index,
+  brand,
+  styles,
+}: {
+  index: number;
+  brand: BrandColors;
+  styles: ReturnType<typeof makeStyles>;
+}) {
+  const opacity = useSharedValue(0.45);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      index * 90,
+      withRepeat(
+        withTiming(1, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true,
+      ),
+    );
+  }, [index, opacity]);
+
+  const pulseStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <View style={styles.item} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Animated.View style={[styles.card, { backgroundColor: brand.avatarBackground }, pulseStyle]} />
+      <Animated.View style={[styles.skeletonName, pulseStyle]} />
+    </View>
+  );
+}
+
+function makeStyles(brand: BrandColors, cardWidth: number, itemHeight: number) {
   return StyleSheet.create({
     wrapper: {
       flexGrow: 0,
@@ -137,69 +177,54 @@ function makeStyles(brand: BrandColors, cardWidth: number) {
     },
     scroller: {
       flexGrow: 0,
-      height: CARD_HEIGHT,
+      height: itemHeight,
     },
     track: {
       gap: CARD_GAP,
-      alignItems: 'stretch',
+      alignItems: 'flex-start',
+    },
+    item: {
+      width: cardWidth,
+      height: itemHeight,
+      alignItems: 'center',
+      gap: NAME_GAP,
     },
     card: {
       width: cardWidth,
-      height: CARD_HEIGHT,
-      flexDirection: 'row',
-      borderRadius: Radius.md,
-      overflow: 'hidden',
-      backgroundColor: brand.cardInfo,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: brand.divider,
-    },
-    photo: {
-      width: PHOTO_WIDTH,
-      height: CARD_HEIGHT,
+      height: cardWidth,
+      borderRadius: Radius.xl,
       overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: brand.avatarBackground,
+      borderWidth: STATUS_BORDER_WIDTH,
+      borderColor: brand.divider,
     },
     photoImage: {
-      width: PHOTO_WIDTH,
-      height: CARD_HEIGHT,
-    },
-    info: {
-      flex: 1,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      gap: 4,
-      justifyContent: 'center',
-      backgroundColor: brand.cardInfo,
+      width: '100%',
+      height: '100%',
     },
     name: {
-      color: brand.textDark,
-      fontSize: 15,
-      fontWeight: '800',
-    },
-    meta: {
+      width: '100%',
+      height: NAME_HEIGHT,
       color: brand.textDark,
       fontSize: 13,
-      fontWeight: '600',
+      lineHeight: NAME_HEIGHT,
+      fontWeight: '800',
+      textAlign: 'center',
+      textShadowColor: brand.surface,
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 6,
     },
-    statusRow: {
-      flexDirection: 'row',
-      marginTop: 4,
-    },
-    statusBadge: {
+    skeletonName: {
+      width: '72%',
+      height: 10,
       borderRadius: Radius.pill,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      maxWidth: '100%',
-    },
-    statusBadgeText: {
-      fontSize: 11,
-      fontWeight: '700',
+      backgroundColor: brand.avatarBackground,
     },
     empty: {
-      minHeight: CARD_HEIGHT,
-      borderRadius: Radius.md,
+      minHeight: itemHeight,
+      borderRadius: Radius.xl,
       backgroundColor: brand.surface,
       borderWidth: 1,
       borderColor: brand.fieldBorder,

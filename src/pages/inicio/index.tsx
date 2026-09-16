@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomBar } from '@/components/bottom-bar';
@@ -37,6 +37,14 @@ export default function InicioPage() {
     <View style={styles.container}>
       <InicioMapSection controller={controller} mapPadding={mapPadding} />
       <View style={styles.overlay} pointerEvents="box-none">
+        {controller.searchOpen ? (
+          <Pressable
+            style={styles.searchDismiss}
+            onPress={controller.closeSearch}
+            accessibilityRole="button"
+            accessibilityLabel="Fechar busca"
+          />
+        ) : null}
         <SafeAreaView style={styles.overlayInner} edges={['top']} pointerEvents="box-none">
           <View
             pointerEvents="box-none"
@@ -44,7 +52,9 @@ export default function InicioPage() {
             onLayout={(event) => setTopOverlay(event.nativeEvent.layout.height)}
           >
             <InicioTopBarSection controller={controller} />
-            <InicioPeopleCarouselSection controller={controller} />
+            <View pointerEvents={controller.searchOpen ? 'none' : 'box-none'}>
+              <InicioPeopleCarouselSection controller={controller} />
+            </View>
           </View>
           <View style={styles.overlayFill} pointerEvents="none" />
         </SafeAreaView>
@@ -74,6 +84,9 @@ function makeStyles(brand: BrandColors) {
     },
     overlayFill: {
       flex: 1,
+    },
+    searchDismiss: {
+      ...StyleSheet.absoluteFill,
     },
   });
 }

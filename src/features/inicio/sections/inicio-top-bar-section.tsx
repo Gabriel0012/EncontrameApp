@@ -1,9 +1,24 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  BackHandler,
+  Keyboard,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import Animated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
+import { brandTiming, Motion } from '@/constants/motion';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -59,13 +74,68 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const { isWide } = useWideLayout();
+  const { searchOpen, closeSearch, openSearch, handleSearch } = controller;
   const menuButtonRef = useRef<View>(null);
+  const searchInputRef = useRef<TextInput>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({
     top: 96,
     left: PageGutter,
   });
   const [menuHighlighted, setMenuHighlighted] = useState(false);
+  const [searchHighlighted, setSearchHighlighted] = useState(false);
   const menuOpacity = useTimedOpacity(menuHighlighted ? 0.85 : 1);
+  const searchPressOpacity = useTimedOpacity(searchHighlighted ? 0.85 : 1);
+  const searchProgress = useSharedValue(searchOpen ? 1 : 0);
+
+  useEffect(() => {
+    searchProgress.value = brandTiming(searchOpen ? 1 : 0);
+  }, [searchOpen, searchProgress]);
+
+  useEffect(() => {
+    if (!searchOpen) {
+      Keyboard.dismiss();
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, Motion.durationMs);
+    return () => clearTimeout(timeout);
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) {
+      return;
+    }
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeSearch();
+      return true;
+    });
+    return () => sub.remove();
+  }, [closeSearch, searchOpen]);
+
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: 1 - searchProgress.value,
+    transform: [{ translateX: interpolate(searchProgress.value, [0, 1], [0, -12]) }],
+  }));
+
+  const searchFieldStyle = useAnimatedStyle(() => ({
+    opacity: searchProgress.value,
+    transform: [{ translateX: interpolate(searchProgress.value, [0, 1], [20, 0]) }],
+  }));
+
+  const searchButtonStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(searchProgress.value, [0, 1], [brand.blueClear, brand.blue]),
+  }));
+
+  const closedIconStyle = useAnimatedStyle(() => ({
+    opacity: 1 - searchProgress.value,
+  }));
+
+  const openIconStyle = useAnimatedStyle(() => ({
+    opacity: searchProgress.value,
+  }));
 
   const menuItems: MenuItem[] = [
     ...(isWide
@@ -131,6 +201,14 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
     });
   };
 
+  const handleSearchButton = () => {
+    if (searchOpen) {
+      handleSearch();
+      return;
+    }
+    openSearch();
+  };
+
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       <View style={styles.panel}>
@@ -149,24 +227,56 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
               </Animated.View>
             </View>
           </Pressable>
-          <Text style={styles.title}>Encontra-me</Text>
-        </View>
 
-        <View style={styles.searchRow}>
-          <View style={styles.searchField}>
-            <TextInput
-              style={styles.searchInput}
-              value={controller.search}
-              onChangeText={controller.setSearch}
-              placeholder="Nome, bairro ou cidade"
-              placeholderTextColor={brand.placeholder}
-              returnKeyType="search"
-              onSubmitEditing={controller.handleSearch}
-            />
-            <MaterialCommunityIcons name="magnify" size={20} color={brand.placeholder} />
+          <View style={styles.middle}>
+            <Animated.View
+              style={[styles.titleWrap, titleStyle]}
+              pointerEvents={searchOpen ? 'none' : 'auto'}
+            >
+              <Text style={styles.title} numberOfLines={1}>
+                Encontra-me
+              </Text>
+            </Animated.View>
+
+            <Animated.View
+              style={[styles.searchFieldWrap, searchFieldStyle]}
+              pointerEvents={searchOpen ? 'auto' : 'none'}
+            >
+              <View style={styles.searchField}>
+                <TextInput
+                  ref={searchInputRef}
+                  style={styles.searchInput}
+                  value={controller.search}
+                  onChangeText={controller.setSearch}
+                  placeholder="Nome, bairro ou cidade"
+                  placeholderTextColor={brand.placeholder}
+                  returnKeyType="search"
+                  onSubmitEditing={controller.handleSearch}
+                  accessibilityLabel="Buscar pessoas"
+                />
+              </View>
+            </Animated.View>
           </View>
-          <Pressable style={styles.searchButton} onPress={controller.handleSearch}>
-            <Text style={styles.searchButtonLabel}>Buscar</Text>
+
+          <Pressable
+            onPress={handleSearchButton}
+            onPressIn={() => setSearchHighlighted(true)}
+            onPressOut={() => setSearchHighlighted(false)}
+            onHoverIn={() => setSearchHighlighted(true)}
+            onHoverOut={() => setSearchHighlighted(false)}
+            accessibilityRole="button"
+            accessibilityLabel={searchOpen ? 'Buscar' : 'Abrir busca'}
+          >
+            <Animated.View style={[styles.searchButton, searchButtonStyle, searchPressOpacity]}>
+              <View style={styles.searchIconStack}>
+                <Animated.View style={[styles.searchIconLayer, closedIconStyle]}>
+                  <MaterialCommunityIcons name="magnify" size={22} color={brand.textDark} />
+                </Animated.View>
+                <Animated.View style={[styles.searchIconLayer, openIconStyle]}>
+                  <MaterialCommunityIcons name="magnify" size={22} color={brand.onPrimary} />
+                </Animated.View>
+              </View>
+            </Animated.View>
           </Pressable>
         </View>
 
@@ -204,8 +314,9 @@ function makeStyles(brand: BrandColors) {
       paddingTop: 8,
     },
     panel: {
-      gap: 10,
-      padding: 12,
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
       borderRadius: Radius.lg,
       backgroundColor: brand.surface,
       borderWidth: 1,
@@ -214,25 +325,34 @@ function makeStyles(brand: BrandColors) {
     brand: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      gap: 8,
     },
     menuButton: {
       padding: 4,
+    },
+    middle: {
+      flex: 1,
+      minWidth: 0,
+      height: 46,
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    titleWrap: {
+      justifyContent: 'center',
     },
     title: {
       fontSize: 22,
       fontWeight: '800',
       color: brand.textDark,
     },
-    searchRow: {
-      flexDirection: 'row',
-      gap: 10,
+    searchFieldWrap: {
+      ...StyleSheet.absoluteFill,
+      justifyContent: 'center',
     },
     searchField: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
       height: 46,
       paddingHorizontal: 16,
       borderRadius: Radius.pill,
@@ -242,21 +362,25 @@ function makeStyles(brand: BrandColors) {
     },
     searchInput: {
       flex: 1,
+      paddingVertical: 0,
       fontSize: 15,
       color: brand.textDark,
     },
     searchButton: {
+      width: 46,
       height: 46,
-      paddingHorizontal: 22,
       borderRadius: Radius.pill,
-      backgroundColor: brand.blue,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    searchButtonLabel: {
-      color: brand.onPrimary,
-      fontSize: 15,
-      fontWeight: '700',
+    searchIconStack: {
+      width: 22,
+      height: 22,
+    },
+    searchIconLayer: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     locationHint: {
       color: brand.textMuted,

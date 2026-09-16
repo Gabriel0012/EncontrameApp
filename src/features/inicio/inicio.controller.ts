@@ -10,7 +10,6 @@ import { useSessionUser } from '@/lib/use-session-user';
 import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { useNearbyPeopleQuery } from '@/services/people/people.service';
-import type { Person } from '@/services/people/people.types';
 
 /** Centraliza dados e navegação da tela inicial (dashboard). */
 export function useInicioController() {
@@ -19,6 +18,7 @@ export function useInicioController() {
   const { location: userLocation, denied: locationDenied } = useUserLocation();
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const peopleQuery = useNearbyPeopleQuery({
     query,
     latitude: userLocation?.latitude,
@@ -56,15 +56,16 @@ export function useInicioController() {
     action();
   };
 
+  const openSearch = () => {
+    closeMenu();
+    setSearchOpen(true);
+  };
+
+  const closeSearch = () => setSearchOpen(false);
+
   const handleSearch = () => {
     setQuery(search.trim());
   };
-
-  const locationLine = (person: Person) =>
-    [person.neighborhood, person.city, person.state].filter(Boolean).join(', ') ||
-    person.lastSeen ||
-    person.location ||
-    '';
 
   const logout = () =>
     goTo(() => {
@@ -95,12 +96,17 @@ export function useInicioController() {
     locationDenied,
     search,
     setSearch,
+    searchOpen,
+    openSearch,
+    closeSearch,
     handleSearch,
-    locationLine,
     loading: peopleQuery.isLoading || peopleQuery.isFetching,
     loggedIn,
     menuOpen,
-    openMenu: () => setMenuOpen(true),
+    openMenu: () => {
+      closeSearch();
+      setMenuOpen(true);
+    },
     closeMenu,
     goToPerson: (personId: string) => router.push(`/pessoa/${personId}` as Href),
     goToChat: () =>
