@@ -138,13 +138,18 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
     },
     photo: {
       width: isWide ? 120 : 96,
+      alignSelf: 'stretch',
+      overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: brand.avatarBackground,
     },
     photoImage: {
-      width: '100%',
-      height: '100%',
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
     },
     info: {
       flex: 1,

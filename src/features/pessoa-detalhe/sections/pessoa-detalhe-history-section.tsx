@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandMap } from '@/components/brand-map';
@@ -97,7 +97,7 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       height: isWide ? 560 : undefined,
       backgroundColor: brand.white,
       borderRadius: isWide ? Radius.lg : 0,
-      overflow: 'hidden',
+      overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
       zIndex: 1,
     },
     header: {

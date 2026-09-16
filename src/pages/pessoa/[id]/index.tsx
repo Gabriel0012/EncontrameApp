@@ -12,15 +12,21 @@ import { PessoaDetalheInfoSection } from '@/features/pessoa-detalhe/sections/pes
 import { PessoaDetalheSightingSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-sighting-section';
 import { PessoaDetalheThanksSection } from '@/features/pessoa-detalhe/sections/pessoa-detalhe-thanks-section';
 import { useBrand } from '@/lib/brand-theme';
+import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
 
 export default function PessoaDetalhePage() {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const controller = usePessoaDetalheController();
+  const bottomInset = useBottomSafeInset();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: 32 + bottomInset }]}
+        keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={false}
+      >
         <ContentShell>
           <ScreenHeader title={controller.person?.fullName ?? 'Pessoa desaparecida'} />
           {controller.loading ? (
@@ -53,7 +59,6 @@ function makeStyles(brand: BrandColors) {
     content: {
       flexGrow: 1,
       paddingTop: 8,
-      paddingBottom: 32,
     },
     body: {
       marginTop: 16,

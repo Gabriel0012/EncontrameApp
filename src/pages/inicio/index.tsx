@@ -11,6 +11,7 @@ import { InicioMapSection } from '@/features/inicio/sections/inicio-map-section'
 import { InicioPeopleCarouselSection } from '@/features/inicio/sections/inicio-people-carousel-section';
 import { InicioTopBarSection } from '@/features/inicio/sections/inicio-top-bar-section';
 import { useBrand } from '@/lib/brand-theme';
+import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
 export default function InicioPage() {
@@ -18,9 +19,10 @@ export default function InicioPage() {
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const controller = useInicioController();
   const insets = useSafeAreaInsets();
+  const bottomInset = useBottomSafeInset();
   const { isWide } = useWideLayout();
   const [topOverlay, setTopOverlay] = useState(280);
-  const bottomBar = isWide ? 0 : Math.max(insets.bottom, 10) + 66;
+  const bottomBar = isWide ? 0 : bottomInset + 66;
   const mapPadding = useMemo(
     () => ({
       top: insets.top + topOverlay,
@@ -38,6 +40,7 @@ export default function InicioPage() {
         <SafeAreaView style={styles.overlayInner} edges={['top']} pointerEvents="box-none">
           <View
             pointerEvents="box-none"
+            style={styles.topOverlay}
             onLayout={(event) => setTopOverlay(event.nativeEvent.layout.height)}
           >
             <InicioTopBarSection controller={controller} />
@@ -64,6 +67,10 @@ function makeStyles(brand: BrandColors) {
     },
     overlayInner: {
       flex: 1,
+    },
+    topOverlay: {
+      flexGrow: 0,
+      flexShrink: 0,
     },
     overlayFill: {
       flex: 1,

@@ -7,11 +7,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { Radius, type BrandColors } from '@/constants/brand';
 import { brandTiming } from '@/constants/motion';
 import { useBrand } from '@/lib/brand-theme';
+import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
@@ -93,7 +92,7 @@ function BottomTab({
 export function BottomBar({ active }: Props) {
   const brand = useBrand();
   const stylesBar = useMemo(() => makeBarStyles(brand), [brand]);
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomSafeInset();
   const router = useRouter();
   const { isWide } = useWideLayout();
 
@@ -102,7 +101,7 @@ export function BottomBar({ active }: Props) {
   }
 
   return (
-    <View style={[stylesBar.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+    <View style={[stylesBar.bar, { paddingBottom: bottomInset, zIndex: 20 }]}>
       <BottomTab brand={brand} icon="phone" isActive={active === 'phone'} />
       <BottomTab
         brand={brand}

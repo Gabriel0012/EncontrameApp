@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
 import { BrandField } from '@/components/brand-field';
@@ -110,7 +110,7 @@ function makeStyles(brand: BrandColors) {
     mapFrame: {
       height: 240,
       width: '100%',
-      overflow: 'hidden',
+      overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
     },
     map: {
       height: 240,

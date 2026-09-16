@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandFab } from '@/components/brand-fab';
+import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Props = {
@@ -17,16 +17,14 @@ type Props = {
  */
 export function RegisterFab({ always = false, extraBottom = 0 }: Props) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomSafeInset();
   const { isWide } = useWideLayout();
 
   if (!always && !isWide) {
     return null;
   }
 
-  const bottom =
-    (always && !isWide ? Math.max(insets.bottom, 10) + 72 : Math.max(insets.bottom, 24) + 8) +
-    extraBottom;
+  const bottom = (always && !isWide ? bottomInset + 72 : bottomInset + 8) + extraBottom;
 
   return (
     <BrandFab

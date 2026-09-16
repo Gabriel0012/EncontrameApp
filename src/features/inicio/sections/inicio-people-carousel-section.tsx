@@ -28,10 +28,6 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
-      <Pressable onPress={controller.goToAllPeople} style={styles.allLink} accessibilityRole="button">
-        <Text style={styles.allLinkText}>Ver todas</Text>
-      </Pressable>
-
       {people.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>
@@ -42,6 +38,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.scroller}
           contentContainerStyle={styles.track}
         >
           {people.map((person) => (
@@ -55,6 +52,10 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
           ))}
         </ScrollView>
       )}
+
+      <Pressable onPress={controller.goToAllPeople} style={styles.allLink} accessibilityRole="button">
+        <Text style={styles.allLinkText}>Ver todas</Text>
+      </Pressable>
     </View>
   );
 }
@@ -114,6 +115,8 @@ function CarouselCard({
 function makeStyles(brand: BrandColors, cardWidth: number) {
   return StyleSheet.create({
     wrapper: {
+      flexGrow: 0,
+      flexShrink: 0,
       gap: 8,
       paddingHorizontal: PageGutter,
       paddingTop: 8,
@@ -132,13 +135,18 @@ function makeStyles(brand: BrandColors, cardWidth: number) {
       fontWeight: '700',
       fontSize: 14,
     },
+    scroller: {
+      flexGrow: 0,
+      height: CARD_HEIGHT,
+    },
     track: {
       gap: CARD_GAP,
+      alignItems: 'stretch',
     },
     card: {
       width: cardWidth,
+      height: CARD_HEIGHT,
       flexDirection: 'row',
-      minHeight: CARD_HEIGHT,
       borderRadius: Radius.md,
       overflow: 'hidden',
       backgroundColor: brand.cardInfo,
@@ -147,13 +155,15 @@ function makeStyles(brand: BrandColors, cardWidth: number) {
     },
     photo: {
       width: PHOTO_WIDTH,
+      height: CARD_HEIGHT,
+      overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: brand.avatarBackground,
     },
     photoImage: {
-      width: '100%',
-      height: '100%',
+      width: PHOTO_WIDTH,
+      height: CARD_HEIGHT,
     },
     info: {
       flex: 1,

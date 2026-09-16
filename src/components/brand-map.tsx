@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Image, Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import MapView, { Callout, Circle, Marker, Polyline, type Region } from 'react-native-maps';
 
 import { Radius, type BrandColors } from '@/constants/brand';
@@ -138,6 +138,7 @@ export function BrandMap({
 
   return (
     <View
+      collapsable={false}
       style={[
         styles.map,
         fillsParent && styles.fill,
@@ -153,9 +154,13 @@ export function BrandMap({
     >
       <MapView
         ref={mapRef}
-        style={[styles.mapView, rounded && styles.rounded]}
+        style={[styles.mapView, rounded && styles.roundedMap]}
         customMapStyle={mapStyle}
         initialRegion={region}
+        userInterfaceStyle={colorScheme}
+        onMapReady={() => {
+          mapRef.current?.animateToRegion(regionFromPins(pins, userLocation), 1);
+        }}
         onPress={(event) => {
           if (isPreview) {
             onPress?.();
@@ -322,17 +327,25 @@ function makeStyles(brand: BrandColors) {
       backgroundColor: brand.mapBackground,
       borderWidth: 1,
       borderColor: brand.mapStroke,
-      overflow: 'hidden',
+      overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
     },
     fill: {
       flex: 1,
     },
     mapView: {
-      flex: 1,
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      ...(Platform.OS === 'android' ? { opacity: 0.99 } : {}),
     },
     rounded: {
       borderRadius: Radius.lg,
-      overflow: 'hidden',
+      overflow: Platform.OS === 'android' ? 'visible' : 'hidden',
+    },
+    roundedMap: {
+      borderRadius: Radius.lg,
     },
     pin: {
       alignItems: 'center',

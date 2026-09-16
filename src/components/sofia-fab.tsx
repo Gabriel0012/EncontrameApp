@@ -1,6 +1,5 @@
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { BrandFab } from '@/components/brand-fab';
+import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Props = {
@@ -9,9 +8,9 @@ type Props = {
 
 /** Atalho circular da Sofia na home (o cadastro fica na barra / menu). */
 export function SofiaFab({ onPress }: Props) {
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomSafeInset();
   const { isWide } = useWideLayout();
-  const bottom = isWide ? Math.max(insets.bottom, 24) + 8 : Math.max(insets.bottom, 10) + 72;
+  const bottom = isWide ? bottomInset + 8 : bottomInset + 72;
 
   return (
     <BrandFab
