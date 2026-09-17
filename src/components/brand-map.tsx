@@ -174,6 +174,7 @@ export const BrandMap = forwardRef<BrandMapHandle, Props>(function BrandMap(
         }}
         scrollEnabled={!isPreview}
         zoomEnabled={!isPreview}
+        zoomControlEnabled={false}
         pitchEnabled={!isPreview}
         rotateEnabled={!isPreview}
         toolbarEnabled={false}

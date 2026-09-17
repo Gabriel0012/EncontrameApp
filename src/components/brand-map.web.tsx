@@ -302,7 +302,7 @@ export const BrandMap = forwardRef<BrandMapHandle, Props>(function BrandMap(
           center: DEFAULT_CENTER,
           zoom: DEFAULT_ZOOM,
           disableDefaultUI: true,
-          zoomControl: !isPreview,
+          zoomControl: false,
           gestureHandling: isPreview ? 'none' : 'greedy',
           clickableIcons: !isPreview,
           keyboardShortcuts: !isPreview,
