@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Image, Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import MapView, { Callout, Circle, Marker, Polyline, type Region } from 'react-native-maps';
 
+import { MapMyLocationFab } from '@/components/map-my-location-fab';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { brandMapStyle, hexToRgba } from '@/lib/map-style';
@@ -41,6 +42,10 @@ export type MapPadding = {
   left: number;
 };
 
+export type BrandMapHandle = {
+  recenterOnUser: () => void;
+};
+
 type Props = {
   pins?: MapPin[];
   polylines?: MapPolyline[];
@@ -50,6 +55,7 @@ type Props = {
   onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
   rounded?: boolean;
   mapPadding?: MapPadding;
+  showLocationFab?: boolean;
   style?: ViewStyle;
 };
 
@@ -61,21 +67,16 @@ const DEFAULT_REGION: Region = {
   longitudeDelta: 0.12,
 };
 
-/** Calcula a região do mapa a partir dos pins e da posição do usuário. */
-function regionFromPins(pins: MapPin[], userLocation?: UserLocation | null): Region {
-  const points = [
-    ...pins,
-    ...(userLocation
-      ? [{ latitude: userLocation.latitude, longitude: userLocation.longitude }]
-      : []),
-  ];
+const USER_FOCUS_DELTA = 0.012;
 
-  if (points.length === 0) {
+/** Calcula a região do mapa a partir dos pins (sem a posição do usuário). */
+function regionFromPins(pins: MapPin[]): Region {
+  if (pins.length === 0) {
     return DEFAULT_REGION;
   }
 
-  const latitudes = points.map((point) => point.latitude);
-  const longitudes = points.map((point) => point.longitude);
+  const latitudes = pins.map((point) => point.latitude);
+  const longitudes = pins.map((point) => point.longitude);
   const minLat = Math.min(...latitudes);
   const maxLat = Math.max(...latitudes);
   const minLng = Math.min(...longitudes);
@@ -84,8 +85,17 @@ function regionFromPins(pins: MapPin[], userLocation?: UserLocation | null): Reg
   return {
     latitude: (minLat + maxLat) / 2,
     longitude: (minLng + maxLng) / 2,
-    latitudeDelta: Math.max((maxLat - minLat) * 1.6, points.length === 1 ? 0.02 : 0.05),
-    longitudeDelta: Math.max((maxLng - minLng) * 1.6, points.length === 1 ? 0.02 : 0.05),
+    latitudeDelta: Math.max((maxLat - minLat) * 1.6, pins.length === 1 ? 0.02 : 0.05),
+    longitudeDelta: Math.max((maxLng - minLng) * 1.6, pins.length === 1 ? 0.02 : 0.05),
+  };
+}
+
+function regionFromUser(user: UserLocation): Region {
+  return {
+    latitude: user.latitude,
+    longitude: user.longitude,
+    latitudeDelta: USER_FOCUS_DELTA,
+    longitudeDelta: USER_FOCUS_DELTA,
   };
 }
 
@@ -93,48 +103,41 @@ function regionFromPins(pins: MapPin[], userLocation?: UserLocation | null): Reg
  * Mapa nativo com pins por coordenada (react-native-maps).
  * Na web, o Metro resolve `brand-map.web.tsx` (sem importar esta lib).
  */
-export function BrandMap({
-  pins = [],
-  polylines = [],
-  userLocation = null,
-  onPress,
-  onMapPress,
-  onPinDragEnd,
-  rounded = false,
-  mapPadding,
-  style,
-}: Props) {
+export const BrandMap = forwardRef<BrandMapHandle, Props>(function BrandMap(
+  {
+    pins = [],
+    polylines = [],
+    userLocation = null,
+    onPress,
+    onMapPress,
+    onPinDragEnd,
+    rounded = false,
+    mapPadding,
+    showLocationFab = true,
+    style,
+  },
+  ref,
+) {
   const brand = useBrand();
   const colorScheme = useBrandColorScheme();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const mapStyle = useMemo(() => brandMapStyle(brand, colorScheme), [brand, colorScheme]);
   const mapRef = useRef<MapView>(null);
-  const pinsSignatureRef = useRef('');
   const [activePinId, setActivePinId] = useState<string | null>(null);
-  const hasUser = Boolean(userLocation);
   const isPreview = Boolean(onPress);
-  const region = regionFromPins(pins, userLocation);
+  const region = regionFromPins(pins);
   const mapStyleName = [styles.map, rounded && styles.rounded, style];
   const flattened = StyleSheet.flatten(mapStyleName) as ViewStyle;
   const fillsParent = flattened.height == null && flattened.minHeight == null;
 
-  useEffect(() => {
-    const signature = `${pins
-      .map((pin) => `${pin.id}:${pin.latitude},${pin.longitude}`)
-      .join('|')}|user:${hasUser}`;
-
-    if (signature === pinsSignatureRef.current) {
+  const recenterOnUser = () => {
+    if (!userLocation) {
       return;
     }
+    mapRef.current?.animateToRegion(regionFromUser(userLocation), 400);
+  };
 
-    pinsSignatureRef.current = signature;
-
-    if (pins.length === 0 && !hasUser) {
-      return;
-    }
-
-    mapRef.current?.animateToRegion(regionFromPins(pins, userLocation), 350);
-  }, [hasUser, pins, userLocation]);
+  useImperativeHandle(ref, () => ({ recenterOnUser }));
 
   return (
     <View
@@ -158,9 +161,6 @@ export function BrandMap({
         customMapStyle={mapStyle}
         initialRegion={region}
         userInterfaceStyle={colorScheme}
-        onMapReady={() => {
-          mapRef.current?.animateToRegion(regionFromPins(pins, userLocation), 1);
-        }}
         onPress={(event) => {
           if (isPreview) {
             onPress?.();
@@ -239,9 +239,12 @@ export function BrandMap({
           </>
         ) : null}
       </MapView>
+      {isPreview || !showLocationFab ? null : (
+        <MapMyLocationFab onPress={recenterOnUser} disabled={!userLocation} />
+      )}
     </View>
   );
-}
+});
 
 function PersonPinMarker({
   pin,

@@ -15,6 +15,8 @@ import { Radius, type BrandColors } from '@/constants/brand';
 import { useBrand } from '@/lib/brand-theme';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
 
+type Variant = 'primary' | 'surface';
+
 type Props = {
   accessibilityLabel: string;
   onPress?: () => void;
@@ -22,6 +24,7 @@ type Props = {
   image?: ImageSourcePropType;
   loading?: boolean;
   disabled?: boolean;
+  variant?: Variant;
   /** Quando false, some com fade e não recebe toque. */
   visible?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -37,6 +40,7 @@ export function BrandFab({
   image,
   loading = false,
   disabled = false,
+  variant = 'primary',
   visible = true,
   style,
 }: Props) {
@@ -44,6 +48,8 @@ export function BrandFab({
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const [highlighted, setHighlighted] = useState(false);
   const isInactive = disabled || loading;
+  const isSurface = variant === 'surface';
+  const iconColor = isSurface ? brand.blue : brand.onPrimary;
   const opacityTarget = !visible ? 0 : isInactive ? 0.5 : highlighted ? 0.88 : 1;
   const opacity = useTimedOpacity(opacityTarget);
 
@@ -66,13 +72,15 @@ export function BrandFab({
       style={[styles.anchor, style]}
       pointerEvents={visible ? 'auto' : 'none'}
     >
-      <Animated.View style={[styles.fab, image ? styles.fabPhoto : null, opacity]}>
+      <Animated.View
+        style={[styles.fab, isSurface && styles.fabSurface, image ? styles.fabPhoto : null, opacity]}
+      >
         {loading ? (
-          <ActivityIndicator color={brand.onPrimary} />
+          <ActivityIndicator color={iconColor} />
         ) : image ? (
           <Image source={image} style={styles.image} resizeMode="cover" />
         ) : (
-          <MaterialCommunityIcons name={icon} size={28} color={brand.onPrimary} />
+          <MaterialCommunityIcons name={icon} size={28} color={iconColor} />
         )}
       </Animated.View>
     </Pressable>
@@ -98,6 +106,11 @@ function makeStyles(brand: BrandColors) {
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 6 },
       elevation: 8,
+    },
+    fabSurface: {
+      backgroundColor: brand.white,
+      borderWidth: 1,
+      borderColor: brand.divider,
     },
     fabPhoto: {
       borderWidth: 2,

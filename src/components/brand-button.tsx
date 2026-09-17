@@ -4,8 +4,10 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } 
 import Animated from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
+import type { ControlMetrics } from '@/constants/theme';
 import { useBrand } from '@/lib/brand-theme';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Variant = 'orange' | 'blue' | 'outline';
 
@@ -29,7 +31,8 @@ export function BrandButton({
   style,
 }: Props) {
   const brand = useBrand();
-  const styles = useMemo(() => makeStyles(brand), [brand]);
+  const { control } = useWideLayout();
+  const styles = useMemo(() => makeStyles(brand, control), [brand, control]);
   const isOutline = variant === 'outline';
   const bg = variant === 'orange' ? brand.orange : variant === 'blue' ? brand.blue : brand.white;
   const textColor = isOutline ? brand.blue : brand.onPrimary;
@@ -68,7 +71,7 @@ export function BrandButton({
           <View style={styles.content}>
             <Text style={[styles.label, { color: textColor }]}>{label}</Text>
             {trailingIcon ? (
-              <MaterialCommunityIcons name={trailingIcon} size={20} color={textColor} />
+              <MaterialCommunityIcons name={trailingIcon} size={control.icon} color={textColor} />
             ) : null}
           </View>
         )}
@@ -77,14 +80,14 @@ export function BrandButton({
   );
 }
 
-function makeStyles(brand: BrandColors) {
+function makeStyles(brand: BrandColors, control: ControlMetrics) {
   return StyleSheet.create({
     base: {
-      height: 54,
+      height: control.buttonHeight,
       borderRadius: Radius.md,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 24,
+      paddingHorizontal: control.buttonPadH,
     },
     outline: {
       borderWidth: 1.5,
@@ -97,7 +100,7 @@ function makeStyles(brand: BrandColors) {
       gap: 8,
     },
     label: {
-      fontSize: 17,
+      fontSize: control.buttonFont,
       fontWeight: '700',
       textAlign: 'center',
       flexShrink: 1,

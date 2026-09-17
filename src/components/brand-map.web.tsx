@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { createElement, useEffect, useMemo, useRef, useState } from 'react';
+import { createElement, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
+import { MapMyLocationFab } from '@/components/map-my-location-fab';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { useBrand, useBrandColorScheme } from '@/lib/brand-theme';
 import { env } from '@/lib/env';
@@ -51,6 +52,10 @@ export type MapPadding = {
   left: number;
 };
 
+export type BrandMapHandle = {
+  recenterOnUser: () => void;
+};
+
 type Props = {
   pins?: MapPin[];
   polylines?: MapPolyline[];
@@ -60,6 +65,7 @@ type Props = {
   onPinDragEnd?: (id: string, latitude: number, longitude: number) => void;
   rounded?: boolean;
   mapPadding?: MapPadding;
+  showLocationFab?: boolean;
   style?: ViewStyle;
 };
 
@@ -206,17 +212,21 @@ function dashedPolylineOptions(path: LatLngLiteral[], color: string) {
  * Mapa no navegador via Maps JavaScript API.
  * react-native-maps não roda na web; o Metro usa este arquivo no lugar de brand-map.tsx.
  */
-export function BrandMap({
-  pins = [],
-  polylines = [],
-  userLocation = null,
-  onPress,
-  onMapPress,
-  onPinDragEnd,
-  rounded = false,
-  mapPadding,
-  style,
-}: Props) {
+export const BrandMap = forwardRef<BrandMapHandle, Props>(function BrandMap(
+  {
+    pins = [],
+    polylines = [],
+    userLocation = null,
+    onPress,
+    onMapPress,
+    onPinDragEnd,
+    rounded = false,
+    mapPadding,
+    showLocationFab = true,
+    style,
+  },
+  ref,
+) {
   const brand = useBrand();
   const colorScheme = useBrandColorScheme();
   const styles = useMemo(() => makeStyles(brand), [brand]);
@@ -224,7 +234,6 @@ export function BrandMap({
   const mapStyleRef = useRef(mapStyle);
   const apiKey = env.googleMapsWebApiKey;
   const isPreview = Boolean(onPress);
-  const hasUser = Boolean(userLocation);
   const [host, setHost] = useState<HTMLElement | null>(null);
   const mapRef = useRef<GoogleMap | null>(null);
   const mapsApiRef = useRef<GoogleMapsApi | null>(null);
@@ -273,9 +282,6 @@ export function BrandMap({
 
   useEffect(() => {
     mapPaddingRef.current = mapPadding;
-    if (mapPadding) {
-      mapRef.current?.setOptions({ padding: mapPadding });
-    }
   }, [mapPadding]);
 
   useEffect(() => {
@@ -500,33 +506,11 @@ export function BrandMap({
       );
     });
 
-    const user = userLocationRef.current;
-    const points = [
-      ...pins.map((pin) => ({ lat: pin.latitude, lng: pin.longitude })),
-      ...(user ? [{ lat: user.latitude, lng: user.longitude }] : []),
-    ];
-
-    if (points.length === 0) {
-      map.setCenter(DEFAULT_CENTER);
-      map.setZoom(DEFAULT_ZOOM);
-      return;
-    }
-
-    if (points.length === 1) {
-      map.setCenter(points[0]);
-      map.setZoom(15);
-      return;
-    }
-
-    const bounds = new gmaps.LatLngBounds();
-    points.forEach((point) => bounds.extend(point));
-    map.fitBounds(bounds, 48);
-
     return () => {
       hideTooltip();
       clearHighlightRef.current = () => undefined;
     };
-  }, [brand, hasUser, pins, polylines, status]);
+  }, [brand, pins, polylines, status]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -611,6 +595,17 @@ export function BrandMap({
   const fillsParent = flattened.height == null && flattened.minHeight == null;
   const explicitHeight = typeof flattened.height === 'number' ? flattened.height : undefined;
 
+  const recenterOnUser = () => {
+    const map = mapRef.current;
+    if (!map || !userLocation) {
+      return;
+    }
+    map.setCenter({ lat: userLocation.latitude, lng: userLocation.longitude });
+    map.setZoom(16);
+  };
+
+  useImperativeHandle(ref, () => ({ recenterOnUser }));
+
   return (
     <View style={[styles.map, fillsParent && styles.fill, rounded && styles.rounded, style]}>
       {apiKey
@@ -637,9 +632,12 @@ export function BrandMap({
           <Text style={styles.hint}>{fallbackMessage}</Text>
         </View>
       ) : null}
+      {isPreview || !showLocationFab ? null : (
+        <MapMyLocationFab onPress={recenterOnUser} disabled={!userLocation} />
+      )}
     </View>
   );
-}
+});
 
 function makeStyles(brand: BrandColors) {
   return StyleSheet.create({

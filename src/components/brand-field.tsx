@@ -12,8 +12,10 @@ import {
 import Animated from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
+import type { ControlMetrics } from '@/constants/theme';
 import { useBrand } from '@/lib/brand-theme';
 import { useTimedColor } from '@/lib/use-brand-transition';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Props = {
   label: string;
@@ -56,7 +58,8 @@ export function BrandField({
   autoComplete,
 }: Props) {
   const brand = useBrand();
-  const styles = useMemo(() => makeStyles(brand), [brand]);
+  const { control } = useWideLayout();
+  const styles = useMemo(() => makeStyles(brand, control), [brand, control]);
   const [focused, setFocused] = useState(false);
   const borderStyle = useTimedColor(focused, brand.fieldBorder, brand.blue, 'borderColor');
 
@@ -86,7 +89,7 @@ export function BrandField({
         />
         {trailingIcon ? (
           <Pressable onPress={onTrailingPress} hitSlop={8}>
-            <MaterialCommunityIcons name={trailingIcon} size={22} color={brand.placeholder} />
+            <MaterialCommunityIcons name={trailingIcon} size={control.icon} color={brand.placeholder} />
           </Pressable>
         ) : null}
       </Animated.View>
@@ -95,13 +98,13 @@ export function BrandField({
   );
 }
 
-function makeStyles(brand: BrandColors) {
+function makeStyles(brand: BrandColors, control: ControlMetrics) {
   return StyleSheet.create({
     wrapper: {
       gap: 8,
     },
     label: {
-      fontSize: 14,
+      fontSize: control.labelFont,
       fontWeight: '700',
       color: brand.label,
     },
@@ -115,8 +118,8 @@ function makeStyles(brand: BrandColors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      minHeight: 52,
-      paddingHorizontal: 18,
+      minHeight: control.fieldMinHeight,
+      paddingHorizontal: control.fieldPadH,
       borderRadius: Radius.md,
       borderWidth: 1,
       borderColor: brand.fieldBorder,
@@ -127,9 +130,9 @@ function makeStyles(brand: BrandColors) {
     },
     input: {
       flex: 1,
-      fontSize: 16,
+      fontSize: control.fieldFont,
       color: brand.textDark,
-      paddingVertical: 12,
+      paddingVertical: control.fieldPadV,
     },
     errorText: {
       fontSize: 13,

@@ -1,11 +1,14 @@
 import { useWindowDimensions } from 'react-native';
 
-import { WideLayoutBreakpoint } from '@/constants/theme';
+import { controlMetrics, WideLayoutBreakpoint } from '@/constants/theme';
 
 export function useWideLayout() {
   const { width } = useWindowDimensions();
+  const isWide = width >= WideLayoutBreakpoint;
   return {
     width,
-    isWide: width >= WideLayoutBreakpoint,
+    isWide,
+    compact: isWide,
+    control: controlMetrics(isWide),
   };
 }

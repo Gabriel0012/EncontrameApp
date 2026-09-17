@@ -6,6 +6,7 @@ import Animated from 'react-native-reanimated';
 import { useBrand } from '@/lib/brand-theme';
 import { useSafeBack } from '@/lib/safe-back';
 import { useTimedOpacity } from '@/lib/use-brand-transition';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Props = {
   title: string;
@@ -14,6 +15,7 @@ type Props = {
 
 export function ScreenHeader({ title, onBack }: Props) {
   const brand = useBrand();
+  const { control } = useWideLayout();
   const defaultBack = useSafeBack('/inicio');
   const handleBack = onBack ?? defaultBack;
   const [highlighted, setHighlighted] = useState(false);
@@ -30,10 +32,10 @@ export function ScreenHeader({ title, onBack }: Props) {
         onHoverOut={() => setHighlighted(false)}
       >
         <Animated.View style={[styles.backButton, opacityStyle]}>
-          <MaterialCommunityIcons name="chevron-left" size={30} color={brand.textDark} />
+          <MaterialCommunityIcons name="chevron-left" size={control.headerTitle + 8} color={brand.textDark} />
         </Animated.View>
       </Pressable>
-      <Text style={[styles.title, { color: brand.textDark }]}>{title}</Text>
+      <Text style={[styles.title, { color: brand.textDark, fontSize: control.headerTitle }]}>{title}</Text>
     </View>
   );
 }
@@ -49,7 +51,6 @@ const styles = StyleSheet.create({
     marginLeft: -6,
   },
   title: {
-    fontSize: 22,
     fontWeight: '800',
   },
 });

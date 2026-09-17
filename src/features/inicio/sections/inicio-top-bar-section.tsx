@@ -72,8 +72,8 @@ function MenuItemRow({
 
 export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   const brand = useBrand();
-  const styles = useMemo(() => makeStyles(brand), [brand]);
   const { isWide } = useWideLayout();
+  const styles = useMemo(() => makeStyles(brand, isWide), [brand, isWide]);
   const { searchOpen, closeSearch, openSearch, handleSearch, clearSearch } = controller;
   const menuButtonRef = useRef<View>(null);
   const searchInputRef = useRef<TextInput>(null);
@@ -317,19 +317,19 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   );
 }
 
-function makeStyles(brand: BrandColors) {
+function makeStyles(brand: BrandColors, isWide: boolean) {
   return StyleSheet.create({
     wrap: {
-      paddingHorizontal: PageGutter,
-      paddingTop: 8,
+      paddingHorizontal: isWide ? 4 : PageGutter,
+      paddingTop: isWide ? 4 : 8,
     },
     panel: {
       gap: 8,
-      paddingVertical: 10,
+      paddingVertical: isWide ? 6 : 10,
       paddingHorizontal: 12,
       borderRadius: Radius.lg,
-      backgroundColor: brand.surface,
-      borderWidth: 1,
+      backgroundColor: isWide ? 'transparent' : brand.surface,
+      borderWidth: isWide ? 0 : 1,
       borderColor: brand.fieldBorder,
     },
     brand: {
@@ -343,7 +343,7 @@ function makeStyles(brand: BrandColors) {
     middle: {
       flex: 1,
       minWidth: 0,
-      height: 46,
+      height: isWide ? 38 : 46,
       justifyContent: 'center',
       overflow: 'hidden',
     },
@@ -351,7 +351,7 @@ function makeStyles(brand: BrandColors) {
       justifyContent: 'center',
     },
     title: {
-      fontSize: 22,
+      fontSize: isWide ? 18 : 22,
       fontWeight: '800',
       color: brand.textDark,
     },
@@ -364,7 +364,7 @@ function makeStyles(brand: BrandColors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      height: 46,
+      height: isWide ? 38 : 46,
       paddingHorizontal: 16,
       borderRadius: Radius.pill,
       backgroundColor: brand.fieldBackground,
@@ -374,12 +374,12 @@ function makeStyles(brand: BrandColors) {
     searchInput: {
       flex: 1,
       paddingVertical: 0,
-      fontSize: 15,
+      fontSize: isWide ? 14 : 15,
       color: brand.textDark,
     },
     searchButton: {
-      width: 46,
-      height: 46,
+      width: isWide ? 38 : 46,
+      height: isWide ? 38 : 46,
       borderRadius: Radius.pill,
       alignItems: 'center',
       justifyContent: 'center',

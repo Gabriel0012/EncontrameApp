@@ -70,6 +70,7 @@ export function PessoaDetalheHistorySection({ controller }: PessoaDetalheHistory
               <BrandMap
                 pins={controller.historyPins}
                 polylines={controller.historyPolylines}
+                userLocation={controller.userLocation}
                 rounded
                 style={styles.map}
               />

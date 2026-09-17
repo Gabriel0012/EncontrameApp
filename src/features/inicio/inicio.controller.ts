@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
 import { completeAppOnboarding, isAppOnboardingComplete } from '@/lib/app-onboarding';
@@ -11,6 +11,7 @@ import { useSessionUser } from '@/lib/use-session-user';
 import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { useNearbyPeopleQuery } from '@/services/people/people.service';
+import type { Person } from '@/services/people/people.types';
 
 const ONBOARDING_LAST_STEP = 2;
 
@@ -45,7 +46,7 @@ export function useInicioController() {
     };
   }, []);
 
-  const people = peopleQuery.data ?? [];
+  const people = useMemo(() => peopleQuery.data ?? [], [peopleQuery.data]);
   const waitingLocation = !locationDenied && userLocation == null;
   const showPeopleSkeleton =
     waitingLocation ||
@@ -53,23 +54,27 @@ export function useInicioController() {
     peopleQuery.isPlaceholderData ||
     (peopleQuery.isFetching && people.length === 0);
 
-  const pins: MapPin[] = people.flatMap((person) => {
-    if (!person.coords) {
-      return [];
-    }
+  const pins: MapPin[] = useMemo(
+    () =>
+      people.flatMap((person) => {
+        if (!person.coords) {
+          return [];
+        }
 
-    return [
-      {
-        id: person.id,
-        latitude: person.coords.latitude,
-        longitude: person.coords.longitude,
-        locked: person.restricted,
-        photoUri: person.photoUri,
-        label: person.nickname ?? person.fullName,
-        onPress: () => router.push(`/pessoa/${person.id}` as Href),
-      },
-    ];
-  });
+        return [
+          {
+            id: person.id,
+            latitude: person.coords.latitude,
+            longitude: person.coords.longitude,
+            locked: person.restricted,
+            photoUri: person.photoUri,
+            label: person.nickname ?? person.fullName,
+            onPress: () => router.push(`/pessoa/${person.id}` as Href),
+          },
+        ];
+      }),
+    [people, router],
+  );
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -150,6 +155,12 @@ export function useInicioController() {
       })();
     });
 
+  const locationLine = (person: Person) =>
+    [person.neighborhood, person.city, person.state].filter(Boolean).join(', ') ||
+    person.lastSeen ||
+    person.location ||
+    '';
+
   return {
     people,
     pins,
@@ -186,6 +197,7 @@ export function useInicioController() {
     goToAllPeople: () => router.push('/pessoas-desaparecidas' as Href),
     goToLogin: () => goTo(() => router.push('/login')),
     logout,
+    locationLine,
     onboardingVisible,
     onboardingStep,
     onboardingContinue,

@@ -49,3 +49,49 @@ export const MaxListingWidth = 1100;
 export const PageGutter = Spacing.four;
 /** Telas a partir deste width usam layout em 2 colunas (web/tablet). */
 export const WideLayoutBreakpoint = 768;
+/** Largura do painel esquerdo da home no desktop (lista estilo Maps). */
+export const InicioSidebarWidth = 400;
+
+/** Métricas de botão/campo: conforto no mobile, compacto no desktop. */
+export const ComfortControl = {
+  buttonHeight: 54,
+  buttonFont: 17,
+  buttonPadH: 24,
+  fieldMinHeight: 52,
+  fieldFont: 16,
+  fieldPadH: 18,
+  fieldPadV: 12,
+  labelFont: 14,
+  headerTitle: 22,
+  icon: 22,
+} as const;
+
+export const CompactControl = {
+  buttonHeight: 40,
+  buttonFont: 14,
+  buttonPadH: 16,
+  fieldMinHeight: 40,
+  fieldFont: 14,
+  fieldPadH: 14,
+  fieldPadV: 8,
+  labelFont: 12,
+  headerTitle: 18,
+  icon: 18,
+} as const;
+
+export type ControlMetrics = {
+  buttonHeight: number;
+  buttonFont: number;
+  buttonPadH: number;
+  fieldMinHeight: number;
+  fieldFont: number;
+  fieldPadH: number;
+  fieldPadV: number;
+  labelFont: number;
+  headerTitle: number;
+  icon: number;
+};
+
+export function controlMetrics(compact: boolean): ControlMetrics {
+  return compact ? CompactControl : ComfortControl;
+}

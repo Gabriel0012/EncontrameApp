@@ -4,8 +4,10 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Radius, type BrandColors } from '@/constants/brand';
+import type { ControlMetrics } from '@/constants/theme';
 import { useBrand } from '@/lib/brand-theme';
 import { useTimedColor, useTimedOpacity } from '@/lib/use-brand-transition';
+import { useWideLayout } from '@/lib/use-wide-layout';
 
 type Props = {
   label: string;
@@ -56,7 +58,8 @@ function SelectOption({
 
 export function BrandSelect({ label, value, options, onSelect, placeholder = 'Escolher' }: Props) {
   const brand = useBrand();
-  const styles = useMemo(() => makeStyles(brand), [brand]);
+  const { control } = useWideLayout();
+  const styles = useMemo(() => makeStyles(brand, control), [brand, control]);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(false);
   const fieldOpacity = useTimedOpacity(highlighted ? 0.85 : 1);
@@ -80,7 +83,7 @@ export function BrandSelect({ label, value, options, onSelect, placeholder = 'Es
           <Text style={[styles.value, !value && styles.placeholder]} numberOfLines={1}>
             {value || placeholder}
           </Text>
-          <MaterialCommunityIcons name="chevron-down" size={22} color={brand.placeholder} />
+          <MaterialCommunityIcons name="chevron-down" size={control.icon} color={brand.placeholder} />
         </Animated.View>
       </Pressable>
 
@@ -105,13 +108,13 @@ export function BrandSelect({ label, value, options, onSelect, placeholder = 'Es
   );
 }
 
-function makeStyles(brand: BrandColors) {
+function makeStyles(brand: BrandColors, control: ControlMetrics) {
   return StyleSheet.create({
     wrapper: {
       gap: 8,
     },
     label: {
-      fontSize: 14,
+      fontSize: control.labelFont,
       fontWeight: '700',
       color: brand.label,
     },
@@ -120,8 +123,8 @@ function makeStyles(brand: BrandColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
-      minHeight: 52,
-      paddingHorizontal: 18,
+      minHeight: control.fieldMinHeight,
+      paddingHorizontal: control.fieldPadH,
       borderRadius: Radius.md,
       borderWidth: 1,
       borderColor: brand.fieldBorder,
@@ -129,7 +132,7 @@ function makeStyles(brand: BrandColors) {
     },
     value: {
       flex: 1,
-      fontSize: 16,
+      fontSize: control.fieldFont,
       color: brand.textDark,
     },
     placeholder: {
