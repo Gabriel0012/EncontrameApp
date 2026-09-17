@@ -58,8 +58,8 @@ function applyWebCssVars(
   root.style.setProperty('--text-secondary', brand.textMuted);
   root.style.setProperty('--text-placeholder', brand.placeholder);
   root.style.setProperty('--text-label', brand.label);
-  root.style.setProperty('--primary', brand.blue);
-  root.style.setProperty('--primary-hover', brand.blueDark);
+  root.style.setProperty('--primary', brand.orange);
+  root.style.setProperty('--primary-hover', brand.orangeDark);
   root.style.setProperty('--divider', brand.divider);
   root.style.setProperty('--error', brand.error);
   root.style.setProperty('--avatar-background', brand.avatarBackground);

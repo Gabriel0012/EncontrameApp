@@ -121,7 +121,7 @@ function makeStyles(brand: BrandColors) {
       width: SEND_SIZE,
       height: SEND_SIZE,
       borderRadius: SEND_SIZE / 2,
-      backgroundColor: brand.blue,
+      backgroundColor: brand.orange,
       alignItems: 'center',
       justifyContent: 'center',
     },

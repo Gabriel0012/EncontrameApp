@@ -10,20 +10,20 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, {
-  interpolate,
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Radius, type BrandColors } from '@/constants/brand';
 import { brandTiming, Motion } from '@/constants/motion';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
 import { useBrand } from '@/lib/brand-theme';
+import { hexToRgba } from '@/lib/map-style';
 import { useTimedColor, useTimedOpacity } from '@/lib/use-brand-transition';
 import { useWideLayout } from '@/lib/use-wide-layout';
+
+const DRAWER_MAX_WIDTH = 320;
+const DRAWER_SCREEN_RATIO = 0.86;
 
 interface InicioTopBarSectionProps {
   controller: InicioController;
@@ -72,24 +72,38 @@ function MenuItemRow({
 
 export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
   const brand = useBrand();
-  const { isWide } = useWideLayout();
-  const styles = useMemo(() => makeStyles(brand, isWide), [brand, isWide]);
+  const insets = useSafeAreaInsets();
+  const { isWide, width } = useWideLayout();
+  const drawerWidth = Math.min(DRAWER_MAX_WIDTH, Math.round(width * DRAWER_SCREEN_RATIO));
+  const styles = useMemo(
+    () => makeStyles(brand, isWide, drawerWidth),
+    [brand, isWide, drawerWidth],
+  );
   const { searchOpen, closeSearch, openSearch, handleSearch, clearSearch } = controller;
-  const menuButtonRef = useRef<View>(null);
   const searchInputRef = useRef<TextInput>(null);
-  const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({
-    top: 96,
-    left: PageGutter,
-  });
   const [menuHighlighted, setMenuHighlighted] = useState(false);
   const [searchHighlighted, setSearchHighlighted] = useState(false);
   const menuOpacity = useTimedOpacity(menuHighlighted ? 0.85 : 1);
   const searchPressOpacity = useTimedOpacity(searchHighlighted ? 0.85 : 1);
   const searchProgress = useSharedValue(searchOpen ? 1 : 0);
+  const drawerProgress = useSharedValue(0);
 
   useEffect(() => {
     searchProgress.value = brandTiming(searchOpen ? 1 : 0);
   }, [searchOpen, searchProgress]);
+
+  useEffect(() => {
+    if (!controller.menuOpen) {
+      drawerProgress.value = 0;
+      return;
+    }
+
+    drawerProgress.value = 0;
+    const frame = requestAnimationFrame(() => {
+      drawerProgress.value = brandTiming(1);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [controller.menuOpen, drawerProgress]);
 
   useEffect(() => {
     if (!searchOpen) {
@@ -125,16 +139,12 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
     transform: [{ translateX: interpolate(searchProgress.value, [0, 1], [20, 0]) }],
   }));
 
-  const searchButtonStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(searchProgress.value, [0, 1], [brand.blueClear, brand.blue]),
+  const drawerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(drawerProgress.value, [0, 1], [-drawerWidth, 0]) }],
   }));
 
-  const closedIconStyle = useAnimatedStyle(() => ({
-    opacity: 1 - searchProgress.value,
-  }));
-
-  const openIconStyle = useAnimatedStyle(() => ({
-    opacity: searchProgress.value,
+  const scrimStyle = useAnimatedStyle(() => ({
+    opacity: drawerProgress.value,
   }));
 
   const menuItems: MenuItem[] = [
@@ -194,11 +204,11 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
         },
   ];
 
+  const accountItem = menuItems[menuItems.length - 1];
+  const navItems = menuItems.slice(0, -1);
+
   const handleOpenMenu = () => {
-    menuButtonRef.current?.measureInWindow((x, y, _width, height) => {
-      setMenuAnchor({ top: y + height + 8, left: x });
-      controller.openMenu();
-    });
+    controller.openMenu();
   };
 
   const handleSearchButton = () => {
@@ -221,11 +231,9 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
             onHoverIn={() => setMenuHighlighted(true)}
             onHoverOut={() => setMenuHighlighted(false)}
           >
-            <View ref={menuButtonRef} collapsable={false}>
-              <Animated.View style={[styles.menuButton, menuOpacity]}>
-                <MaterialCommunityIcons name="menu" size={26} color={brand.label} />
-              </Animated.View>
-            </View>
+            <Animated.View style={[styles.menuButton, menuOpacity]}>
+              <MaterialCommunityIcons name="menu" size={26} color={brand.label} />
+            </Animated.View>
           </Pressable>
 
           <View style={styles.middle}>
@@ -277,15 +285,8 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
             accessibilityRole="button"
             accessibilityLabel={searchOpen ? 'Buscar' : 'Abrir busca'}
           >
-            <Animated.View style={[styles.searchButton, searchButtonStyle, searchPressOpacity]}>
-              <View style={styles.searchIconStack}>
-                <Animated.View style={[styles.searchIconLayer, closedIconStyle]}>
-                  <MaterialCommunityIcons name="magnify" size={22} color={brand.textDark} />
-                </Animated.View>
-                <Animated.View style={[styles.searchIconLayer, openIconStyle]}>
-                  <MaterialCommunityIcons name="magnify" size={22} color={brand.onPrimary} />
-                </Animated.View>
-              </View>
+            <Animated.View style={[styles.searchButton, searchPressOpacity]}>
+              <MaterialCommunityIcons name="magnify" size={22} color={brand.orange} />
             </Animated.View>
           </Pressable>
         </View>
@@ -298,26 +299,49 @@ export function InicioTopBarSection({ controller }: InicioTopBarSectionProps) {
       <Modal
         visible={controller.menuOpen}
         transparent
-        animationType="fade"
+        animationType="none"
+        statusBarTranslucent
         onRequestClose={controller.closeMenu}
       >
-        <Pressable style={styles.backdrop} onPress={controller.closeMenu}>
+        <View style={styles.drawerRoot} pointerEvents="box-none">
           <Pressable
-            style={[styles.menu, { top: menuAnchor.top, left: menuAnchor.left }]}
-            onPress={(event) => event.stopPropagation()}
+            style={styles.drawerScrimHit}
+            onPress={controller.closeMenu}
+            accessibilityRole="button"
+            accessibilityLabel="Fechar menu"
           >
-            <Text style={styles.menuTitle}>Menu</Text>
-            {menuItems.map((item) => (
-              <MenuItemRow key={item.key} item={item} brand={brand} styles={styles} />
-            ))}
+            <Animated.View style={[styles.drawerScrim, scrimStyle]} />
           </Pressable>
-        </Pressable>
+          <Animated.View style={[styles.drawer, drawerStyle]} pointerEvents="auto">
+            <View style={[styles.drawerHeader, { paddingTop: insets.top + 12 }]}>
+              <Text style={styles.menuTitle}>Menu</Text>
+              <Pressable
+                onPress={controller.closeMenu}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Fechar menu"
+              >
+                <MaterialCommunityIcons name="close" size={24} color={brand.label} />
+              </Pressable>
+            </View>
+            <View style={styles.drawerNav}>
+              {navItems.map((item) => (
+                <MenuItemRow key={item.key} item={item} brand={brand} styles={styles} />
+              ))}
+            </View>
+            {accountItem ? (
+              <View style={[styles.drawerFooter, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                <MenuItemRow item={accountItem} brand={brand} styles={styles} />
+              </View>
+            ) : null}
+          </Animated.View>
+        </View>
       </Modal>
     </View>
   );
 }
 
-function makeStyles(brand: BrandColors, isWide: boolean) {
+function makeStyles(brand: BrandColors, isWide: boolean, drawerWidth: number) {
   return StyleSheet.create({
     wrap: {
       paddingHorizontal: isWide ? 4 : PageGutter,
@@ -329,8 +353,11 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       paddingHorizontal: 12,
       borderRadius: Radius.lg,
       backgroundColor: isWide ? 'transparent' : brand.surface,
-      borderWidth: isWide ? 0 : 1,
-      borderColor: brand.fieldBorder,
+      shadowColor: brand.navyDeep,
+      shadowOpacity: isWide ? 0 : 0.28,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: isWide ? 0 : 10,
     },
     brand: {
       flexDirection: 'row',
@@ -383,46 +410,61 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       borderRadius: Radius.pill,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    searchIconStack: {
-      width: 22,
-      height: 22,
-    },
-    searchIconLayer: {
-      ...StyleSheet.absoluteFill,
-      alignItems: 'center',
-      justifyContent: 'center',
+      backgroundColor: hexToRgba(brand.orange, 0.22),
     },
     locationHint: {
       color: brand.textMuted,
       fontSize: 13,
       fontWeight: '600',
     },
-    backdrop: {
+    drawerRoot: {
       flex: 1,
+    },
+    drawerScrimHit: {
+      ...StyleSheet.absoluteFill,
+    },
+    drawerScrim: {
+      ...StyleSheet.absoluteFill,
       backgroundColor: brand.overlay,
     },
-    menu: {
+    drawer: {
       position: 'absolute',
-      width: 260,
+      top: 0,
+      bottom: 0,
+      left: 0,
+      zIndex: 2,
+      width: drawerWidth,
       backgroundColor: brand.surface,
-      borderRadius: Radius.lg,
-      paddingVertical: 8,
-      paddingHorizontal: 6,
-      gap: 2,
+      // borderRightWidth: 1,
+      // borderRightColor: brand.fieldBorder,
+      paddingHorizontal: 8,
+      elevation: 16,
       shadowColor: brand.navyDeep,
-      shadowOpacity: 0.2,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 8,
+      shadowOpacity: 0.28,
+      shadowRadius: 24,
+      shadowOffset: { width: 8, height: 0 },
+    },
+    drawerHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingBottom: 12,
+    },
+    drawerNav: {
+      flex: 1,
+      gap: 2,
+    },
+    drawerFooter: {
+      borderTopWidth: 1,
+      borderTopColor: brand.divider,
+      paddingTop: 8,
+      paddingHorizontal: 0,
     },
     menuTitle: {
-      fontSize: 13,
+      fontSize: 18,
       fontWeight: '800',
-      color: brand.label,
-      paddingHorizontal: 12,
-      paddingTop: 6,
-      paddingBottom: 4,
+      color: brand.textDark,
     },
     menuItem: {
       flexDirection: 'row',

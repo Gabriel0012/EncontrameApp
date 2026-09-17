@@ -49,7 +49,7 @@ export function BrandFab({
   const [highlighted, setHighlighted] = useState(false);
   const isInactive = disabled || loading;
   const isSurface = variant === 'surface';
-  const iconColor = isSurface ? brand.blue : brand.onPrimary;
+  const iconColor = isSurface ? brand.orange : brand.onPrimary;
   const opacityTarget = !visible ? 0 : isInactive ? 0.5 : highlighted ? 0.88 : 1;
   const opacity = useTimedOpacity(opacityTarget);
 
@@ -97,7 +97,7 @@ function makeStyles(brand: BrandColors) {
       width: 56,
       height: 56,
       borderRadius: Radius.pill,
-      backgroundColor: brand.blue,
+      backgroundColor: brand.orange,
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
@@ -108,7 +108,7 @@ function makeStyles(brand: BrandColors) {
       elevation: 8,
     },
     fabSurface: {
-      backgroundColor: brand.white,
+      backgroundColor: brand.surface,
       borderWidth: 1,
       borderColor: brand.divider,
     },

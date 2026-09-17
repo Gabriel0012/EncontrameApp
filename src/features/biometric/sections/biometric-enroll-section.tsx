@@ -29,7 +29,7 @@ export function BiometricEnrollSection({ controller }: BiometricEnrollSectionPro
           <Text style={styles.body}>{controller.copy.enrollBody}</Text>
           <BrandButton
             label={controller.copy.enrollConfirm}
-            variant="blue"
+            variant="orange"
             loading={controller.busy}
             onPress={controller.accept}
             trailingIcon={controller.copy.icon}

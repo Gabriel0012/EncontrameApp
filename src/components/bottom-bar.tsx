@@ -3,11 +3,7 @@ import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { POLICE_REPORT_PHONE } from '@/constants/emergency';
 import { brandTiming } from '@/constants/motion';
@@ -19,7 +15,7 @@ import { useWideLayout } from '@/lib/use-wide-layout';
 type Tab = 'register' | 'home' | 'phone';
 
 type Props = {
-  /** Aba ativa (fundo azul + ícone branco); as demais ficam cinza. */
+  /** Aba ativa ganha uma plataforma laranja abaixo do ícone; a cor do ícone não muda. */
   active?: Tab;
 };
 
@@ -46,28 +42,15 @@ function BottomTab({
     progress.value = brandTiming(isActive ? 1 : 0);
   }, [isActive, progress]);
 
-  const wrapStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(progress.value, [0, 1], [brand.blueClear, brand.blue]),
-  }));
-
-  const inactiveIconStyle = useAnimatedStyle(() => ({
-    opacity: 1 - progress.value,
-  }));
-
-  const activeIconStyle = useAnimatedStyle(() => ({
+  const platformStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
+    transform: [{ scaleX: 0.45 + progress.value * 0.55 }],
   }));
 
   const content = (
-    <Animated.View style={[styles.iconWrap, wrapStyle, pressOpacity]}>
-      <View style={styles.iconStack}>
-        <Animated.View style={[styles.iconLayer, inactiveIconStyle]}>
-          <MaterialCommunityIcons name={icon} size={26} color={brand.label} />
-        </Animated.View>
-        <Animated.View style={[styles.iconLayer, activeIconStyle]}>
-          <MaterialCommunityIcons name={icon} size={26} color={brand.onPrimary} />
-        </Animated.View>
-      </View>
+    <Animated.View style={[styles.iconWrap, pressOpacity]}>
+      <MaterialCommunityIcons name={icon} size={26} color={brand.label} />
+      <Animated.View style={[styles.platform, { backgroundColor: brand.orange }, platformStyle]} />
     </Animated.View>
   );
 
@@ -151,20 +134,15 @@ function makeBarStyles(brand: BrandColors) {
 
 const styles = StyleSheet.create({
   iconWrap: {
-    padding: 8,
-    borderRadius: Radius.sm,
-  },
-  iconStack: {
-    width: 26,
-    height: 26,
-  },
-  iconLayer: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    minWidth: 48,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  platform: {
+    marginTop: 5,
+    width: 28,
+    height: 5,
+    borderRadius: Radius.pill,
   },
 });

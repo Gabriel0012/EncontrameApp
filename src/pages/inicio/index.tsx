@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +16,7 @@ import { InicioPeopleCarouselSection } from '@/features/inicio/sections/inicio-p
 import { InicioPeopleSidebarSection } from '@/features/inicio/sections/inicio-people-sidebar-section';
 import { InicioTopBarSection } from '@/features/inicio/sections/inicio-top-bar-section';
 import { useBrand } from '@/lib/brand-theme';
+import { hexToRgba } from '@/lib/map-style';
 import { useBottomSafeInset } from '@/lib/use-bottom-safe-inset';
 import { useWideLayout } from '@/lib/use-wide-layout';
 
@@ -52,6 +54,13 @@ export default function InicioPage() {
     <View style={styles.container}>
       <InicioMapSection ref={mapRef} controller={controller} mapPadding={mapPadding} />
       <View style={styles.overlay} pointerEvents="box-none">
+        {isWide ? null : (
+          <LinearGradient
+            pointerEvents="none"
+            colors={[hexToRgba(brand.navyDeep, 0.55), hexToRgba(brand.navyDeep, 0)]}
+            style={[styles.topScrim, { height: insets.top + topOverlay + 48 }]}
+          />
+        )}
         {controller.searchOpen ? (
           <Pressable
             style={styles.searchDismiss}
@@ -108,6 +117,12 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
     overlay: {
       flex: 1,
       zIndex: 2,
+    },
+    topScrim: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      left: 0,
     },
     overlayInner: {
       flex: 1,

@@ -27,7 +27,7 @@ export default function SofiaThemePage() {
           <View style={styles.footer}>
             <BrandButton
               label="Começar a conversar"
-              variant="blue"
+              variant="orange"
               onPress={controller.continueToChat}
             />
           </View>

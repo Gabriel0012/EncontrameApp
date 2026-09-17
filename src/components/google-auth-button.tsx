@@ -67,7 +67,7 @@ function makeStyles(brand: BrandColors) {
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 24,
-      backgroundColor: brand.white,
+      backgroundColor: brand.surface,
       borderWidth: 1.5,
       borderColor: brand.blue,
     },

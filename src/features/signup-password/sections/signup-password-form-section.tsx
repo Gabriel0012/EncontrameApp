@@ -38,7 +38,7 @@ export function SignupPasswordFormSection({ controller }: SignupPasswordFormSect
       <View style={styles.footer}>
         <BrandButton
           label="Cadastrar"
-          variant="blue"
+          variant="orange"
           loading={controller.submitting}
           onPress={controller.handleRegister}
         />

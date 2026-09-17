@@ -81,7 +81,7 @@ export function PessoaDetalheSightingSection({ controller }: PessoaDetalheSighti
           />
           <BrandButton
             label="Registrar avistamento"
-            variant="blue"
+            variant="orange"
             loading={controller.submitting}
             onPress={controller.submitSighting}
           />

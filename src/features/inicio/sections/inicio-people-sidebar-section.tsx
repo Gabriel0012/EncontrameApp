@@ -33,8 +33,12 @@ export function InicioPeopleSidebarSection({ controller }: InicioPeopleSidebarSe
     <View style={styles.panel}>
       <View style={styles.header}>
         <Text style={styles.title}>Pessoas próximas</Text>
-        <Pressable onPress={controller.goToAllPeople} accessibilityRole="button">
-          <Text style={styles.allLink}>Ver todas</Text>
+        <Pressable
+          onPress={controller.goToAllPeople}
+          style={styles.allLink}
+          accessibilityRole="button"
+        >
+          <Text style={styles.allLinkText}>Ver todas</Text>
         </Pressable>
       </View>
 
@@ -146,6 +150,14 @@ function makeStyles(brand: BrandColors) {
       color: brand.textDark,
     },
     allLink: {
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.surface,
+      borderWidth: 1,
+      borderColor: brand.fieldBorder,
+    },
+    allLinkText: {
       fontSize: 13,
       fontWeight: '700',
       color: brand.blue,

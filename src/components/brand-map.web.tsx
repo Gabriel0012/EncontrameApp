@@ -89,21 +89,22 @@ function pinIconSvg(color: string, iconColor: string, locked: boolean) {
     ? '<path fill="ICON" d="M17.2 11.4V10a3.2 3.2 0 0 0-6.4 0v1.4H9.2V20h11.6v-8.6h-3.6zm-4.8-1.4a1.6 1.6 0 0 1 3.2 0v1.4h-3.2V10z"/>'
     : '<circle fill="ICON" cx="14" cy="11" r="3.2"/><path fill="ICON" d="M8.2 20v-1.4c0-2.1 2.6-3.4 5.8-3.4s5.8 1.3 5.8 3.4V20H8.2z"/>';
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"><circle cx="14" cy="14" r="12" fill="${color}" stroke="${iconColor}" stroke-width="2"/>${icon.replaceAll('ICON', iconColor)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"><circle cx="14" cy="14" r="12" fill="${color}" stroke="${iconColor}" stroke-width="3"/>${icon.replaceAll('ICON', iconColor)}</svg>`;
 }
 
 function photoPinSvg(id: string, photoUri: string, ring: string) {
   const clipId = `face-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const href = photoUri.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
-  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="36" height="36" viewBox="0 0 36 36"><defs><clipPath id="${clipId}"><circle cx="18" cy="18" r="15"/></clipPath></defs><circle cx="18" cy="18" r="17" fill="${ring}"/><image href="${href}" xlink:href="${href}" x="3" y="3" width="30" height="30" clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="36" height="36" viewBox="0 0 36 36"><defs><clipPath id="${clipId}"><circle cx="18" cy="18" r="14"/></clipPath></defs><circle cx="18" cy="18" r="17" fill="${ring}"/><image href="${href}" xlink:href="${href}" x="4" y="4" width="28" height="28" clip-path="url(#${clipId})" preserveAspectRatio="xMidYMid slice"/></svg>`;
 }
 
-function pinIcon(pin: MapPin, brand: BrandColors) {
+function pinIcon(pin: MapPin, brand: BrandColors, emphasized = false) {
+  const ring = emphasized ? brand.orange : brand.onPrimary;
   if (pin.photoUri) {
-    return photoPinSvg(pin.id, pin.photoUri, brand.onPrimary);
+    return photoPinSvg(pin.id, pin.photoUri, ring);
   }
 
-  return pinIconSvg(brand.pin, brand.onPrimary, Boolean(pin.locked));
+  return pinIconSvg(brand.pin, ring, Boolean(pin.locked));
 }
 
 function pinIconSize(pin: MapPin, emphasized: boolean) {
@@ -127,7 +128,7 @@ function applyMarkerIcon(
 ) {
   const size = pinIconSize(pin, emphasized);
   marker.setIcon({
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand))}`,
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand, emphasized))}`,
     scaledSize: new gmaps.Size(size.width, size.height),
     anchor: new gmaps.Point(size.anchorX, size.anchorY),
   });
@@ -431,7 +432,7 @@ export const BrandMap = forwardRef<BrandMapHandle, Props>(function BrandMap(
         opacity: pin.opacity ?? 1,
         zIndex: pin.zIndex ?? 1,
         icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand))}`,
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(pinIcon(pin, brand, Boolean(pin.emphasized)))}`,
           scaledSize: new gmaps.Size(size.width, size.height),
           anchor: new gmaps.Point(size.anchorX, size.anchorY),
         },

@@ -34,7 +34,7 @@ export function BrandButton({
   const { control } = useWideLayout();
   const styles = useMemo(() => makeStyles(brand, control), [brand, control]);
   const isOutline = variant === 'outline';
-  const bg = variant === 'orange' ? brand.orange : variant === 'blue' ? brand.blue : brand.white;
+  const bg = variant === 'orange' ? brand.orange : variant === 'blue' ? brand.blue : brand.surface;
   const textColor = isOutline ? brand.blue : brand.onPrimary;
   const isInactive = disabled || loading;
   const [highlighted, setHighlighted] = useState(false);

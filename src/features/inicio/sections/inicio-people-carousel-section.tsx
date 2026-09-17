@@ -25,7 +25,10 @@ interface InicioPeopleCarouselSectionProps {
 
 const CARD_GAP = 12;
 const NAME_GAP = 6;
-const NAME_HEIGHT = 18;
+const NAME_LINE_HEIGHT = 16;
+const NAME_PAD_V = 2;
+const NAME_BORDER = 1;
+const NAME_HEIGHT = NAME_LINE_HEIGHT + NAME_PAD_V * 2 + NAME_BORDER * 2;
 const SKELETON_COUNT = 4;
 const STATUS_BORDER_WIDTH = 3;
 
@@ -120,9 +123,11 @@ function CarouselCard({
             <MaterialCommunityIcons name="account" size={36} color={brand.avatarIcon} />
           )}
         </View>
-        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-          {person.fullName}
-        </Text>
+        <View style={styles.nameChip}>
+          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+            {person.fullName}
+          </Text>
+        </View>
       </Pressable>
     </BrandEnter>
   );
@@ -212,23 +217,32 @@ function makeStyles(brand: BrandColors, cardWidth: number, itemHeight: number) {
       width: '100%',
       height: '100%',
     },
-    name: {
-      width: '100%',
+    nameChip: {
+      maxWidth: '100%',
       height: NAME_HEIGHT,
+      paddingHorizontal: 8,
+      paddingVertical: NAME_PAD_V,
+      borderRadius: Radius.pill,
+      backgroundColor: brand.surface,
+      borderWidth: NAME_BORDER,
+      borderColor: brand.fieldBorder,
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    name: {
       color: brand.textDark,
-      fontSize: 13,
-      lineHeight: NAME_HEIGHT,
-      fontWeight: '800',
+      fontSize: 12,
+      lineHeight: NAME_LINE_HEIGHT,
+      fontWeight: '400',
       textAlign: 'center',
-      textShadowColor: brand.surface,
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 6,
     },
     skeletonName: {
       width: '72%',
-      height: 10,
+      height: NAME_HEIGHT,
       borderRadius: Radius.pill,
-      backgroundColor: brand.avatarBackground,
+      backgroundColor: brand.surface,
+      borderWidth: NAME_BORDER,
+      borderColor: brand.fieldBorder,
     },
     empty: {
       minHeight: itemHeight,

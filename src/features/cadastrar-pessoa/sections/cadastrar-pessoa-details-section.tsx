@@ -50,7 +50,7 @@ export function CadastrarPessoaDetailsSection({ controller }: CadastrarPessoaDet
 
       <BrandButton
         label="Cadastrar"
-        variant="blue"
+        variant="orange"
         loading={controller.submitting}
         disabled={!controller.nearFormEnd}
         onPress={controller.handleRegister}
