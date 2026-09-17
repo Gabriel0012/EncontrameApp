@@ -8,6 +8,7 @@ import { type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import { useInicioController } from '@/features/inicio/inicio.controller';
 import { InicioMapSection } from '@/features/inicio/sections/inicio-map-section';
+import { InicioOnboardingSection } from '@/features/inicio/sections/inicio-onboarding-section';
 import { InicioPeopleCarouselSection } from '@/features/inicio/sections/inicio-people-carousel-section';
 import { InicioTopBarSection } from '@/features/inicio/sections/inicio-top-bar-section';
 import { useBrand } from '@/lib/brand-theme';
@@ -61,6 +62,7 @@ export default function InicioPage() {
       </View>
       <BottomBar active="home" />
       <SofiaFab onPress={controller.goToChat} />
+      <InicioOnboardingSection controller={controller} />
     </View>
   );
 }

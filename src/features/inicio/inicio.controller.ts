@@ -1,7 +1,8 @@
 import { type Href, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { MapPin } from '@/components/brand-map';
+import { completeAppOnboarding, isAppOnboardingComplete } from '@/lib/app-onboarding';
 import { getBiometricEnabled } from '@/lib/biometric';
 import { queryClient } from '@/lib/query-client';
 import { clearSession, getRefreshToken, lockSession } from '@/lib/session';
@@ -10,6 +11,8 @@ import { useSessionUser } from '@/lib/use-session-user';
 import { useUserLocation } from '@/lib/use-user-location';
 import { getAuthRepository } from '@/services/auth/auth.repository';
 import { useNearbyPeopleQuery } from '@/services/people/people.service';
+
+const ONBOARDING_LAST_STEP = 2;
 
 /** Centraliza dados e navegação da tela inicial (dashboard). */
 export function useInicioController() {
@@ -26,7 +29,21 @@ export function useInicioController() {
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [onboardingVisible, setOnboardingVisible] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   const loggedIn = sessionUser != null;
+
+  useEffect(() => {
+    let cancelled = false;
+    void isAppOnboardingComplete().then((done) => {
+      if (!cancelled) {
+        setOnboardingVisible(!done);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const people = peopleQuery.data ?? [];
   const waitingLocation = !locationDenied && userLocation == null;
@@ -76,6 +93,39 @@ export function useInicioController() {
   const clearSearch = () => {
     setSearch('');
     setQuery('');
+  };
+
+  const finishOnboarding = (after?: () => void) => {
+    setOnboardingVisible(false);
+    void completeAppOnboarding();
+    after?.();
+  };
+
+  const onboardingContinue = () => {
+    setOnboardingStep((current) => Math.min(current + 1, ONBOARDING_LAST_STEP));
+  };
+
+  const onboardingReport = () => {
+    finishOnboarding();
+  };
+
+  const onboardingRegister = () => {
+    finishOnboarding(() => router.push('/cadastrar-pessoa'));
+  };
+
+  const onboardingExplore = () => {
+    finishOnboarding();
+  };
+
+  const onboardingRequestClose = () => {
+    if (onboardingStep === ONBOARDING_LAST_STEP) {
+      onboardingExplore();
+      return;
+    }
+
+    if (onboardingStep > 0) {
+      setOnboardingStep((current) => current - 1);
+    }
   };
 
   const logout = () =>
@@ -136,6 +186,13 @@ export function useInicioController() {
     goToAllPeople: () => router.push('/pessoas-desaparecidas' as Href),
     goToLogin: () => goTo(() => router.push('/login')),
     logout,
+    onboardingVisible,
+    onboardingStep,
+    onboardingContinue,
+    onboardingReport,
+    onboardingRegister,
+    onboardingExplore,
+    onboardingRequestClose,
   };
 }
 

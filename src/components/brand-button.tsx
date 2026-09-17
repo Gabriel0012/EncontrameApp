@@ -93,11 +93,14 @@ function makeStyles(brand: BrandColors) {
     content: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 8,
     },
     label: {
       fontSize: 17,
       fontWeight: '700',
+      textAlign: 'center',
+      flexShrink: 1,
     },
   });
 }
