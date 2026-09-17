@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
+import { BrandEnter } from '@/components/brand-enter';
 import { BrandField } from '@/components/brand-field';
 import { BrandMap } from '@/components/brand-map';
 import { Radius, type BrandColors } from '@/constants/brand';
@@ -31,7 +32,8 @@ export function PessoaDetalheSightingSection({ controller }: PessoaDetalheSighti
       {controller.formMessage ? <Text style={styles.message}>{controller.formMessage}</Text> : null}
 
       {controller.formOpen ? (
-        <View style={styles.form}>
+        <BrandEnter from="down" withExit>
+          <View style={styles.form}>
           <View>
             <BrandField
               label="Onde você viu?"
@@ -84,6 +86,7 @@ export function PessoaDetalheSightingSection({ controller }: PessoaDetalheSighti
             onPress={controller.submitSighting}
           />
         </View>
+        </BrandEnter>
       ) : null}
     </View>
   );

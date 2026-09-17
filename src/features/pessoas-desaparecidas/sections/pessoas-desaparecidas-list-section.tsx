@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { BrandEnter, useEnterOnce } from '@/components/brand-enter';
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { PessoasDesaparecidasController } from '@/features/pessoas-desaparecidas/pessoas-desaparecidas.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -29,9 +30,18 @@ export function PessoasDesaparecidasListSection({
   const brand = useBrand();
   const { isWide } = useWideLayout();
   const styles = useMemo(() => makeStyles(brand, isWide), [brand, isWide]);
+  const claimEnter = useEnterOnce();
 
-  const renderItem = ({ item }: { item: Person }) => (
-    <PersonCard person={item} controller={controller} brand={brand} styles={styles} isWide={isWide} />
+  const renderItem = ({ item, index }: { item: Person; index: number }) => (
+    <PersonCard
+      person={item}
+      index={index}
+      skip={!claimEnter(item.id)}
+      controller={controller}
+      brand={brand}
+      styles={styles}
+      isWide={isWide}
+    />
   );
 
   return (
@@ -52,7 +62,9 @@ export function PessoasDesaparecidasListSection({
         controller.loading ? (
           <ActivityIndicator color={brand.blue} style={styles.empty} />
         ) : (
-          <Text style={styles.emptyText}>Nenhuma pessoa encontrada com esses filtros.</Text>
+          <BrandEnter from="fade">
+            <Text style={styles.emptyText}>Nenhuma pessoa encontrada com esses filtros.</Text>
+          </BrandEnter>
         )
       }
       ListFooterComponent={
@@ -64,12 +76,16 @@ export function PessoasDesaparecidasListSection({
 
 function PersonCard({
   person,
+  index,
+  skip,
   controller,
   brand,
   styles,
   isWide,
 }: {
   person: Person;
+  index: number;
+  skip: boolean;
   controller: PessoasDesaparecidasController;
   brand: BrandColors;
   styles: ReturnType<typeof makeStyles>;
@@ -81,6 +97,7 @@ function PersonCard({
   const location = controller.locationLine(person);
 
   return (
+    <BrandEnter from="up" index={index} skip={skip} style={isWide ? styles.cardWrap : undefined}>
     <Pressable
       style={styles.card}
       onPress={() => controller.goToPerson(person.id)}
@@ -113,6 +130,7 @@ function PersonCard({
         </View>
       </View>
     </Pressable>
+    </BrandEnter>
   );
 }
 
@@ -125,6 +143,9 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
     },
     row: {
       gap: 12,
+    },
+    cardWrap: {
+      flex: 1,
     },
     card: {
       flex: isWide ? 1 : undefined,

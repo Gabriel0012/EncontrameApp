@@ -69,6 +69,8 @@ function RootLayoutInner() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: brand.white },
+            animation: 'slide_from_right',
+            animationMatchesGesture: true,
           }}
         >
           <Stack.Screen name="index" />

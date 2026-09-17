@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BrandButton } from '@/components/brand-button';
+import { BrandEnter } from '@/components/brand-enter';
 import { BrandField } from '@/components/brand-field';
 import { BrandSelect } from '@/components/brand-select';
 import { FormRow } from '@/components/form-row';
@@ -52,7 +53,8 @@ export function PessoasDesaparecidasFiltersSection({
       />
 
       {controller.filtersOpen ? (
-        <View style={styles.panel}>
+        <BrandEnter from="down" withExit>
+          <View style={styles.panel}>
           <BrandSelect
             label="Status"
             value={statusLabel}
@@ -120,6 +122,7 @@ export function PessoasDesaparecidasFiltersSection({
             />
           </FormRow>
         </View>
+        </BrandEnter>
       ) : null}
     </View>
   );

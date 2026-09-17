@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
+import { BrandEnter, useSkipInitialEnter } from '@/components/brand-enter';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { GrupoChatController } from '@/features/grupo-chat/grupo-chat.controller';
@@ -17,6 +18,7 @@ export function GrupoChatMessagesSection({ controller }: GrupoChatMessagesSectio
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const lastMessageId = controller.messages.at(-1)?.id;
+  const skipEnter = useSkipInitialEnter(controller.messages.map((message) => message.id));
   const { listRef, scrollToEnd, onListLayout, onListScroll } = useScrollListToEnd<GroupChatMessage>(
     lastMessageId ?? '',
   );
@@ -24,17 +26,17 @@ export function GrupoChatMessagesSection({ controller }: GrupoChatMessagesSectio
   const renderItem = ({ item }: { item: GroupChatMessage }) => {
     if (item.isMine) {
       return (
-        <View style={[styles.row, styles.rowMine]}>
+        <BrandEnter from="up" skip={skipEnter(item.id)} style={[styles.row, styles.rowMine]}>
           <View style={[styles.bubble, styles.bubbleMine]}>
             <Text style={[styles.text, styles.textMine]}>{item.text}</Text>
           </View>
           <Text style={styles.time}>{item.time}</Text>
-        </View>
+        </BrandEnter>
       );
     }
 
     return (
-      <View style={[styles.row, styles.rowOther]}>
+      <BrandEnter from="up" skip={skipEnter(item.id)} style={[styles.row, styles.rowOther]}>
         <View style={styles.senderRow}>
           <View style={styles.avatar}>
             <MaterialCommunityIcons name="account" size={20} color={brand.avatarIcon} />
@@ -45,7 +47,7 @@ export function GrupoChatMessagesSection({ controller }: GrupoChatMessagesSectio
           <Text style={[styles.text, styles.textOther]}>{item.text}</Text>
         </View>
         <Text style={styles.time}>{item.time}</Text>
-      </View>
+      </BrandEnter>
     );
   };
 

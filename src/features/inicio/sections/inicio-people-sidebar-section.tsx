@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { BrandEnter, useEnterOnce } from '@/components/brand-enter';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
@@ -26,6 +27,7 @@ export function InicioPeopleSidebarSection({ controller }: InicioPeopleSidebarSe
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const { people, showPeopleSkeleton } = controller;
+  const claimEnter = useEnterOnce();
 
   return (
     <View style={styles.panel}>
@@ -44,14 +46,23 @@ export function InicioPeopleSidebarSection({ controller }: InicioPeopleSidebarSe
         <FlatList
           data={people}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SidebarPersonCard person={item} controller={controller} brand={brand} styles={styles} />
+          renderItem={({ item, index }) => (
+            <SidebarPersonCard
+              person={item}
+              index={index}
+              skip={!claimEnter(item.id)}
+              controller={controller}
+              brand={brand}
+              styles={styles}
+            />
           )}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Nenhuma pessoa próxima.</Text>
+            <BrandEnter from="fade">
+              <Text style={styles.emptyText}>Nenhuma pessoa próxima.</Text>
+            </BrandEnter>
           }
         />
       )}
@@ -61,11 +72,15 @@ export function InicioPeopleSidebarSection({ controller }: InicioPeopleSidebarSe
 
 function SidebarPersonCard({
   person,
+  index,
+  skip,
   controller,
   brand,
   styles,
 }: {
   person: Person;
+  index: number;
+  skip: boolean;
   controller: InicioController;
   brand: BrandColors;
   styles: ReturnType<typeof makeStyles>;
@@ -76,6 +91,7 @@ function SidebarPersonCard({
   const location = controller.locationLine(person);
 
   return (
+    <BrandEnter from="up" index={index} skip={skip}>
     <Pressable
       style={styles.card}
       onPress={() => controller.goToPerson(person.id)}
@@ -106,6 +122,7 @@ function SidebarPersonCard({
         </View>
       </View>
     </Pressable>
+    </BrandEnter>
   );
 }
 

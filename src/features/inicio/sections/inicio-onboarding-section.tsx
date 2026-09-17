@@ -3,6 +3,7 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandButton } from '@/components/brand-button';
+import { BrandEnter } from '@/components/brand-enter';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
@@ -54,8 +55,10 @@ export function InicioOnboardingSection({ controller }: Props) {
               accessibilityLabel="Sofia"
             />
             <Text style={styles.name}>Oi, eu sou a Sofia.</Text>
-            <Text style={styles.title}>{copy.title}</Text>
-            {copy.message ? <Text style={styles.message}>{copy.message}</Text> : null}
+            <BrandEnter key={step} from="fade">
+              <Text style={styles.title}>{copy.title}</Text>
+              {copy.message ? <Text style={styles.message}>{copy.message}</Text> : null}
+            </BrandEnter>
           </View>
 
           <View style={styles.footer}>

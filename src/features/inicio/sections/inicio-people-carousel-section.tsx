@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { BrandEnter, useEnterOnce } from '@/components/brand-enter';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
@@ -39,6 +40,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
     [brand, cardWidth, itemHeight],
   );
   const { people, showPeopleSkeleton } = controller;
+  const claimEnter = useEnterOnce();
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
@@ -55,9 +57,9 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
           ))}
         </ScrollView>
       ) : people.length === 0 ? (
-        <View style={styles.empty}>
+        <BrandEnter from="fade" style={styles.empty}>
           <Text style={styles.emptyText}>Nenhuma pessoa próxima.</Text>
-        </View>
+        </BrandEnter>
       ) : (
         <ScrollView
           horizontal
@@ -65,10 +67,12 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
           style={styles.scroller}
           contentContainerStyle={styles.track}
         >
-          {people.map((person) => (
+          {people.map((person, index) => (
             <CarouselCard
               key={person.id}
               person={person}
+              index={index}
+              skip={!claimEnter(person.id)}
               controller={controller}
               brand={brand}
               styles={styles}
@@ -86,11 +90,15 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
 
 function CarouselCard({
   person,
+  index,
+  skip,
   controller,
   brand,
   styles,
 }: {
   person: Person;
+  index: number;
+  skip: boolean;
   controller: InicioController;
   brand: BrandColors;
   styles: ReturnType<typeof makeStyles>;
@@ -98,23 +106,25 @@ function CarouselCard({
   const statusColor = resolvePersonStatusColor(brand, person.statusId, person.statusDescription);
 
   return (
-    <Pressable
-      style={styles.item}
-      onPress={() => controller.goToPerson(person.id)}
-      accessibilityRole="button"
-      accessibilityLabel={`Ver detalhes de ${person.fullName}`}
-    >
-      <View style={[styles.card, { borderColor: statusColor }]}>
-        {person.photoUri ? (
-          <Image source={{ uri: person.photoUri }} style={styles.photoImage} resizeMode="cover" />
-        ) : (
-          <MaterialCommunityIcons name="account" size={36} color={brand.avatarIcon} />
-        )}
-      </View>
-      <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-        {person.fullName}
-      </Text>
-    </Pressable>
+    <BrandEnter from="right" index={index} skip={skip}>
+      <Pressable
+        style={styles.item}
+        onPress={() => controller.goToPerson(person.id)}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver detalhes de ${person.fullName}`}
+      >
+        <View style={[styles.card, { borderColor: statusColor }]}>
+          {person.photoUri ? (
+            <Image source={{ uri: person.photoUri }} style={styles.photoImage} resizeMode="cover" />
+          ) : (
+            <MaterialCommunityIcons name="account" size={36} color={brand.avatarIcon} />
+          )}
+        </View>
+        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+          {person.fullName}
+        </Text>
+      </Pressable>
+    </BrandEnter>
   );
 }
 

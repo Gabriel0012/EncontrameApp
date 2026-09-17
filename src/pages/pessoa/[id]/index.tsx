@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BrandEnter } from '@/components/brand-enter';
 import { ContentShell } from '@/components/content-shell';
 import { ScreenHeader } from '@/components/screen-header';
 import { type BrandColors } from '@/constants/brand';
@@ -34,13 +35,15 @@ export default function PessoaDetalhePage() {
               <ActivityIndicator size="large" color={brand.orange} />
             </View>
           ) : controller.notFound ? (
-            <Text style={styles.empty}>Não encontramos essa pessoa.</Text>
+            <BrandEnter from="fade">
+              <Text style={styles.empty}>Não encontramos essa pessoa.</Text>
+            </BrandEnter>
           ) : (
-            <View style={styles.body}>
+            <BrandEnter from="up" style={styles.body}>
               <PessoaDetalheHeroSection controller={controller} />
               <PessoaDetalheInfoSection controller={controller} />
               <PessoaDetalheSightingSection controller={controller} />
-            </View>
+            </BrandEnter>
           )}
         </ContentShell>
       </ScrollView>

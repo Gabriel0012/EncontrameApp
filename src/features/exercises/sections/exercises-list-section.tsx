@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { BrandEnter } from '@/components/brand-enter';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { ExercisesController } from '@/features/exercises/exercises.controller';
@@ -25,9 +26,9 @@ export function ExercisesListSection({ controller }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <Text style={styles.subtitle}>Pequenos gestos que fazem muita diferença</Text>
-      {controller.exercises.map((exercise) => (
+      {controller.exercises.map((exercise, index) => (
+        <BrandEnter key={exercise.id} from="up" index={index}>
         <Pressable
-          key={exercise.id}
           onPress={() => controller.start(exercise)}
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         >
@@ -40,6 +41,7 @@ export function ExercisesListSection({ controller }: Props) {
           </View>
           <MaterialCommunityIcons name="chevron-right" size={22} color={brand.textMuted} />
         </Pressable>
+        </BrandEnter>
       ))}
     </ScrollView>
   );

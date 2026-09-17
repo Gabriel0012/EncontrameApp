@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
+import { BrandEnter, useSkipInitialEnter } from '@/components/brand-enter';
 import { ChatTypingDots } from '@/components/chat-typing-dots';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
@@ -17,6 +18,7 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
   const brand = useBrand();
   const styles = useMemo(() => makeStyles(brand), [brand]);
   const lastMessageId = controller.messages.at(-1)?.id;
+  const skipEnter = useSkipInitialEnter(controller.messages.map((message) => message.id));
   const { listRef, scrollToEnd, onListLayout, onListScroll } = useScrollListToEnd<ChatMessage>(
     `${lastMessageId ?? ''}:${controller.sending ? '1' : '0'}`,
   );
@@ -24,12 +26,16 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
   const renderItem = ({ item }: { item: ChatMessage }) => {
     const isUser = item.role === 'user';
     return (
-      <View style={[styles.row, isUser ? styles.rowUser : styles.rowAI]}>
+      <BrandEnter
+        from="up"
+        skip={skipEnter(item.id)}
+        style={[styles.row, isUser ? styles.rowUser : styles.rowAI]}
+      >
         <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI]}>
           <Text style={[styles.text, isUser ? styles.textUser : styles.textAI]}>{item.text}</Text>
         </View>
         <Text style={styles.time}>{item.time}</Text>
-      </View>
+      </BrandEnter>
     );
   };
 
@@ -60,14 +66,11 @@ export function ChatMessagesSection({ controller }: ChatMessagesSectionProps) {
       ListHeaderComponent={<Text style={styles.dateLabel}>{controller.today}</Text>}
       ListFooterComponent={
         controller.sending ? (
-          <View
-            style={[styles.row, styles.rowAI, styles.typingFooter]}
-            onLayout={() => scrollToEnd()}
-          >
-            <View style={[styles.bubble, styles.bubbleAI, styles.typingBubble]}>
+          <BrandEnter from="up" style={[styles.row, styles.rowAI, styles.typingFooter]}>
+            <View style={[styles.bubble, styles.bubbleAI, styles.typingBubble]} onLayout={() => scrollToEnd()}>
               <ChatTypingDots />
             </View>
-          </View>
+          </BrandEnter>
         ) : (
           <View style={styles.footerSpacer} />
         )
