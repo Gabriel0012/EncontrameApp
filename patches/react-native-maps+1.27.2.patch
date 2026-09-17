@@ -1,34 +1,32 @@
-diff --git a/android/src/main/java/com/rnmaps/maps/MapManager.java b/android/src/main/java/com/rnmaps/maps/MapManager.java
---- a/android/src/main/java/com/rnmaps/maps/MapManager.java
-+++ b/android/src/main/java/com/rnmaps/maps/MapManager.java
-@@ -192,8 +192,10 @@
+diff --git a/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapManager.java b/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapManager.java
+index 1111111..2222222 100644
+--- a/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapManager.java
++++ b/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapManager.java
+@@ -192,6 +192,8 @@
              }
          }
-
+ 
          view.applyBaseMapPadding(left, top, right, bottom);
 -        view.map.setPadding(left, top, right, bottom);
 +        if (view.map != null) {
 +            view.map.setPadding(left, top, right, bottom);
 +        }
      }
-
-     @ReactProp(name = "showsUserLocation", defaultBoolean = false)
-diff --git a/android/src/main/java/com/rnmaps/maps/MapView.java b/android/src/main/java/com/rnmaps/maps/MapView.java
---- a/android/src/main/java/com/rnmaps/maps/MapView.java
-+++ b/android/src/main/java/com/rnmaps/maps/MapView.java
-@@ -1325,7 +1325,7 @@
+diff --git a/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapView.java b/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapView.java
+index 3333333..4444444 100644
+--- a/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapView.java
++++ b/node_modules/react-native-maps/android/src/main/java/com/rnmaps/maps/MapView.java
+@@ -1324,6 +1324,6 @@
          return event;
      }
-
+ 
      public void updateExtraData(Object extraData) {
 -        if (setPaddingDeferred && super.getHeight() > 0 && super.getWidth() > 0) {
 +        if (setPaddingDeferred && map != null && super.getHeight() > 0 && super.getWidth() > 0) {
              CameraUpdate cu = CameraUpdateFactory.newCameraPosition(map.getCameraPosition());
-
-             map.setPadding(edgeLeftPadding + baseLeftMapPadding,
-@@ -1491,8 +1491,8 @@
+@@ -1492,8 +1492,8 @@
      int edgeBottomPadding;
-
+ 
      public void applyBaseMapPadding(int left, int top, int right, int bottom) {
 -        if (super.getHeight() <= 0 || super.getWidth() <= 0) {
 -            // the map is not laid out yet and calling setPadding() now has no effect
