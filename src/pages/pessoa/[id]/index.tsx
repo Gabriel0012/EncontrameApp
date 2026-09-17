@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandEnter } from '@/components/brand-enter';
 import { ContentShell } from '@/components/content-shell';
+import { PersonAlertIcon } from '@/components/person-alert-icon';
 import { ScreenHeader } from '@/components/screen-header';
 import { type BrandColors } from '@/constants/brand';
 import { usePessoaDetalheController } from '@/features/pessoa-detalhe/pessoa-detalhe.controller';
@@ -29,7 +30,16 @@ export default function PessoaDetalhePage() {
         removeClippedSubviews={false}
       >
         <ContentShell>
-          <ScreenHeader title={controller.person?.fullName ?? 'Pessoa desaparecida'} />
+          <ScreenHeader
+            title={controller.person?.fullName ?? 'Pessoa desaparecida'}
+            accessory={
+              <PersonAlertIcon
+                statusId={controller.person?.statusId}
+                statusDescription={controller.person?.statusDescription}
+                size={18}
+              />
+            }
+          />
           {controller.loading ? (
             <View style={styles.center}>
               <ActivityIndicator size="large" color={brand.orange} />

@@ -10,6 +10,7 @@ export const LOCAL_PERSON_STATUS_LABEL = 'Cadastro pendente';
 const STATUS_PENDENTE = 1;
 const STATUS_PROCURADO = 2;
 const STATUS_ENCONTRADO = 3;
+const STATUS_ALERTA = 4;
 const STATUS_CANCELADO = 99;
 
 export function isLocalPersonId(id: string): boolean {
@@ -26,6 +27,7 @@ export function resolvePersonStatusColor(
   if (statusId === STATUS_PENDENTE) return brand.statusPendente;
   if (statusId === STATUS_PROCURADO) return brand.statusProcurando;
   if (statusId === STATUS_ENCONTRADO) return brand.statusEncontrado;
+  if (statusId === STATUS_ALERTA) return brand.statusAlerta;
   if (statusId === STATUS_CANCELADO) return brand.statusCancelado;
 
   const normalized = description?.trim().toLowerCase() ?? '';
@@ -33,9 +35,15 @@ export function resolvePersonStatusColor(
   if (normalized.includes('pendente')) return brand.statusPendente;
   if (normalized.includes('procur')) return brand.statusProcurando;
   if (normalized.includes('encontrado')) return brand.statusEncontrado;
+  if (normalized.includes('alerta')) return brand.statusAlerta;
   if (normalized.includes('cancelado')) return brand.statusCancelado;
 
   return brand.statusCancelado;
+}
+
+export function isPersonAlertStatus(statusId?: number, description?: string): boolean {
+  if (statusId === STATUS_ALERTA) return true;
+  return (description?.trim().toLowerCase() ?? '').includes('alerta');
 }
 
 /** Texto sobre o badge: branco no tema claro, marinho no escuro. */

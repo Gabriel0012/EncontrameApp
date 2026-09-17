@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { BrandEnter, useEnterOnce } from '@/components/brand-enter';
+import { PersonAlertIcon } from '@/components/person-alert-icon';
 import { Radius, type BrandColors } from '@/constants/brand';
 import type { PessoasDesaparecidasController } from '@/features/pessoas-desaparecidas/pessoas-desaparecidas.controller';
 import { useBrand } from '@/lib/brand-theme';
@@ -112,9 +113,16 @@ function PersonCard({
         )}
       </View>
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={2}>
-          {person.fullName}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={2}>
+            {person.fullName}
+          </Text>
+          <PersonAlertIcon
+            statusId={person.statusId}
+            statusDescription={person.statusDescription}
+            size={16}
+          />
+        </View>
         <Text style={styles.meta}>Idade: {person.age ?? '—'}</Text>
         {location ? (
           <Text style={styles.meta} numberOfLines={2}>
@@ -179,7 +187,14 @@ function makeStyles(brand: BrandColors, isWide: boolean) {
       gap: 4,
       justifyContent: 'center',
     },
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 4,
+      maxWidth: '100%',
+    },
     name: {
+      flexShrink: 1,
       color: brand.textDark,
       fontSize: isWide ? 16 : 15,
       fontWeight: '800',

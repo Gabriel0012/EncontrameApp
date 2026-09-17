@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { BrandEnter, useEnterOnce } from '@/components/brand-enter';
+import { PersonAlertIcon } from '@/components/person-alert-icon';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
@@ -110,9 +111,15 @@ function SidebarPersonCard({
         )}
       </View>
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
-          {person.fullName}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={1}>
+            {person.fullName}
+          </Text>
+          <PersonAlertIcon
+            statusId={person.statusId}
+            statusDescription={person.statusDescription}
+          />
+        </View>
         <Text style={styles.meta} numberOfLines={1}>
           Idade: {person.age ?? '—'}
           {location ? ` · ${location}` : ''}
@@ -202,7 +209,14 @@ function makeStyles(brand: BrandColors) {
       gap: 2,
       justifyContent: 'center',
     },
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      maxWidth: '100%',
+    },
     name: {
+      flexShrink: 1,
       color: brand.textDark,
       fontSize: 14,
       fontWeight: '800',

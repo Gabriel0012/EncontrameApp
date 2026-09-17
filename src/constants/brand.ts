@@ -34,7 +34,8 @@ const BrandLight = {
   /** Badges de status da pessoa desaparecida */
   statusCadastroPendente: '#C98912',
   statusPendente: '#5C6370',
-  statusProcurando: '#E06F1E',
+  statusProcurando: '#1B4DB8',
+  statusAlerta: '#F24C00',
   statusEncontrado: '#1E7A4C',
   statusCancelado: '#5C6370',
   /** Texto sobre o badge de status (branco no claro, marinho no escuro) */
@@ -77,7 +78,8 @@ const BrandDark = {
   cardInfo: '#13171B',
   statusCadastroPendente: '#F0C14D',
   statusPendente: '#D0D4DC',
-  statusProcurando: '#F5B06A',
+  statusProcurando: '#6B9AFF',
+  statusAlerta: '#FF6B1A',
   statusEncontrado: '#7ED9A5',
   statusCancelado: '#D0D4DC',
   onStatusBadge: '#0B2442',

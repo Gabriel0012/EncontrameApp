@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { BrandEnter, useEnterOnce } from '@/components/brand-enter';
+import { PersonAlertIcon } from '@/components/person-alert-icon';
 import { Radius, type BrandColors } from '@/constants/brand';
 import { PageGutter } from '@/constants/theme';
 import type { InicioController } from '@/features/inicio/inicio.controller';
@@ -24,6 +25,7 @@ interface InicioPeopleCarouselSectionProps {
 }
 
 const CARD_GAP = 12;
+const CARD_MAX_WIDTH = 104;
 const NAME_GAP = 6;
 const NAME_LINE_HEIGHT = 16;
 const NAME_PAD_V = 2;
@@ -36,7 +38,7 @@ export function InicioPeopleCarouselSection({ controller }: InicioPeopleCarousel
   const brand = useBrand();
   const { width, isWide } = useWideLayout();
   const visibleCards = isWide ? 5.5 : 3.6;
-  const cardWidth = (width - PageGutter * 2 - CARD_GAP) / visibleCards;
+  const cardWidth = Math.min(CARD_MAX_WIDTH, (width - PageGutter * 2 - CARD_GAP) / visibleCards);
   const itemHeight = cardWidth + NAME_GAP + NAME_HEIGHT;
   const styles = useMemo(
     () => makeStyles(brand, cardWidth, itemHeight),
@@ -127,6 +129,11 @@ function CarouselCard({
           <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
             {person.fullName}
           </Text>
+          <PersonAlertIcon
+            statusId={person.statusId}
+            statusDescription={person.statusDescription}
+            size={12}
+          />
         </View>
       </Pressable>
     </BrandEnter>
@@ -226,10 +233,14 @@ function makeStyles(brand: BrandColors, cardWidth: number, itemHeight: number) {
       backgroundColor: brand.surface,
       borderWidth: NAME_BORDER,
       borderColor: brand.fieldBorder,
+      flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'center',
+      gap: 4,
       overflow: 'hidden',
     },
     name: {
+      flexShrink: 1,
       color: brand.textDark,
       fontSize: 12,
       lineHeight: NAME_LINE_HEIGHT,

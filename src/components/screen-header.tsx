@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -11,9 +11,10 @@ import { useWideLayout } from '@/lib/use-wide-layout';
 type Props = {
   title: string;
   onBack?: () => void;
+  accessory?: ReactNode;
 };
 
-export function ScreenHeader({ title, onBack }: Props) {
+export function ScreenHeader({ title, onBack, accessory }: Props) {
   const brand = useBrand();
   const { control } = useWideLayout();
   const defaultBack = useSafeBack('/inicio');
@@ -35,7 +36,13 @@ export function ScreenHeader({ title, onBack }: Props) {
           <MaterialCommunityIcons name="chevron-left" size={control.headerTitle + 8} color={brand.textDark} />
         </Animated.View>
       </Pressable>
-      <Text style={[styles.title, { color: brand.textDark, fontSize: control.headerTitle }]}>{title}</Text>
+      <Text
+        style={[styles.title, { color: brand.textDark, fontSize: control.headerTitle }]}
+        numberOfLines={1}
+      >
+        {title}
+      </Text>
+      {accessory}
     </View>
   );
 }
@@ -51,6 +58,7 @@ const styles = StyleSheet.create({
     marginLeft: -6,
   },
   title: {
+    flexShrink: 1,
     fontWeight: '800',
   },
 });

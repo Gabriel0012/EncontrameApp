@@ -68,6 +68,7 @@ function applyWebCssVars(
   root.style.setProperty('--status-cadastro-pendente', brand.statusCadastroPendente);
   root.style.setProperty('--status-pendente', brand.statusPendente);
   root.style.setProperty('--status-procurando', brand.statusProcurando);
+  root.style.setProperty('--status-alerta', brand.statusAlerta);
   root.style.setProperty('--status-encontrado', brand.statusEncontrado);
   root.style.setProperty('--status-cancelado', brand.statusCancelado);
   root.style.setProperty('--on-status-badge', brand.onStatusBadge);

@@ -31,7 +31,8 @@
   --card-info: #ffffff;
   --status-cadastro-pendente: #c98912;
   --status-pendente: #5c6370;
-  --status-procurando: #e06f1e;
+  --status-procurando: #1b4db8;
+  --status-alerta: #f24c00;
   --status-encontrado: #1e7a4c;
   --status-cancelado: #5c6370;
   --on-status-badge: #ffffff;
@@ -66,7 +67,8 @@
     --card-info: #13171b;
     --status-cadastro-pendente: #f0c14d;
     --status-pendente: #d0d4dc;
-    --status-procurando: #f5b06a;
+    --status-procurando: #6b9aff;
+    --status-alerta: #ff6b1a;
     --status-encontrado: #7ed9a5;
     --status-cancelado: #d0d4dc;
     --on-status-badge: #0b2442;
