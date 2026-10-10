@@ -142,3 +142,11 @@ No Netlify: Site configuration → Environment variables (disponíveis no **buil
 6. Feature nova sempre com repositório mock além do axios; o service escolhe por env.
 7. Se as rotas tipadas quebrarem (`.expo/types/router.d.ts` com caminhos estranhos), rode
    `npx expo start --clear` para regenerar antes do `npm run check`.
+
+## Cursor Cloud specific instructions
+
+- Dependências: `npm ci` (o `postinstall` aplica o patch de `react-native-maps`; o `prepare` roda o Husky). Rode de novo para confirmar que é idempotente. Não atualize o Expo só porque o CLI avisa que há versão nova.
+- Verificação: `npm run check` (typecheck + lint) e `npm run build` (`expo export --platform web`).
+- Servidor de desenvolvimento web: `npx expo start --host localhost --port 8081`. Não defina `CI=1` — o Metro desliga o watch mode. Abra `http://localhost:8081` (o processo escuta em localhost IPv6; `127.0.0.1` recusa conexão). A raiz redireciona para `/inicio`.
+- Mocks são o padrão (`EXPO_PUBLIC_USE_MOCKS` só desliga quando vale `false`). Não é preciso chave de API para o fluxo com dados simulados.
+- A lista de pessoas próximas fica vazia até o navegador conceder geolocalização. Para exercitar a home, conceda uma posição em Belo Horizonte (cerca de -19,92, -43,94). A busca da home filtra quem já está no raio de 50 km.
